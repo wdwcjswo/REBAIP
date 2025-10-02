@@ -1,0 +1,3170 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+<meta charset="utf-8">
+<title>Ai 데이터 분석</title>
+<meta name="author" content="Your Name">
+<meta name="description" content="Example description">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="css/style_ui.css">
+<link rel="stylesheet" href="css/reset.css">
+<link rel="icon" type="image/x-icon" href="" />
+<link rel="stylesheet" type="text/css" href="css/jquer-ui.css">
+
+
+<!-- 차트 관련 -->
+
+<script type="text/javascript" src="./js/chartJS.lib//jquery.min.js"></script>
+<script type="text/javascript" src="./js/chartJS.lib//jquery-ui.min.js"></script>
+
+<script type="text/javascript" src="./js/chartJS.lib/chart.js"></script>
+<script type="text/javascript" src="./js/chartJS.lib/hammer.min.js"></script>
+<script type="text/javascript" src="./js/chartJS.lib/helpers.js"></script>
+
+<script type="text/javascript" src="./js/chartJS.lib/chart.umd.min.js"></script>
+<script type="text/javascript" src="./js/chartJS.lib/chartjs-plugin-annotation.min.js"></script>
+<script type="text/javascript" src="./js/chartJS.lib/chartjs-plugin-zoom.min.js"></script>
+
+<script type="text/javascript" src="./js/chartJS.lib/chartjs-chart-financial.min.js"></script>
+<script type="text/javascript" src="./js/chartJS.lib/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<script type="text/javascript" src="./js/chartJS.lib/chartjs-plugin-reb.datalabel.js"></script>
+
+<style>
+</style>
+</head>
+
+<body>
+
+    <main>
+    <nav>
+        <div class="reb_logo">
+            <a href=""><img src="images/reb_logo.svg" alt="reb 로고"></a>
+        </div>
+        <ul>
+            <li class="on"><a href="#" title="데이터"> <i class="xi-chart-bar"></i>
+                    <p>데이터</p>
+            </a></li>
+            <li><a href="#" title="통계"> <i class="xi-presentation"></i>
+                    <p>통계</p>
+            </a></li>
+            <li><a href="#" title="지도"> <i class="xi-globus"></i>
+                    <p>지도</p>
+            </a></li>
+            <li><a href="#" title="AI GPT"> <i class="xi-message"></i>
+                    <p>AI GPT</p>
+            </a></li>
+            <li><a href="#" title="환경설정"> <i class="xi-cog"></i>
+                    <p>환경설정</p>
+            </a></li>
+        </ul>
+    </nav>
+
+    <section>
+        <header>
+            <div class="headTit">
+                <span class="img1"> <img src="images/icon01.svg">
+                </span> <span class="title">Ai 데이터 분석</span>
+            </div>
+
+            <div class="popuTxt apt">
+                <span> 공지사항 </span> <span> REB AI Platform </span>
+            </div>
+
+        </header>
+
+        <article>
+            <div class="part1">
+                <div class="tab_wrap">
+                    <ul class="tab_box">
+                    <div data-show="tab_01" class="tab_box active">
+                        <a href="#tab_01">한국부동산원</a>
+                        <div id="tab_01" class="tab_content">
+                        	<button class="foldBtn"> 접<br>기</button>
+                            <div class="conts1">
+                                <h2 class="title">
+                                    <i class="xi-chart-bar"></i> <span>데이터 셋</span>
+                                </h2>
+                                <div id="menuContainer" class="menuWrap"></div>
+                            </div>
+
+                            <div class="conts2">
+                                <div class="subTab">
+                                    <div data-show="tab_04" class="tabBox active">
+                                        <a href="#tab_04">히스토리</a>
+                                        <div id="tab_04" class="tabConts" style="display: block"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+					<!--아파트정보-->
+                    <div data-show="tab_02" class="tab_box active"><a href="#tab_02">아파트정보</a>
+                        <div id="tab_02" class="tab_content">
+                           <button class="foldBtn"> 접<br>기</button>
+                            <div class="conts1 apt">
+                                <button class="btnApt">아파트 단지 추가 <i class="xi-angle-right"></i></button>
+                                <div class="addAptList" id="addAptList"></div>
+                                
+                                <div class="atpPop">
+                                   <button class="atpPopHide"><i class="xi-close"></i></button>
+                                    <div class="aptSch">
+                                        <input type="text" id="aptSch" class="atpSch" placeholder="경희궁 자이(2단지)">
+                                        <label for="aptSch" class="blind">아파트 검색</label>
+                                    </div>
+                                    <div class="aptJiyeok">
+                                        <div class="aptDiv" id="jiList1">
+                                            <ul>
+                                                <li data-val="서울">서울 특별시</li>
+                                                <li data-val="경기">경기도</li>
+                                                <li data-val="인천">인천광역시</li>
+                                                <li data-val="부산">부산광역시</li>
+                                                <li data-val="광주광">광주광역시</li>
+                                                <li data-val="대구">대구광역시</li>
+                                                <li data-val="대전">대전광역시</li>
+                                                <li data-val="울산">울산광역시</li>
+                                                <li data-val="세종">세종특별자치도</li>
+                                                <li data-val="강원">강원특별자치도</li>
+                                                <li data-val="경상남">경상남도</li>
+                                                <li data-val="경상북">경상북도</li>
+                                                <li data-val="전라남">전라남도</li>
+                                                <li data-val="전북">전북특별자치도</li>
+                                                <li data-val="충청북">충청북도</li>
+                                                <li data-val="충청남">충청남도</li>
+                                                <li data-val="제주">제주특별자치도</li>
+                                            </ul>
+                                        </div>
+                                        <div class="aptDiv" id="listRegions">
+                                        </div>
+                                        <div class="aptDiv" id="aptList">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="conts2">
+                                <div class="subTab">
+                                    <div data-show="tab_05" class="tabBox1 active"><a href="#tab_05">히스토리</a>
+                                        <div id="tab_05" class="tabConts1" style="display: block">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                        
+                    <div data-show="tab_03" class="tab_box"><a href="#tab_03">외부기관 데이터</a></div>
+                    <div id="tab_03" class="tab_content">
+                            <button class="foldBtn"> 접<br>기</button>
+                            <div class="conts1">
+                                <h2 class="title">
+                                    <i class="xi-chart-bar"></i> <span>데이터 셋</span>
+                                </h2>
+                                <div id="menuContainer" class="menuWrap">
+                                   <ul class='list2'>
+                                   <li><a href='#'>통화금융통계</a>
+                                            <ol class='list2-1'>
+                                                    <li ><a href='#' statblId='T231283129942110'  newDate='202506' count='48'   ><p><span class="dt-price">금액</span>가계신용(예금취급기관의 가계대출)</p></a></li>
+                                                    <li ><a href='#' statblId='T232023129584012'  newDate='202506' count='162'  ><p><span class="dt-percent">퍼센트</span>예금은행 가중 평균금리-수신</p></a></li>
+                                                    <li ><a href='#' statblId='T233453129931506'  newDate='202506' count='114'  ><p><span class="dt-percent">퍼센트</span>예금은행 가중 평균금리-대출</p></a></li>
+                                            </ol>
+                                    </li>
+                                    </ul> 
+                                </div>
+                            </div>
+
+                            <div class="conts2">
+                                <div class="subTab">
+                                    <div data-show="tab_06" class="tabBox active">
+                                        <a href="#tab_06">히스토리</a>
+                                        <div id="tab_06" class="tabConts" style="display: block"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </ul>
+                </div>
+                
+            </div>
+
+            <div class="part2 apt">
+            	<!--범위-->
+                <div class="calendarWrap">
+                <button class="unfoldBtn">열<br>기</button>
+                    <h3 class="title">
+                        <i class="xi-chart-bar"></i> <span>범위</span>
+                    </h3>
+                    <div class="calendar">
+                        <div class="beom">
+                            <div>
+                                <label for="radio1"> <input type="radio" id="radio1" name="beom" value="1" >전체
+                                </label>
+                            </div>
+                            <div>
+
+                                <label for="radio2"> <input type="radio" id="radio2" name="beom" value="2">10년
+                                </label>
+                            </div>
+                            <div>
+
+                                <label for="radio3"> <input type="radio" id="radio3" name="beom" value="3" checked>5년
+                                </label>
+                            </div>
+                            <div class="gigan">
+                                <label for="radio4"> <input type="radio" id="radio4" name="beom" class="caledarOpen" value="4">기간지정
+                                </label>
+                            </div>
+                            <span> <input type="text" id="stym" name="stym" class="fromto" value=""> <label for="stym" class="blind">
+                                    from</label> ~ <input type="text" id="edym" name="edym" class="fromto" value=""> <label for="edym" class="blind">
+                                    to</label>
+                            </span>
+                            <span class="calBtn">
+                                    <button class="calOpen">달력열기</button>
+                                    <button class="calClose">달력닫기</button>
+                                </span>
+                        </div>
+
+                        <!--달력-->
+                        <div class="calendarPop">
+                            <div class="fromDal">
+                                <div id="calBgnDe"></div>
+                            </div>
+                            <div class="angleR">
+                                <i class="xi-angle-right"></i>
+                            </div>
+                            <div class="toDal">
+                                <div id="calEndDe"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                
+                
+                <div class="boxs">
+                    <div id="dropzone1" ondragover="dragOver(event)" ondrop="drop(event)" class="blank">
+                        <i class="xi-plus-square"></i>
+                    </div>
+                    <div id="dropzone2" ondragover="dragOver(event)" ondrop="drop(event)" class="blank">
+                        <i class="xi-plus-square"></i>
+                    </div>
+                    <div id="dropzone3" ondragover="dragOver(event)" ondrop="drop(event)" class="blank">
+                        <i class="xi-plus-square"></i>
+                    </div>
+                </div>
+
+                <!--그래프-->
+                <div class="graphWrap">
+                    <h3 class="title">
+                        <i class="xi-chart-bar"></i> <span>그래프</span>
+                    </h3>
+                    <div class="graphBox">
+                        <canvas id="chart"></canvas>
+                    </div>
+                    <div class="issueDiv">
+                        <button class="issueShow">정책자료</button>
+                        <button class="resetChart">차트 초기화</button>
+                        <button id="send">AI 분석</button>
+                        <div id="" class="issueBox">
+                            <button class="issueHide">
+                                <i class="xi-close"></i>
+                            </button>
+                            <div id="issueContainer" class="issueList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </article>
+
+    </section>
+
+    <!--REBGPT-->
+    <div class="rebGptWrap">
+        <h1>
+            <br/>
+            <img src="images/rebGpt.svg" style="width: 25%">
+        </h1>
+        <div class="history">
+            <h3 class="title">
+                <i class="xi-chart-bar"></i> <span>히스토리</span>
+            </h3>
+            <div id="tab_07" class="gtpHis">
+            </div>
+        </div>
+
+        <!--AI 데이터 분석-->
+        <div class="gptBox">
+            <h3 class="title">
+                <i class="xi-chart-bar"></i> <span>AI 데이터 분석</span>
+            </h3>
+            <div class="gptDiv">
+                <iframe id="chat-frame" src="http://172.16.10.57:8080/" width='100%' height='100%' frameborder='0'></iframe>
+            </div>
+        </div>
+
+
+    </div>
+    </main>
+    <footer></footer>
+    <script>
+    
+//   const server = "http://172.16.10.56:8087/RAP";
+    const server = "http://127.0.0.1:8087/RAP";
+    
+    /** Default Values */ 
+    let serviceURL = "";
+    let title = '';
+    
+    let opt1 = null;
+    let opt2 = null;
+    let datano = null;
+    let optStatbleId = null;
+    
+    let activetabL = "";
+    
+    //'&APT_CODE='+GRP_ID+'&AREA='+CLS_ID
+    
+    let curretAptCode = null;
+    let currentArea = null;
+    let currentAptName = null;
+    
+
+    /* 드래그 드롭 카드 맵 */
+    let dropMap = new Map();
+
+    /* 차트 기본 설정 */
+    Chart.defaults.font.family = 'Noto Sans KR';
+    //Chart.register(reb_datalabel);
+    let ctx = document.getElementById('chart');
+    
+    let chart = null;
+    var image = null;
+
+    /* 한국부동산원 (R-ONE) 통계 메뉴 읽어오기 */
+    let getMenuList = $.ajax({
+        url: server +'/getMenu',
+        type: 'GET',
+        dataType: 'html',
+        success: function(data) {
+            
+            const $html = $("<div>").html(data);
+            $html.find('a').each(function(index)
+            {
+                $(this).attr('draggable',true).attr('ondragstart','dragStart(event)').attr('id','menu'+index).attr('data-icon','');
+            });
+            //console.log($html.html());
+            
+            const menuContainer = document.getElementById('menuContainer');         
+            menuContainer.innerHTML = '';
+            menuContainer.innerHTML = $html.html();
+            
+        },
+        error: function(xhr,status,error) {
+            console.error(status,error);
+        }
+    });
+    
+    /* 한국부동산원 (R-ONE) 통계 메뉴 클릭 이벤트 */
+    $.when(getMenuList).done(function() {
+        /* 데이터별 아코디어 리스트 메뉴*/
+        $('ol.list1-1:not(:first)').css('display', 'none');
+        
+        $("ul.list1 > li > a").click(function() {
+        	
+        	if("on" == $(this).attr("class")) {
+
+        		$(this).removeClass("on");
+                $(this).siblings("ol").removeClass("on");
+                $(this).siblings("ol").hide();
+        	} else {
+
+                $("ul.list1 > li > a").removeClass("on");
+                $("ul.list1 > li > ol").hide();
+                
+                $(this).siblings("ol").show();
+                $(this).toggleClass("on");
+        	}
+        });
+     });
+    
+    /* 정책정보 가져오기 */
+    $.ajax({
+        url: server +'/getISSUEList',
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            
+            const issueContainer = document.getElementById('issueContainer');     
+            console.log(data);
+            const table = document.createElement('table');
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                const tdCheckBox = document.createElement('td');
+                const checkBox = document.createElement('input');
+                checkBox.type = 'checkbox';
+                checkBox.name = 'issueNo';
+                checkBox.value = item.ISSUE_NO;
+                
+                checkBox.addEventListener("change",function() {
+                	
+                	if(checkBox.checked) {
+                		addIssuTag(item.ISSUE_NO,item.CATEGORY,item.TAG,item.EFFECT_DATE,item.CONTENTS);
+                	} else {
+                		removeIssuTag(item.ISSUE_NO,item.CATEGORY,item.TAG,item.EFFECT_DATE,item.CONTENTS);
+                	}
+                	
+                });
+                
+                tdCheckBox.appendChild(checkBox);
+                tr.appendChild(tdCheckBox);
+   
+                const td1 = document.createElement('td');
+                const td2 = document.createElement('td');
+                const td3 = document.createElement('td');
+                
+                td1.textContent = item.ISSUE_NO;
+                tr.appendChild(td1);
+                td2.textContent = item.TAG;
+                tr.appendChild(td2);
+                td3.textContent = item.CONTENTS;
+                tr.appendChild(td3);
+                
+                /* table.createElement('tr');
+                btn.setAttribute('class','colr6');
+                btn.textContent = item.TAG;
+                btn.title = item.CONTENTS; */
+                
+                table.appendChild(tr);
+            
+            });
+            issueContainer.appendChild(table);
+        },
+        error: function(xhr,status,error) {
+            console.error(status,error);
+        }
+    });
+    
+    
+    /** 날짜 범위 기본 설정 */
+    
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth()+1;
+    let todayString = year;
+    if(month < 10) {
+        todayString += "0";
+    }
+    todayString += month;
+    
+    document.getElementById('stym').value = '202001';
+    document.getElementById('edym').value = todayString;
+
+    let stym = document.getElementById('stym').value;
+    let edym = document.getElementById('edym').value;
+
+    /** chartJS 초기화 */
+
+    const config = getChartJSDefault();
+    
+    config.plugins[0].beforeDraw = new Function("chart",`
+        const ctx = chart.ctx
+        ctx.save();
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0,0,chart.width,chart.height);
+        ctx.restore();
+    `);
+
+    chart = new Chart(ctx,config); 
+    
+    chart.options.animation = {
+        onComplete:() => {
+            
+            image = chart.toBase64Image('image/jpeg');
+        }
+    };
+    
+
+    /*아파트단지 추가*/
+    $(".btnApt").click(function(){
+        $(".atpPop").show();
+    });
+    $(".atpPopHide").click(function(){
+        $(this).parent(".atpPop").hide();
+    });  
+    
+    $(".aptBar").click(function(){
+        $(this).parents(".atpPop").hide();
+    });
+    
+    
+    /** AI 분석 버튼 이벤트 */
+    document.getElementById('send').addEventListener('click', () => {
+    
+      const historyContainer = document.getElementById('tab_04');
+      
+      const img = document.createElement('img');
+      img.src = image;
+      img.style.width = "30%";
+      img.style.height= "auto";
+      img.style.margin= "5px";
+      
+      historyContainer.appendChild(img);
+      
+      const historyContainer2 = document.getElementById('tab_07');
+      
+      const img2 = document.createElement('img');
+      img2.src = image;
+      img2.style.width = "94%";
+      img2.style.height= "auto";
+      img2.style.margin= "5px";
+      
+      historyContainer2.appendChild(img2);
+      
+      const historyContainer3 = document.getElementById('tab_05');
+      
+      const img3 = document.createElement('img');
+      img3.src = image;
+      img3.style.width = "30%";
+      img3.style.height= "auto";
+      img3.style.margin= "5px";
+      
+      historyContainer3.appendChild(img3);
+      
+    
+      const imagePayload = {
+        type: 'simulate-dragdrop',
+        data: {
+          url: image,
+          name: 'sample.jpg'
+        }
+      };
+
+      const frame = document.getElementById('chat-frame');
+      frame.contentWindow.postMessage(imagePayload, '*');
+      
+      /** Save History */ 
+      /*
+        <p>
+            <span><img src="images/chart05.jpg" style="width: 100%"></span>
+            <span>2022-03-03 Gh03</span>
+        </p>
+      
+      */
+      
+    });
+
+    /*
+        이미지 드래그 엔 드롭 이벤트 : 차트 이동 드래그 사용 으로 현재 사용 안함
+    const chartCanvas = document.getElementById('chart');
+    chartCanvas.setAttribute('draggable', true);
+    chartCanvas.addEventListener('dragstart', function(e) {
+        const imagePayload = {
+              type: 'simulate-dragdrop',
+              data: {
+                url: image,
+                name: 'sample.jpg'
+              }
+            };
+
+        const frame = document.getElementById('chat-frame');
+        frame.contentWindow.postMessage(imagePayload, '*');
+    });
+    */
+    
+    
+    /*tab 아파트정보*/
+    $(".tab_box a").on("click", function() {
+        $(".tab_box").removeClass("active");
+        $(this).parents(".tab_box").addClass("active");
+        $(".tab_content").hide();
+
+        $(".tab_box b").remove();
+        $(this).append($('<b/>', {
+            'class': 'blind',
+            text: '현재 선택된 메뉴'
+        }));
+
+        var activeTab = $(this).parents(".tab_box").data("show");
+        
+        //console.log("ACTIVE TAB : " + activeTab);
+        
+        const container = document.querySelector('.boxs');
+            
+        if('tab_01' == activeTab) {
+        	resetChart();
+        	activetabL = 'tab_01';
+        	
+        	container.style.display='';
+        	
+        	
+        } else if('tab_02' == activeTab) {
+        	resetChart(true);
+        	activetabL = 'tab_02';
+        	container.style.display='none';
+        } else {
+        	resetChart(true);
+            activetabL = 'tab_03';
+            container.style.display='none';
+            resetChart();
+        }
+
+        $("#" + activeTab).show();
+    });
+    
+    /** 히스토리 클릭시 AI 분석 이벤트 */
+    ['tab_04', 'tab_07'].forEach(function(tabId) {
+        document.getElementById(tabId).addEventListener('click', function(event) {
+            if(event.target.tagName.toLowerCase() === 'img') {
+                var frame = document.getElementById('chat-frame');
+                var imagePayload = {
+                        type: 'simulate-dragdrop',
+                        data: {
+                          url: event.target.src,
+                          name: 'sample.jpg'
+                        }
+                      };
+                frame.contentWindow.postMessage(imagePayload, '*');
+            }
+        });
+    });
+       
+    
+    /** 메뉴 드래그 앤 드롭 이벤트 */
+    function dragStart(event) {
+        // 드래그된 요소의 id를 저장
+        
+        const payload = {
+            text : event.target.getAttribute('cName'),
+            id :event.target.id,
+            statbl_id : event.target.getAttribute('statblId'),
+            newDate : event.target.getAttribute('newDate'),
+            count : event.target.getAttribute('count'),
+            cType : event.target.getAttribute('cType')
+        };
+        
+        event.dataTransfer.setData('application/json', JSON.stringify(payload));
+        // 드래그 효과를 copy로 지정
+        event.dataTransfer.effectAllowed = 'copy';
+    }
+    function dragOver(event) {
+        // 드롭 허용
+        event.preventDefault();
+        // 드롭 효과를 copy로 지정
+        event.dataTransfer.dropEffect = 'copy';
+    }
+    function drop(event) {
+        event.preventDefault();
+        
+        const json = event.dataTransfer.getData('application/json');
+        const payload = JSON.parse(json);
+        
+        const data = payload.text;
+        const iconId = payload.id;
+        const statbleId = payload.statbl_id;
+        const newDate = payload.newDate;
+        const formatDate = newDate.slice(0,4) + "-" + newDate.slice(4,6);
+        const count = payload.count;
+        const formatCnt = Number(count).toLocaleString();
+        const cType = payload.cType;
+        
+        title = data;
+
+        const dropzone = document.getElementById(event.currentTarget.id);
+        dropzone.replaceChildren();
+        
+        const dropzoneId = event.currentTarget.id;
+        $('#'+dropzoneId).removeClass("blank");
+        const dropzoneIcon = $('#'+iconId).attr("data-icon");
+        
+        
+        if(statbleId.indexOf("KTECH_") > -1) {
+        	// KTECH
+            
+        	let dataType = "";
+            event.currentTarget.innerHTML = '<p title="'+data+'">'+data+'</p>';
+            event.currentTarget.innerHTML += '<p><button class="colr1"></button><b>'+formatCnt+'건</b></p>';
+            event.currentTarget.innerHTML += '<p>'+formatDate+'</p>';
+            event.currentTarget.innerHTML += '<button class="minus" id="'+dropzoneId+'"><i class="xi-close"></i></button>';
+            event.currentTarget.innerHTML += '<span class="icons"><i class="xi-'+dropzoneIcon+'"></i></span>';
+            event.currentTarget.innerHTML += '<div class="selectBoxList"><div class="box"><div class="selectBox layer1" id="'+dropzoneId+'optLayer1"></div></div><div class="box"><div class="selectBox layer2" id="'+dropzoneId+'optLayer2"></div></div></div>';
+        	
+            if("KTECH_RENT_01" == statbleId) {
+            	// 전세가율 - 아파트 (최근 1년)
+            	serviceURL = "/getKTECHRENTList?OPT=OPT1";
+            	dataType = "전세가율";
+            } else if("KTECH_RENT_02" == statbleId) {
+                // 전세가율 - 아파트 (최근 3개월)
+            	serviceURL = "/getKTECHRENTList?OPT=OPT2";    
+            	dataType = "전세가율";
+            } else if("KTECH_RENT_03" == statbleId) {
+                // 전세가율 - 연립/다세대 (최근 1년)
+                serviceURL = "/getKTECHRENTList?OPT=OPT3";
+                dataType = "전세가율";
+            } else if("KTECH_RENT_04" == statbleId) {
+                // 전세가율 - 연립/다세대 (최근 3개월)
+                serviceURL = "/getKTECHRENTList?OPT=OPT4";
+                dataType = "전세가율";
+                
+            } else if("KTECH_SURETY_01" == statbleId) {
+                // 보증사고현황 - 사고건수
+            	serviceURL = "/getKTECHSURETYList?OPT=OPT1";
+            	dataType = "사고건수";
+            } else if("KTECH_SURETY_02" == statbleId) {
+                // 보증사고현황 - 사고금액
+            	serviceURL = "/getKTECHSURETYList?OPT=OPT2";
+            	dataType = "사고금액";
+            } else if("KTECH_SURETY_03" == statbleId) {
+                // 보증사고현황 - 사고율
+            	serviceURL = "/getKTECHSURETYList?OPT=OPT3";
+            	dataType = "사고율";
+                
+            } else if("KTECH_AUCTION_01" == statbleId) {
+                // 경매낙찰 통계 - 경매건수
+            	serviceURL = "/getKTECHAUCTIONList?OPT=OPT1";
+            	dataType = "경매건수";
+            } else if("KTECH_AUCTION_02" == statbleId) {
+                // 경매낙찰 통계 - 낙찰건수
+            	serviceURL = "/getKTECHAUCTIONList?OPT=OPT2";
+            	dataType = "낙찰건수";
+            } else if("KTECH_AUCTION_03" == statbleId) {
+                // 매낙찰 통계 - 낙찰률
+            	serviceURL = "/getKTECHAUCTIONList?OPT=OPT3";
+            	dataType = "낙찰률";
+            } else if("KTECH_AUCTION_04" == statbleId) {
+                // 경매낙찰 통계 - 낙찰가율
+            	serviceURL = "/getKTECHAUCTIONList?OPT=OPT4";
+            	dataType = "낙찰가율";
+            }
+            
+            const optLayer = document.getElementById(dropzoneId);
+            const colrButton = optLayer.querySelector('.colr1');
+            colrButton.textContent = dataType;
+            
+            //getREGList
+            
+            const opt01URL = "/getREGList?_AS1=서울";
+            
+            /** OPT 가져오기 */
+            //OPT 01
+            let request1 = $.ajax({
+                url: server + opt01URL,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                 
+                    console.log(data);
+                    const optLayer = document.getElementById(dropzoneId+'optLayer2');
+                    
+                    if(data && data.length > 0) {
+                        const ul = document.createElement('ul');
+                        ul.setAttribute('class','optionList');
+                        data.forEach((item, index) => {
+                            if(index === 0) {
+                                const button = document.createElement('button');
+                                button.setAttribute('class','label');
+                                button.setAttribute('data-statbleId',statbleId);
+                                button.setAttribute('data-dropzoneId',dropzoneId);
+                                button.value = item.REG;
+                                
+                                if(item.AS2) {
+                                	button.textContent = item.AS1 + ' ' + item.AS2;
+                                } else {
+                                	button.textContent = item.AS1;
+                                }
+                                
+                                
+                                const buttonI = document.createElement('i');
+                                buttonI.setAttribute('class','xi-caret-down');
+                                button.appendChild(buttonI);
+                                optLayer.appendChild(button);
+                                if(item.REG) {
+                                    opt1 = item.REG;
+                                }else {
+                                    opt1 = null;
+                                }
+                            }
+                            const li = document.createElement('li');
+                            li.setAttribute('class','optionItem');
+                            li.value = item.REG;
+                            if(item.AS2) {
+                                li.textContent = item.AS1 + ' ' + item.AS2;
+                            } else {
+                                li.textContent = item.AS1 ;
+                            }
+                            ul.appendChild(li);
+                            optLayer.appendChild(ul);
+                        });
+                    } else {
+                        console.log("[OPT1] NO CONTENTS  ");
+                        const button = document.createElement('button');
+                        button.setAttribute('class','label');
+                        button.setAttribute('data-statbleId',statbleId);
+                        button.setAttribute('data-dropzoneId',dropzoneId);
+                        button.value = null;
+                        button.textContent = "";
+                        //optLayer.setAttribute('style', 'display:none;');
+                        optLayer.style.display = 'none';
+                        optLayer.appendChild(button);
+                    }
+                },
+                error: function(xhr,status,error) {
+                    console.error(status,error);
+                }
+            });
+          //OPT 01
+            const optLayer2 = document.getElementById(dropzoneId+'optLayer1');
+            const button = document.createElement('button');
+            button.setAttribute('class','label');
+            button.setAttribute('data-statbleId',statbleId);
+            button.setAttribute('data-dropzoneId',dropzoneId);
+            button.value = null;
+            button.textContent = "";
+            optLayer2.style.display = 'none';
+            optLayer2.appendChild(button);
+            
+
+            $.when(request1).done(function() {
+               //console.log('옵션모두생성?');
+               //DROPZONE_ID ,statbleId , REG 
+               updateChartKTECH( dropzoneId, statbleId, opt1 );
+            });
+            
+            
+        } else {
+        	// RONE
+            const areaCdNm = "";
+            
+            serviceURL = "/getChart_RONE?STATBL_ID="+statbleId;
+            const opt01URL = "/getMenuOPT?STATBL_ID="+statbleId +"&ITM_TAG=G";
+            const opt02URL = "/getMenuOPT?STATBL_ID="+statbleId +"&ITM_TAG=C";
+            const opt03URL = "/getMenuOPT?STATBL_ID="+statbleId +"&ITM_TAG=I";
+            optStatbleId = statbleId;
+                        
+            event.currentTarget.innerHTML = '<p title="'+data+'">'+data+'</p>';
+            event.currentTarget.innerHTML += '<p><button class="colr1"></button><b>'+formatCnt+'건</b></p>';
+            event.currentTarget.innerHTML += '<p>'+formatDate+'</p>';
+            event.currentTarget.innerHTML += '<button class="minus" id="'+dropzoneId+'"><i class="xi-close"></i></button>';
+            event.currentTarget.innerHTML += '<span class="icons"><i class="xi-'+dropzoneIcon+'"></i></span>';
+            event.currentTarget.innerHTML += '<div class="selectBoxList"><div class="box"><div class="selectBox layer1" id="'+dropzoneId+'optLayer1"></div></div><div class="box"><div class="selectBox layer2" id="'+dropzoneId+'optLayer2"></div></div></div>';
+            
+            /** OPT 가져오기 */
+            //OPT 01
+            let request1 = $.ajax({
+                url: server + opt01URL,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                 
+                    console.log(data);
+                    const optLayer = document.getElementById(dropzoneId+'optLayer1');
+                    if(data && data.length > 0) {
+                        const ul = document.createElement('ul');
+                        ul.setAttribute('class','optionList');
+                        data.forEach((item, index) => {
+                            if(index === 0) {
+                                const button = document.createElement('button');
+                                button.setAttribute('class','label');
+                                button.setAttribute('data-statbleId',statbleId);
+                                button.setAttribute('data-dropzoneId',dropzoneId);
+                                button.value = item.ITM_ID;
+                                button.textContent = item.VIEW_ITM_FULLNM;
+                                const buttonI = document.createElement('i');
+                                buttonI.setAttribute('class','xi-caret-down');
+                                button.appendChild(buttonI);
+                                optLayer.appendChild(button);
+                                if(item.ITM_ID) {
+                                    opt1 = item.ITM_ID;
+                                }else {
+                                    opt1 = null;
+                                }
+                            }
+                            const li = document.createElement('li');
+                            li.setAttribute('class','optionItem');
+                            li.value = item.ITM_ID;
+                            li.textContent = item.VIEW_ITM_FULLNM;
+                            ul.appendChild(li);
+                            optLayer.appendChild(ul);
+                        });
+                    } else {
+                        console.log("[OPT1] NO CONTENTS  ");
+                        const button = document.createElement('button');
+                        button.setAttribute('class','label');
+                        button.setAttribute('data-statbleId',statbleId);
+                        button.setAttribute('data-dropzoneId',dropzoneId);
+                        button.value = null;
+                        button.textContent = "";
+                        //optLayer.setAttribute('style', 'display:none;');
+                        optLayer.style.display = 'none';
+                        optLayer.appendChild(button);
+                    }
+                },
+                error: function(xhr,status,error) {
+                    console.error(status,error);
+                }
+            });
+            //OPT 02
+            let request2 = $.ajax({
+                url: server + opt02URL,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                
+                    console.log(data);
+                    const optLayer = document.getElementById(dropzoneId+'optLayer2');
+                    if(data && data.length > 0) {
+                        const ul = document.createElement('ul');
+                        ul.setAttribute('class','optionList');
+                        data.forEach((item, index) => {
+                            if(index === 0) {
+                                const button = document.createElement('button');
+                                button.setAttribute('class','label');
+                                button.setAttribute('data-statbleId',statbleId);
+                                button.setAttribute('data-dropzoneId',dropzoneId);
+                                button.setAttribute('data-datano',item.DATANO);
+                                button.value = item.ITM_ID;
+                                button.textContent = item.VIEW_ITM_FULLNM;
+                                const buttonI = document.createElement('i');
+                                buttonI.setAttribute('class','xi-caret-down');
+                                button.appendChild(buttonI);
+                                optLayer.appendChild(button);
+                                if(item.ITM_ID) {
+                                    opt2 = item.ITM_ID;
+                                    datano = item.DATANO
+                                }else {
+                                    opt2 = null;
+                                }
+                            }
+                            const li = document.createElement('li');
+                            li.setAttribute('class','optionItem');
+                            li.setAttribute('data-datano',item.DATANO);
+                            li.value = item.ITM_ID;
+                            li.textContent = item.VIEW_ITM_FULLNM;
+                            ul.appendChild(li);
+                            optLayer.appendChild(ul);
+                        });
+                    } else {
+                        const button = document.createElement('button');
+                        button.setAttribute('class','label');
+                        button.setAttribute('data-statbleId',statbleId);
+                        button.setAttribute('data-dropzoneId',dropzoneId);
+                        button.setAttribute('data-datano',item.DATANO);
+                        button.value = null;
+                        button.textContent = "";
+                        optLayer.appendChild(button);
+                        button.style.display = "none";
+                    }
+                },
+                error: function(xhr,status,error) {
+                    console.error(status,error);
+                }
+            });
+            
+            //OPT 03
+            let request3 = $.ajax({
+                url: server + opt03URL,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    
+                    console.log(data);
+                    if(data && data.length > 0) {
+                        data.forEach((item, index) => {
+                            if(index === 0) {
+                                const optLayer = document.getElementById(dropzoneId);
+                                const colrButton = optLayer.querySelector('.colr1');
+                                colrButton.textContent = item.CHART_ITM_NM;
+                            }
+                        });
+                    } else {
+                        const optLayer = document.getElementById(dropzoneId);
+                        const colrButton = optLayer.closest('.colr1');
+                        colrButton.textContent = "";
+                        colrButton.style.display = "none";
+                    }
+                    
+                },
+                error: function(xhr,status,error) {
+                    console.error(status,error);
+                }
+            });
+             
+            $.when(request1, request2, request3).done(function() {
+               //console.log('옵션모두생성?');
+               updateChartRONE( dropzoneId, statbleId, opt1, opt2 ,datano );
+            });
+        	
+        	
+        } 
+        
+    }
+    
+    /** 드래그 엔 드롭 카드 삭제 이벤트 */
+    $(document).on("click",".minus", function() {
+        const clickId = $(this).attr('id');
+        $("#"+clickId).addClass("blank");
+        $('#'+clickId).html('<i class="xi-plus-square"></i>');
+        removeChartRONE( clickId );
+        
+        if(dropMap.size === 0) {
+        	 resetChart();
+        }
+        
+    });
+    
+    function computeXRangeFromDatasets(datasets) {
+        // yyyyMM 포맷은 문자열 비교도 가능하지만, 안전하게 타임스탬프로 변환해 계산
+        const toTS = (s) => {
+          // 'yyyyMM' -> Date -> ms
+          const y = Number(s.slice(0, 4));
+          const m = Number(s.slice(4, 6)) - 1; // 0-11
+          return new Date(y, m, 1).getTime();
+        };
+
+        let minTS = Infinity, maxTS = -Infinity;
+        
+        if(datasets) {
+        	 datasets.forEach(ds => {
+                 (ds.data || []).forEach(p => {
+                   if (p && p.x != null) {
+                     const ts = typeof p.x === 'number' ? p.x : toTS(String(p.x));
+                     if (ts < minTS) minTS = ts;
+                     if (ts > maxTS) maxTS = ts;
+                   }
+                 });
+               });
+
+               if (!isFinite(minTS) || !isFinite(maxTS)) return null;
+               return { min: minTS, max: maxTS };
+        	
+        } else {
+        	return null;
+        }
+
+       
+      }
+    
+    
+    /** Chart 기본 설정 가져오기 */
+    function getChartJSDefault() {
+        
+        const config = {
+                data:{
+                    datasets:[],
+                    labels:[]
+                },
+                plugins:[
+                    {
+                        id:'whileBackground',
+                        beforeDraw: function(chart) {
+                            const ctx = chart.ctx;ctx.save();
+                            ctx.fillStyle =  'white';ctx.fillRect(0,0,chart.width,chart.height);ctx.restore();
+                        }
+                    }
+                ],
+                options:{
+                    maintainAspectRatio:false,
+                    plugins:
+                    {           
+                        zoom:{
+                            zoom:{
+                                mode:'x',
+                                wheel:{enabled:true}
+                            },
+                            pan:{
+                            	enabled:true,
+                            	mode:'x'
+                            },
+                            limits : {
+                            	x : { min : 0 , max :0}
+                            }
+                        },
+                        title:{
+                            display:true,text:'AI 통계 분석 차트',
+                            font:{size:24}
+                         },
+                         chartArea:{
+                            backgroundColor:'rgba(0,0,0,0.1)'
+                         },
+                         reb_datalabel: {
+                        	 divisions: 1,
+                             lineColor: 'rgba(0,0,0,0.3)',
+                             borderDash: [6, 6]
+                           }
+                     },
+                     scales : {
+                    	 x : {
+                    		 type : 'time',
+                    		 time : {
+                    			parser : 'yyyyMM',
+                    			tooltipFormat : "yyyy-MM",
+                    			unit : 'month',
+                    			displayFormats : {
+                    				month : 'yyyy-MM'
+                    			}
+                    		 },
+                    		 ticks : {
+                                 font : { size :12}
+                             }
+                    	 },
+                    	 y : {
+                             type : 'logarithmic',
+                             ticks : {
+                                 font : { size :12}
+                             }
+                         }
+                     }
+                }
+        }
+        
+        return config;
+    }
+    
+    const defTitle = Chart.defaults.plugins.tooltip.callbacks.title;
+    const defLabel = Chart.defaults.plugins.tooltip.callbacks.label;
+
+    function getAPTChartJSDefault() {
+        
+        const config = {
+                data:{
+                    datasets:[],
+                    labels:[]
+                },
+                plugins: [
+                	{
+                        id:'whileBackground',
+                        beforeDraw: function(chart) {
+                            const ctx = chart.ctx;ctx.save();
+                            ctx.fillStyle =  'white';ctx.fillRect(0,0,chart.width,chart.height);ctx.restore();
+                        }
+                    }
+                ],
+                options:{
+                    maintainAspectRatio:false,
+                    plugins:
+                    {           
+                        zoom:{
+                            zoom:{
+                                mode:'x',pinch:{enabled:true},
+                                wheel:{enabled:true}
+                            },
+                            pan:{mode:'x',threshold:'10',enabled:true},
+                            limits : {
+                                x : { min : 0 , max :0}
+                            }
+                        },
+                        title:{
+                            display:true,text:'AI 아파트 호가 분석 차트',
+                            font:{size:24}
+                         },
+                         chartArea:{
+                             backgroundColor:'rgba(0,0,0,0.1)'
+                          },
+                        reb_datalabel: {
+                            divisions: 2,
+                            lineColor: 'rgba(0,0,0,0.3)',
+                            borderDash: [6, 6]
+                          }
+                     },
+                     scales:{
+                    	 x : {
+                             type : 'time',
+                             time : {
+                                parser : 'yyyyMMdd',
+                                tooltipFormat : "yyyy-MM-dd",
+                                unit : 'day',
+                                displayFormats : {
+                                    day : 'yyyy-MM-dd'
+                                }
+                             },
+                             ticks : {
+                                 font : { size :12}
+                             }
+                         },
+                         yPrice:{
+                             type: 'logarithmic',
+                             position : 'left',
+                             grid: { drawOnChartArea:true}
+                         },
+                         yCount:{
+                             type: 'linear',
+                             position : 'right',
+                             grid: { drawOnChartArea:true},
+                             suggestedMin : 0,
+                             suggestedMax : 1000
+                         }
+                         
+                    }
+                }
+                
+        }
+        
+        return config;
+    }
+    
+    /** 각 차트 에 해당하는 값 가져오기 */
+    function getChartValue(chart, xValue, datasetIndex = 0) {
+        
+        const labels = chart.data.labels;
+        const data = chart.data.datasets[datasetIndex].data;
+        
+        const point = data.find(d => d.x === xValue);
+        
+        return point? point.y : null;
+        
+    }
+    
+    /** 정책 정보 차트 반영 해제 */
+    function removeIssuTag(ISSUE_NO,CATEGORY,TAG,EFFECT_DATE,CONTENTS) {
+        
+        const noteID = ISSUE_NO + '_' + TAG;
+        
+        delete chart.options.plugins.annotation.annotations[noteID];
+        chart.update();
+    }
+
+    /** 정책 정보 차트 반영  */
+    function addIssuTag(ISSUE_NO,CATEGORY,TAG,EFFECT_DATE,CONTENTS) {
+        
+        const noteID = ISSUE_NO + '_' + TAG;
+        console.log("EFFECT_DATE " + EFFECT_DATE.substring(0,6));
+        
+        const yv = getChartValue(chart,EFFECT_DATE.substring(0,6));
+        
+        console.log(" VALUE " + yv);
+        
+        const noteIDLine = noteID +"_LINE";
+        //borderDash: [6,6],
+        
+        if(yv == null) {
+        	
+        }
+        
+        console.log("ACTIVE TAB : " + activetabL);
+        if('tab_01' == activetabL) {
+
+            chart.options.plugins.annotation.annotations[noteID] = {
+                    type: 'line',
+                    xMin: EFFECT_DATE.substring(0,6),
+                    xMax: EFFECT_DATE.substring(0,6),
+                    yMax : yv,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    borderColor : 'rgba(0,0,0,0.8)',
+                    borderWidth :2,
+                    borderDash: [6,6],
+                    label : {
+                        display : true,
+                        content : [TAG],
+                        yValue: yv,
+                        position : 'end',
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        color:'white',
+                        borderRadius: 8,
+                        padding:8
+                    }
+                }
+        } else {
+
+            chart.options.plugins.annotation.annotations[noteID] = {
+                    type: 'line',
+                    xMin: EFFECT_DATE,
+                    xMax: EFFECT_DATE,
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    borderColor : 'rgba(0,0,0,0.8)',
+                    borderWidth :2,
+                    borderDash: [6,6],
+                    label : {
+                        display : true,
+                        content : [TAG],
+                        yValue: yv,
+                        position : 'end',
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        color:'white',
+                        borderRadius: 8,
+                        padding:8
+                    }
+                }
+        }
+        
+        
+        chart.update();
+        
+    }
+
+    /** Drop Zone 에 해당하는 차트 삭제 */
+    function removeChartRONE( DROPZONE_ID ) {
+        dropMap.delete(DROPZONE_ID);
+        let zoneId = DROPZONE_ID.slice(-1); 
+        //console.log(dropMap.size +") CHART - DELETE ("+zoneId+")");
+        
+        chart.data.datasets.splice( Number(zoneId) -1 , 1); 
+        chart.update();
+        
+    }
+    
+    
+    function getYAxis(TYPE) {
+    	
+    	if(TYPE.indexOf("률") > -1 || TYPE.indexOf("율") > -1  ) {
+            return 'yPercent';
+        } else if(TYPE.indexOf("금") > -1 || TYPE.indexOf("가격") > -1  ) {
+            return 'yPrice';
+        } else if(TYPE.indexOf("필지수") > -1 || TYPE.indexOf("동(호)수") > -1) {
+            return 'yCount';
+        } else if(TYPE.indexOf("지수") > -1  ) {
+            return 'yIndex';
+        } else {
+        	return 'y';
+        }
+    	
+    }
+    
+    function updateChartKTECH( DROPZONE_ID ,statbleId , REG ) {
+    	
+        let stym = document.getElementById('stym').value;
+        let edym = document.getElementById('edym').value;
+        
+        if("KTECH_RENT_01" == statbleId) {
+            // 전세가율 - 아파트 (최근 1년)
+            serviceURL = "/getKTECHRENTList?OPT=OPT1";
+            dataType = "전세가율";
+        } else if("KTECH_RENT_02" == statbleId) {
+            // 전세가율 - 아파트 (최근 3개월)
+            serviceURL = "/getKTECHRENTList?OPT=OPT2";    
+            dataType = "전세가율";
+        } else if("KTECH_RENT_03" == statbleId) {
+            // 전세가율 - 연립/다세대 (최근 1년)
+            serviceURL = "/getKTECHRENTList?OPT=OPT3";
+            dataType = "전세가율";
+        } else if("KTECH_RENT_04" == statbleId) {
+            // 전세가율 - 연립/다세대 (최근 3개월)
+            serviceURL = "/getKTECHRENTList?OPT=OPT4";
+            dataType = "전세가율";
+            
+        } else if("KTECH_SURETY_01" == statbleId) {
+            // 보증사고현황 - 사고건수
+            serviceURL = "/getKTECHSURETYList?OPT=OPT1";
+            dataType = "사고건수";
+        } else if("KTECH_SURETY_02" == statbleId) {
+            // 보증사고현황 - 사고금액
+            serviceURL = "/getKTECHSURETYList?OPT=OPT2";
+            dataType = "사고금액";
+        } else if("KTECH_SURETY_03" == statbleId) {
+            // 보증사고현황 - 사고율
+            serviceURL = "/getKTECHSURETYList?OPT=OPT3";
+            dataType = "사고율";
+            
+        } else if("KTECH_AUCTION_01" == statbleId) {
+            // 경매낙찰 통계 - 경매건수
+            serviceURL = "/getKTECHAUCTIONList?OPT=OPT1";
+            dataType = "경매건수";
+        } else if("KTECH_AUCTION_02" == statbleId) {
+            // 경매낙찰 통계 - 낙찰건수
+            serviceURL = "/getKTECHAUCTIONList?OPT=OPT2";
+            dataType = "낙찰건수";
+        } else if("KTECH_AUCTION_03" == statbleId) {
+            // 매낙찰 통계 - 낙찰률
+            serviceURL = "/getKTECHAUCTIONList?OPT=OPT3";
+            dataType = "낙찰률";
+        } else if("KTECH_AUCTION_04" == statbleId) {
+            // 경매낙찰 통계 - 낙찰가율
+            serviceURL = "/getKTECHAUCTIONList?OPT=OPT4";
+            dataType = "낙찰가율";
+        }
+                    
+        const svcURL = server + serviceURL +'&ST_YM='+stym +'&ED_YM='+edym+'&REG='+REG+'&TITLE='+ title;
+        
+        let zoneId = DROPZONE_ID.slice(-1); 
+        
+        console.log("Chart Loaded");
+        console.log(chart.options.plugins.zoom);
+        
+        if(dropMap.size <= 1) {
+                            
+            if(dropMap.has(DROPZONE_ID)) {
+            
+                dropMap.delete(DROPZONE_ID);
+                dropMap.set(DROPZONE_ID,svcURL);
+                
+                console.log(dropMap.size +") CHART - DELETE & RELOAD");
+                
+                $.ajax({
+                    url: svcURL,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                    
+                        const config = data;
+                        
+                        chart.data = config.data;
+                        
+                        if(dropMap.size <= 1) {
+                            chart.options.plugins.title.text = config.options.plugins.title.text;
+                        } else {
+                            chart.options.plugins.title.text = "통계 복합 차트";
+                        }
+                        
+                        
+                        // limits 계산 & 적용
+                        const range = computeXRangeFromDatasets(chart.data.datasets);
+                     
+                        //console.log("RANGE : " + range);
+                        if (range) {
+                            
+                          chart.options.plugins.zoom.limits.x.min = range.min;
+                          chart.options.plugins.zoom.limits.x.max = range.max;
+                          
+                          chart.options.scales.x.min = range.min;
+                          chart.options.scales.x.max = range.max;
+                        }
+
+                        // 이전 줌 상태가 남아있다면 초기화
+                        if (chart.resetZoom) chart.resetZoom();
+
+                        chart.update();
+                    },
+                    error: function(xhr,status,error) {
+                        console.error(status,error);
+                    }
+                });
+        
+                
+            } else {
+                
+                dropMap.set(DROPZONE_ID,svcURL);
+                
+                $.ajax({
+                    url: svcURL,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        
+
+                        const config = data;
+                        
+                        console.log(dropMap.size +") CHART - APPEND1 ");
+                        //console.log(dropMap.size +")" + chart.data.datasets.length);
+                        
+                        if(chart.data.datasets.length == 0) {
+                            chart.data = config.data;
+                        } else {
+                            chart.data.datasets.push(config.data.datasets[0]);
+                        }
+                        
+                        if(dropMap.size <= 1) {
+                            chart.options.plugins.title.text = config.options.plugins.title.text;
+                        } else {
+                            chart.options.plugins.title.text = "통계 복합 차트";
+                        }
+                        
+                        // limits 계산 & 적용
+                        const range = computeXRangeFromDatasets(chart.data.datasets);
+                     
+                        console.log("RANGE : " + range.min + " , " + range.max);
+                        if (range) {
+                          chart.options.plugins.zoom.limits.x.min = range.min;
+                          chart.options.plugins.zoom.limits.x.max = range.max;
+                          
+                          chart.options.scales.x.min = range.min;
+                          chart.options.scales.x.max = range.max;
+                        }
+
+                        // 이전 줌 상태가 남아있다면 초기화
+                        if (chart.resetZoom) chart.resetZoom();
+
+                        chart.update();
+                        
+                    },
+                    error: function(xhr,status,error) {
+                        console.error(status,error);
+                    }
+                });
+            }
+             
+        } else {
+            
+            if(dropMap.has(DROPZONE_ID)) {
+                
+                const currentZone = dropMap.get(DROPZONE_ID);
+                console.log(dropMap.size +") CHART - APPEND & SPLICE : " + currentZone);
+                
+                if(currentZone != svcURL) {
+                    dropMap.delete(DROPZONE_ID);
+                    dropMap.set(DROPZONE_ID,svcURL);
+                    // 해당 데이터셋을 다시 로딩해야함.
+                    //삭제 후 로딩
+                    
+                    $.ajax({
+                        url: svcURL,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                        
+                            const config = data;
+                            
+                            chart.data.datasets.splice( Number(zoneId) -1 , 1 , data.data.datasets[0]);
+                            
+                            //chart.data = config.data;
+                            if(dropMap.size <= 1) {
+                                chart.options.plugins.title.text = config.options.plugins.title.text;
+                            } else {
+                                chart.options.plugins.title.text = "통계 복합 차트";
+                            }
+                            // limits 계산 & 적용
+                            const range = computeXRangeFromDatasets(chart.data.datasets);
+                         
+                            console.log("RANGE : " + range);
+                            if (range) {
+                              chart.options.plugins.zoom.limits.x.min = range.min;
+                              chart.options.plugins.zoom.limits.x.max = range.max;
+                              
+                              chart.options.scales.x.min = range.min;
+                              chart.options.scales.x.max = range.max;
+                            }
+
+                            // 이전 줌 상태가 남아있다면 초기화
+                            if (chart.resetZoom) chart.resetZoom();
+                            
+                            chart.update();
+                        },
+                        error: function(xhr,status,error) {
+                            console.error(status,error);
+                        }
+                    });
+                } 
+                
+            } else {
+                // 데이터 추가
+                dropMap.set(DROPZONE_ID,svcURL);
+                
+                $.ajax({
+                    url: svcURL,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        
+                        console.log(dropMap.size +") CHART - APPEND2 ");
+                        console.log(data.data.datasets);
+                        
+                        chart.data.datasets.push(data.data.datasets[0]);
+                        
+                        //chart.data = config.data;
+                        if(dropMap.size <= 1) {
+                            chart.options.plugins.title.text = config.options.plugins.title.text;
+                        } else {
+                            chart.options.plugins.title.text = "통계 복합 차트";
+                        }
+                        chart.update();
+                    },
+                    error: function(xhr,status,error) {
+                        console.error(status,error);
+                    }
+                });
+            }
+        }
+   }
+    
+    /** Drop Zone 에 해당하는 차트 생성 */
+    function updateChartRONE( DROPZONE_ID ,STATBL_ID , GRP_ID , CLS_ID  ,DATANO) {
+            let stym = document.getElementById('stym').value;
+            let edym = document.getElementById('edym').value;
+                        
+            const svcURL = server + "/getChart_RONE_OPT" +'?STATBL_ID='+STATBL_ID +'&ST_YM='+stym +'&ED_YM='+edym+'&GRP_ID='+GRP_ID+'&CLS_ID='+CLS_ID+'&CLS_DATANO='+DATANO+'&TITLE='+ title;
+            
+            let zoneId = DROPZONE_ID.slice(-1); 
+            
+            console.log("Chart Loaded");
+            console.log(chart.options.plugins.zoom);
+            
+            if(dropMap.size <= 1) {
+                                
+                if(dropMap.has(DROPZONE_ID)) {
+                
+                    dropMap.delete(DROPZONE_ID);
+                    dropMap.set(DROPZONE_ID,svcURL);
+                    
+                    console.log(dropMap.size +") CHART - DELETE & RELOAD");
+                    
+                    $.ajax({
+                        url: svcURL,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                        
+                            const config = data;
+                            
+                            chart.data = config.data;
+                            
+                            if(dropMap.size <= 1) {
+                                chart.options.plugins.title.text = config.options.plugins.title.text;
+                            } else {
+                            	chart.options.plugins.title.text = "통계 복합 차트";
+                            }
+                            
+                            if(!data.data.datasets[0]) {
+                            	chart.options.plugins.title.text = chart.options.plugins.title.text + " - 데이터가 없습니다."
+                            }
+                            
+                            
+                            // limits 계산 & 적용
+                            const range = computeXRangeFromDatasets(chart.data.datasets);
+                         
+                            //console.log("RANGE : " + range);
+                            if (range) {
+                            	
+                              chart.options.plugins.zoom.limits.x.min = range.min;
+                              chart.options.plugins.zoom.limits.x.max = range.max;
+                              
+                              chart.options.scales.x.min = range.min;
+                              chart.options.scales.x.max = range.max;
+                            }
+
+                            // 이전 줌 상태가 남아있다면 초기화
+                            if (chart.resetZoom) chart.resetZoom();
+
+                            chart.update();
+                        },
+                        error: function(xhr,status,error) {
+                            console.error(status,error);
+                        }
+                    });
+            
+                    
+                } else {
+                    
+                    dropMap.set(DROPZONE_ID,svcURL);
+                    
+                    $.ajax({
+                        url: svcURL,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                            
+
+                            const config = data;
+                            
+                            console.log(dropMap.size +") CHART - APPEND1 ");
+                            //console.log(dropMap.size +")" + chart.data.datasets.length);
+                            
+                            if(chart.data.datasets.length == 0) {
+                                chart.data = config.data;
+                            } else {
+                                chart.data.datasets.push(config.data.datasets[0]);
+                            }
+                            
+                            if(dropMap.size <= 1) {
+                                chart.options.plugins.title.text = config.options.plugins.title.text;
+                            } else {
+                                chart.options.plugins.title.text = "통계 복합 차트";
+                            }
+                            
+                            if(!data.data.datasets[0]) {
+                                chart.options.plugins.title.text = chart.options.plugins.title.text + " - 데이터가 없습니다."
+                            }
+                            
+                            // limits 계산 & 적용
+                            const range = computeXRangeFromDatasets(chart.data.datasets);
+                         
+                            console.log("RANGE : " + range.min + " , " + range.max);
+                            if (range) {
+                              chart.options.plugins.zoom.limits.x.min = range.min;
+                              chart.options.plugins.zoom.limits.x.max = range.max;
+                              
+                              chart.options.scales.x.min = range.min;
+                              chart.options.scales.x.max = range.max;
+                            }
+
+                            // 이전 줌 상태가 남아있다면 초기화
+                            if (chart.resetZoom) chart.resetZoom();
+
+                            chart.update();
+                            
+                        },
+                        error: function(xhr,status,error) {
+                            console.error(status,error);
+                        }
+                    });
+                }
+                 
+            } else {
+                
+                if(dropMap.has(DROPZONE_ID)) {
+                    
+                    const currentZone = dropMap.get(DROPZONE_ID);
+                    console.log(dropMap.size +") CHART - APPEND & SPLICE : " + currentZone);
+                    
+                    if(currentZone != svcURL) {
+                        dropMap.delete(DROPZONE_ID);
+                        dropMap.set(DROPZONE_ID,svcURL);
+                        // 해당 데이터셋을 다시 로딩해야함.
+                        //삭제 후 로딩
+                        
+                        $.ajax({
+                            url: svcURL,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function(data) {
+                            
+                                const config = data;
+                                
+                                chart.data.datasets.splice( Number(zoneId) -1 , 1 , data.data.datasets[0]);
+                                
+                                //chart.data = config.data;
+                                if(dropMap.size <= 1) {
+                                    chart.options.plugins.title.text = config.options.plugins.title.text;
+                                } else {
+                                    chart.options.plugins.title.text = "통계 복합 차트";
+                                }
+                                
+                                if(!data.data.datasets[0]) {
+                                    chart.options.plugins.title.text = chart.options.plugins.title.text + " - 데이터가 없습니다."
+                                }
+                                // limits 계산 & 적용
+                                const range = computeXRangeFromDatasets(chart.data.datasets);
+                             
+                                console.log("RANGE : " + range);
+                                if (range) {
+                                  chart.options.plugins.zoom.limits.x.min = range.min;
+                                  chart.options.plugins.zoom.limits.x.max = range.max;
+                                  
+                                  chart.options.scales.x.min = range.min;
+                                  chart.options.scales.x.max = range.max;
+                                }
+
+                                // 이전 줌 상태가 남아있다면 초기화
+                                if (chart.resetZoom) chart.resetZoom();
+                                
+                                chart.update();
+                            },
+                            error: function(xhr,status,error) {
+                                console.error(status,error);
+                            }
+                        });
+                    } 
+                    
+                } else {
+                    // 데이터 추가
+                    dropMap.set(DROPZONE_ID,svcURL);
+                    
+                    $.ajax({
+                        url: svcURL,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                            
+                            console.log(dropMap.size +") CHART - APPEND2 ");
+                            console.log(data.data.datasets);
+                            
+                            chart.data.datasets.push(data.data.datasets[0]);
+                            
+                            //chart.data = config.data;
+                            if(dropMap.size <= 1) {
+                                chart.options.plugins.title.text = config.options.plugins.title.text;
+                            } else {
+                                chart.options.plugins.title.text = "통계 복합 차트";
+                            }
+                            if(!data.data.datasets[0]) {
+                                chart.options.plugins.title.text = chart.options.plugins.title.text + " - 데이터가 없습니다."
+                            }
+                            chart.update();
+                        },
+                        error: function(xhr,status,error) {
+                            console.error(status,error);
+                        }
+                    });
+                }
+            }
+       }
+
+    
+    
+    /*기간지정*/
+    $('input[type="radio"][name="beom"]').change(function() {
+        var selectedValue = $(this).val();
+        $(this).parents(".gigan").siblings(".calBtn").show();
+        const today = new Date();
+        
+        if (selectedValue == "1") {
+            const year = today.getFullYear();
+            const month = today.getMonth()+1;
+            let todayString = year;
+            if(month < 10) {
+                todayString += "0";
+            }
+            todayString += month;
+            document.getElementById('stym').value = '201001';
+            document.getElementById('edym').value = todayString;
+            $(".calendarPop").hide();
+            $(".graphWrap").css("height", "");
+            $(".calBtn").hide();
+            $(".calOpen").hide();
+            $(".calClose").show();
+            calUpdateChartRONE();
+        } else if(selectedValue == "2") {
+            const yearSt = today.getFullYear()-10;
+            const yearEd = today.getFullYear();
+            const month = today.getMonth()+1;
+            let stString = yearSt;
+            if(month < 10) {
+                stString += "0";
+            }
+            stString += month;
+            let edString = yearEd;
+            if(month < 10) {
+                edString += "0";
+            }
+            edString += month;
+            document.getElementById('stym').value = stString;
+            document.getElementById('edym').value = edString;
+            $(".calendarPop").hide();
+            $(".graphWrap").css("height", "");
+            $(".calBtn").hide();
+            $(".calOpen").hide();
+            $(".calClose").show();
+            calUpdateChartRONE();
+        } else if(selectedValue == "3") {
+            const yearSt = today.getFullYear()-5;
+            const yearEd = today.getFullYear();
+            const month = today.getMonth()+1;
+            let stString = yearSt;
+            if(month < 10) {
+                stString += "0";
+            }
+            stString += month;
+            let edString = yearEd;
+            if(month < 10) {
+                edString += "0";
+            }
+            edString += month;
+            document.getElementById('stym').value = stString;
+            document.getElementById('edym').value = edString;
+            $(".calendarPop").hide();
+            $(".graphWrap").css("height", "");
+            $(".calBtn").hide();
+            $(".calOpen").hide();
+            $(".calClose").show();
+            calUpdateChartRONE();
+        }  else {
+            $(".calendarPop").css("display", "flex");
+            $(".graphWrap").css("height", "calc(100% - 465px)");
+            fn_CalendarCall();
+        }
+    });
+    
+    /*달력닫기열기*/
+    $(".calClose").click(function(){
+        $(this).hide();
+        $(this).siblings(".calOpen").show();
+        $(this).parents(".beom").siblings(".calendarPop").hide();
+        $(".graphWrap").css("height", "");
+    })
+    
+    $(".calOpen").click(function(){
+        $(this).hide();
+        $(this).siblings(".calClose").show();
+        $(this).parents(".beom").siblings(".calendarPop").show();
+        $(".graphWrap").css("height", "calc(100% - 465px)");
+    })
+    
+    function renderMonthButtons(inst, pickerId, inputId) {
+        setTimeout(function() {
+            const $header = $(inst.dpDiv).find(".ui-datepicker-header");
+            $header.find(".month-btns").remove();
+            const months = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
+            const $monthBtns = $("<div class='month-btns'></div>");
+            const curMonth = inst.drawMonth;
+            const curYear = inst.drawYear;
+            
+            months.forEach(function(label, idx) {
+                const btn = $("<button type='button' class='month-btn' onclick=''>" + label + "</button>");
+                if(idx === curMonth)
+                    btn.addClass("ui-state-highlight");
+                btn.on("click", function(e) {
+                    e.preventDefault();
+                    const selYear = curYear;
+                    const selMonth = idx;
+                    const curDate = $("#"+pickerId).datepicker("getDate");
+                    if(curDate && curDate.getFullYear() === selYear && curDate.getMonth() === selMonth){
+                        $("#"+inputId).val(selYear+months[selMonth].replace('월','').padStart(2,"0"));
+                        return;
+                    }                    
+                    $("#"+pickerId).datepicker("setDate", new Date(selYear, selMonth, 1));
+                    $("#"+inputId).val(selYear+months[selMonth].replace('월','').padStart(2,"0"));
+                });
+                $monthBtns.append(btn);
+            });
+            $(inst.dpDiv).find(".ui-datepicker-calendar").after("<div class='subdiv'></div>");
+            $header.find(".ui-datepicker-month").hide();
+            $(inst.dpDiv).find(".subdiv").append($monthBtns);
+        }, 0);
+    }
+    
+    function fn_CalendarCall() {
+        /* 기간검색 달력 */
+        $("#calBgnDe").datepicker({
+            dateFormat: "yy-mm",
+            changeYear: true,
+            changeMonth: false,
+            minDate:'-20Y',
+            maxDate: '+1Y',
+            yearRange: 'c-20:c+1',
+            showButtonPanel: true,
+            onChangeMonthYear: function(y, m, inst) {
+                renderMonthButtons(inst, "calBgnDe", "stym");
+                setTimeout(function(input) {
+                    $('#calBgnDe button.ui-datepicker-current').attr('data-pid','calBgnDe');
+                }, 0);
+            }
+        });
+        $("#calEndDe").datepicker({
+            dateFormat: "yy-mm",
+            changeYear: true,
+            changeMonth: false,
+            minDate:'-20Y',
+            maxDate: '+1Y',
+            yearRange: 'c-20:c+1',
+            showButtonPanel: true,
+            onChangeMonthYear: function(y, m, inst) {
+                renderMonthButtons(inst, "calEndDe", "edym");
+                setTimeout(function(input) {
+                    $('#calEndDe button.ui-datepicker-current').attr('data-pid','calEndDe');
+                }, 0);
+            }
+        });
+        const buttons = document.querySelectorAll('button.ui-datepicker-current');
+        setTimeout(function() {
+            buttons.forEach(button => button.click());
+        }, 1);
+    }
+    
+    $(document).on('click', '.ui-datepicker-current', function(){
+        const today = new Date();
+        today.setDate(1);
+        const pickerId = $(this).attr('data-pid');
+        $("#"+pickerId).datepicker('setDate', today);
+    });
+    
+    $(document).on('click', '.month-btns button', function() {
+        //updateChart(null);
+        calUpdateChartRONE();
+    });
+    
+    function calUpdateChartRONE() {
+      //updateChartRONE( dropzoneId, statbleId, opt1, opt2 );
+        const container = document.querySelector('.boxs');
+        const dropzones = ['dropzone1', 'dropzone2', 'dropzone3'];
+        let lastDropzoneInfo = null;
+        dropzones.forEach(dropzone => {
+            const zone = container.querySelector(`#${dropzone}`);
+            if(zone && zone.querySelector('p')) {
+                const btnsLabel = zone.querySelectorAll('button.label');
+                if(btnsLabel.length >= 2){
+                    const btnValues = Array.from(btnsLabel).slice(0,2).map(btn => btn.value);
+                    const dropzoneId = btnsLabel[0].getAttribute('data-dropzoneid');
+                    const statbleId = btnsLabel[0].getAttribute('data-statbleid');
+                    const datano = btnsLabel[0].getAttribute('data-datano');
+                    console.log("DATANO : " + datano);
+                    const btnValues1 = btnValues[0];
+                    const btnValues2 = btnValues[1];
+                    console.log(dropzoneId, statbleId, btnValues1, btnValues2);
+                    lastDropzoneInfo = {dropzoneId, statbleId, btnValues1, btnValues2};
+                    chart.update();
+                    updateChartRONE(dropzoneId, statbleId, btnValues1, btnValues2 ,datano);
+                }
+            }
+        });
+        if(lastDropzoneInfo) {
+            //updateChartRONE(lastDropzoneInfo.dropzoneId, lastDropzoneInfo.statbleId, lastDropzoneInfo.btnValues1, lastDropzoneInfo.btnValues2);
+        }
+    }
+
+
+    /*접고펴기*/
+    $(".foldBtn").click(function() {
+    	
+        $(".part1").hide();
+        $(".history").show();
+        $(".gptBox").css("width", "70%");
+        $(".part2").css("width", "100%");
+        $("section").css("width", "calc(50% - 37px)");
+        $(".rebGptWrap").css("width", "calc(50% - 37px)");
+        $(this).hide();
+        $(".unfoldBtn").show();
+        $(".part2.apt").css("margin-top","0px");
+        $(".part2.apt").css("height","calc(100vh - 100px)");
+        $(".popuTxt.apt").css("width","98%");
+        
+        
+        
+
+    });
+    $(".unfoldBtn").click(function() {
+    	
+        $(".part1").show();
+        $(".history").hide();
+        $(".gptBox").css("width", "");
+        $(".part2").css("width", "");
+        $("section").css("width", "");
+        $(".rebGptWrap").css("width", "");
+        $(this).hide();
+        $(".foldBtn").show();
+        $(".part2.apt").css("margin-top","");
+        $(".part2.apt").css("height","");
+        $(".popuTxt.apt").css("width","");
+    });
+    
+    let isIssue = false;
+    /*이슈항목*/
+    $(".issueShow").click(function(){
+    	
+    	if(isIssue) {
+    		$(".issueBox").hide();
+    		isIssue = false;
+    	} else {
+    		$(".issueBox").show();
+    		isIssue = true;
+    	}
+    	
+    	
+     
+    });
+    $(".issueHide").click(function(){
+        $(this).parent(".issueBox").hide();
+    });
+        
+        
+    /** 차트 초기화 */    	
+	 $(".resetChart").click(function(){
+		 
+		 if('tab_01' == activetabL) {
+
+	         resetChart();
+		 } else if('tab_02' == activetabL) {
+			 resetChart(true);
+         } 
+		 
+     });
+    
+    
+    function resetChart(isAPT = false) {
+
+        $("#dropzone1").addClass("blank");
+        $('#dropzone1').html('<i class="xi-plus-square"></i>');
+        
+        $("#dropzone2").addClass("blank");
+        $('#dropzone2').html('<i class="xi-plus-square"></i>');
+        
+        $("#dropzone3").addClass("blank");
+        $('#dropzone3').html('<i class="xi-plus-square"></i>');
+        
+        opt1 = null;
+        opt2 = null;
+        datano = null;
+        optStatbleId = null;
+        
+        dropMap = new Map();
+    
+       chart.destroy();
+        
+       let config = null;
+       
+       console.log("iAPT ? " + isAPT);
+       if(isAPT) {
+    	    config = getAPTChartJSDefault();
+       } else {
+    	   config = getChartJSDefault();
+       }
+       
+       config.plugins[0].beforeDraw = new Function("chart",`
+           const ctx = chart.ctx
+           ctx.save();
+           ctx.fillStyle = 'white';
+           ctx.fillRect(0,0,chart.width,chart.height);
+           ctx.restore();
+       `);
+       
+       chart = new Chart(ctx,config); 
+       
+       chart.options.animation = {
+           onComplete:() => {
+               
+               image = chart.toBase64Image('image/jpeg');
+           }
+       };
+    }
+        
+    /** DropZone 내에 카드 옵션 선택 이벤트*/
+    const selectBoxStates = {};
+    document.addEventListener('click', function(e) {
+        const label = e.target.closest('.selectBox .label');
+        if(label) {
+            e.preventDefault();
+            const parentBox = label.closest('.selectBox');
+            const selectBoxList = parentBox.closest('.selectBoxList');
+            
+            let listId = selectBoxList.getAttribute('data-id');
+            if(!listId) {
+                listId = [...document.querySelectorAll('.selectBocList')].indexOf(selectBoxList);
+                
+                selectBoxList.setAttribute('data-id', listId);
+            }
+            // 같은 리스트 내 버튼들
+            const buttons = selectBoxList.querySelectorAll('.label');                
+            const clickValue = label.getAttribute('value');
+            
+            // 상태 객체 초기화
+            if(!selectBoxStates[listId]) {
+                selectBoxStates[listId] = {btn1: null, btn2: null};
+            }
+            
+            // 어떤 옵션 버튼이 클릭됐는지에 따라 값 저장
+            if(label === buttons[0]) {
+                selectBoxStates[listId].btn1 = clickValue;
+            } else if(label === buttons[1]) {
+                selectBoxStates[listId].btn2 = clickValue;
+            }
+            
+            document.querySelectorAll('.selectBox.active').forEach(box => {
+                if(box !== parentBox) {
+                    box.classList.remove('active');
+                }
+            });
+            parentBox.classList.toggle('active');
+            return;
+        }
+        
+        const li = e.target.closest('.selectBox .optionList li');
+        if(li) {
+            const parentBox = li.closest('.selectBox');
+            const button = parentBox.querySelector('.label');
+            // 선택한 값을 해당 버튼의 텍스트, value 갱신
+            button.textContent = li.textContent;
+            button.setAttribute('value', li.getAttribute('value'));     
+            button.setAttribute('data-datano', li.getAttribute('data-datano'));     
+            
+            // 해당 selectBoxList 식별
+            const selectBoxList = parentBox.closest('.selectBoxList');
+            let listId = selectBoxList.getAttribute('data-id');
+            if(!listId) {
+                listId = [...document.querySelectorAll('.sekectBoxList')].indexOf(selectBoxList);
+                selectBoxList.setAttribute('data-id', listId);                    
+            }
+            
+            // 같은 리스트 내 버튼 값 모두 가져와 상태 업데이트
+            const btnstatblId = button.getAttribute('data-statbleid');
+            const buttons = selectBoxList.querySelectorAll('.label');
+            const btn1Value = buttons[0] ? buttons[0].getAttribute('value') : null;
+            const btn2Value = buttons[1] ? buttons[1].getAttribute('value') : null;
+            
+            selectBoxStates[listId] = {btn1: btn1Value, btn2: btn2Value};
+            
+            console.log('버튼1:', btn1Value,"/ 버튼2:", btn2Value);
+            console.log(button.getAttribute('data-statbleid'));
+            console.log(button.getAttribute('data-dropzoneId'));
+            const currentDropzoneID = button.getAttribute('data-dropzoneId');
+            const datano = button.getAttribute('data-datano');
+            
+            
+            if(button.getAttribute('data-statbleid').indexOf("KTECH_") > -1) {
+                updateChartKTECH( currentDropzoneID , btnstatblId , btn2Value );
+            	
+            }else {
+                updateChartRONE( currentDropzoneID , btnstatblId , btn1Value , btn2Value , datano );
+            	
+            }
+            
+            
+            parentBox.classList.remove('active');
+        }
+        
+        if(!e.target.closest('.selectBox')) {
+            document.querySelectorAll('.selectBox.active').forEach(box => {
+                box.classList.remove('active');
+            });
+        }
+    });
+    /** ----------------------------------------------------- APT ---------------------------------------------------------- **/
+    
+    
+    function aptUpdateChart(aptCode, areaCode, title ){
+    	
+    	
+    	let sale =true;
+    	
+        let stym = document.getElementById('stym').value;
+        let edym = document.getElementById('edym').value;
+        
+        let sPrice = document.getElementById('sPrice').classList.contains('on');
+        let sCount = document.getElementById('sCount').classList.contains('on');
+        let sRTMS = document.getElementById('sRTMS').classList.contains('on');
+        
+        let rPrice = document.getElementById('rPrice').classList.contains('on');
+        let rCount = document.getElementById('rCount').classList.contains('on');
+        let rRTMS = document.getElementById('rRTMS').classList.contains('on');
+        
+        if(sPrice || sCount || sRTMS) {
+        	sale = true;
+        } else {
+        	sale = false;
+        }
+        
+        
+        //let sMind = document.getElementById('sMind').classList.contains('on');
+        
+        console.log("sPrice:" + sPrice);
+        console.log("sCount:" + sCount);
+        console.log("sRTMS:" + sRTMS);
+        
+        console.log("rPrice:" + sPrice);
+        console.log("rCount:" + sCount);
+        console.log("rRTMS:" + sRTMS);
+        
+        console.log("SALE:" + sale);
+        
+        
+        //console.log("sMind:" + sMind);
+        
+        if(aptCode == null) {
+            aptCode = aptCodeVal;
+        }        
+        if(areaCode == null) {
+            areaCode = areaCodeVal;
+        }        
+        if(title == null) {
+            title = titleVal;
+        }
+        
+        $.ajax({
+            url: server + "/getChart_APT" +'?ST_YM='+stym +'&ED_YM='+edym+'&APT_CODE='+aptCode+'&AREA='+areaCode
+                    +'&SPRICE='+sPrice+'&SCOUNT='+sCount+'&SRTMS='+sRTMS+'&SALE='+sale
+                    +'&TITLE='+title,
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+
+                
+                curretAptCode = aptCode;
+                currentArea = areaCode;
+                currentAptName = title;
+            	
+                
+                resetChart(true);
+            	
+                chart.data = data.data;
+                
+                if(sale) {
+                    chart.options.plugins.title.text = title + " "+ areaCode +"㎡ 타입 매매 거래 차트";
+                } else {
+                	chart.options.plugins.title.text = title + " "+ areaCode +"㎡ 타입 전세 거래 차트";
+                }
+                
+                
+                // limits 계산 & 적용
+                const range = computeXRangeFromDatasets(chart.data.datasets);
+             
+                console.log("RANGE : " + range);
+                if (range) {
+                    
+                  chart.options.plugins.zoom.limits.x.min = range.min;
+                  chart.options.plugins.zoom.limits.x.max = range.max;
+                  
+                  chart.options.scales.x.min = range.min;
+                  chart.options.scales.x.max = range.max;
+                }
+                
+                //title
+
+                // 이전 줌 상태가 남아있다면 초기화
+                if (chart.resetZoom) chart.resetZoom();
+                
+                chart.update();
+            },
+            error: function(xhr,status,error) {
+                console.error(status,error);
+            }
+        });
+    }
+    
+    /* 평형 버튼 토글*/
+    let aptCodeVal = null;
+    let areaCodeVal = null;
+    let titleVal = null;
+    $(document).on('click', '.aptSize > button', function(){
+        $(this).toggleClass("on");
+        $(this).siblings().removeClass();
+        aptCodeVal = $(this).attr('reg');
+        areaCodeVal = $(this).val();
+        titleVal = $(this).attr('regTitle');
+        
+        //console.log(aptCodeVal);
+        //console.log(areaCodeVal);
+        if($(this).attr("class") === "on") {
+            aptUpdateChart(aptCodeVal, areaCodeVal, titleVal);
+        }
+    });
+    
+
+    /*매물호가 체크 박스*/
+    $(document).on('click', '#sPrice', function() {
+    /* document.getElementById('sPrice').addEventListener('click', () => { */
+        
+        chart.data.datasets.forEach( (ds,i) => {
+            if(ds.label && ( ds.label.includes('최고가') || ds.label.includes('최저가')  )  ) {
+                
+                const visible = chart.isDatasetVisible(i);
+                chart.setDatasetVisibility(i,!visible);
+            }
+        })
+        chart.update();
+    });
+    
+    /*매물량 체크 박스*/
+    $(document).on('click', '#sCount', function() {
+    /* document.getElementById('sCount').addEventListener('click', () => { */
+        
+        chart.data.datasets.forEach( (ds,i) => {
+            if(ds.label && ( ds.label.includes('매물량')  )  ) {
+                
+                const visible = chart.isDatasetVisible(i);
+                chart.setDatasetVisibility(i,!visible);
+            }
+        })
+        chart.update();
+    });
+    
+    /*실거래 체크 박스*/
+    $(document).on('click', '#sRTMS', function() {
+    /* document.getElementById('sRTMS').addEventListener('click', () => { */
+        
+        chart.data.datasets.forEach( (ds,i) => {
+            if(ds.label && ( ds.label.includes('실거래가')  )  ) {
+                
+                const visible = chart.isDatasetVisible(i);
+                chart.setDatasetVisibility(i,!visible);
+            }
+        })
+        chart.update();
+    });
+    
+    
+    let sMind = false;
+    let prevAPTConfig = null;
+    let prevAPTData = null;
+    
+
+    $(document).on('click', '#SMIND', function() {
+   
+        console.log("SMIND CLICKED");
+    
+        resetChart();
+        chart.destroy();
+        
+        console.log(" sMIND : " + sMind);
+
+        if( sMind ) {
+        	
+        	document.getElementById('sPrice').setAttribute('class','on');
+            document.getElementById('sCount').setAttribute('class','on');
+            document.getElementById('sRTMS').setAttribute('class','on');
+        	
+            chart.destroy();
+            console.log(prevAPTConfig);
+        	chart = new Chart(ctx,prevAPTConfig);
+        	chart.data = prevAPTdata;
+        	
+        	chart.update();
+        	sMind = false;
+        	return;
+            
+        } else {
+        	prevAPTConfig = JSON.parse(JSON.stringify(chart.config));
+        	prevAPTdata = JSON.parse(JSON.stringify(chart.data));
+        	
+        	document.getElementById('sPrice').setAttribute('class','');
+            document.getElementById('sCount').setAttribute('class','');
+            document.getElementById('sRTMS').setAttribute('class','');
+            
+        }
+        
+        //http://10.1.8.27:8087/RAP/getAPTGapList?ST_YM=201001&ED_YM=202508&APT_CODE=20439501&AREA=76
+
+        //curretAptCode = '20099495';
+      	//currentArea = '84';
+      	
+      	if(currentArea == null) {
+      		currentArea = '84';
+      	}
+
+        console.log("AREA : " + currentArea);
+        
+      	
+        const svcURL = server + "/getAPTGapList" +'?ST_YM='+stym +'&ED_YM='+edym+'&APT_CODE='+curretAptCode+'&AREA='+currentArea+'&TRADETYPECODE=A1';
+
+        //const svcURL = "http://10.1.8.27:8087/RAP/getAPTGapList?ST_YM=202501&ED_YM=202508&APT_CODE=20099495&AREA=84";
+        $.ajax({
+            url: svcURL,
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+            	
+            	
+            	if(data.data.datasets[0]) {
+            		
+                    const candles = data.data.datasets[0].data;
+                    
+                    const title = currentAptName +"("+currentArea+") 매매 심리 차트";
+                
+                    const config = {
+                        type: 'candlestick', // candlestick financial plugin에서 제공
+                        data: {
+                          datasets: [{
+                            label: 'OPEN : 최초가 , HIGH : 최고가 , LOW : 최저가 , CLOSE : 종가',
+                            data: [],
+                            // 기본 색상: 양봉/음봉
+                            backgroundColors: {
+                              up: 'rgba(255, 99, 132, 1)',
+                              down: 'rgba(91, 145, 255, 1)',
+                              unchanged: 'rgba(201, 203, 207, 1)',
+                            },
+                            borderColors: {
+                              up: 'rgb(255, 99, 132)',
+                              down: 'rgb(91, 145, 255)',
+                              unchanged: 'rgb(201, 203, 207)',
+                            }
+                          }]
+                        },
+                        plugins:[
+                            {
+                                id:'whileBackground',
+                                beforeDraw: function(chart) {
+                                    const ctx = chart.ctx;ctx.save();
+                                    ctx.fillStyle =  'white';ctx.fillRect(0,0,chart.width,chart.height);ctx.restore();
+                                }
+                            }
+                        ],
+                        options : {
+                            elements : {
+                                candlestick : {
+                                    barThickness : 0.1,
+                                    maxBarThickness : 0.1
+                                }
+                            },
+                            maintainAspectRatio:false,
+                            plugins:
+                            {           
+                                zoom:{
+                                    zoom:{
+                                        mode:'x',
+                                        wheel:{enabled:true}
+                                    },
+                                    pan:{
+                                        enabled:true,
+                                        mode:'x'
+                                    }
+                                },
+                                title:{
+                                    display:true,text: title,
+                                    font:{size:24}
+                                 },
+                                 chartArea:{
+                                    backgroundColor:'rgba(0,0,0,0.1)'
+                                 }
+                             },
+                             scales : {
+                                 x : {
+                                     type : 'time',
+                                     time : {
+                                        unit : 'day',
+                                        displayFormats : {
+                                            day : 'yyyyMMdd'
+                                        }
+                                     },ticks : {
+                                         source : 'auto',
+                                         autoSkip :true
+                                     }
+                                 },
+                                 y : {
+                                     type : 'linear'
+                                 }
+                                 
+                             }
+                        }
+                      }
+                    
+
+                    config.plugins[0].beforeDraw = new Function("chart",`
+                        const ctx = chart.ctx
+                        ctx.save();
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0,0,chart.width,chart.height);
+                        ctx.restore();
+                    `);
+
+                    chart = new Chart(ctx,config);
+                    
+                    chart.options.animation = {
+                            onComplete:() => {
+                                
+                                image = chart.toBase64Image('image/jpeg');
+                            }
+                        };
+                    
+                    candles.forEach((value) => {
+                        
+                        const date = new Date( value.x.slice(0,4) + "-" + value.x.slice(4,6) + "-" + value.x.slice(6,8));
+                        
+                        chart.data.datasets[0].data.push({x : date, o : value.o , l : value.l , h : value.h , c : value.c , DONG : value.DONG , HO : value.HO});
+                        
+                    })
+                    
+
+                    chart.update();
+                    sMind = true;
+            		
+            	} else {
+            	    
+                    const title = currentAptName +"("+currentArea+") 매매 심리 차트 - 데이터가 없습니다.";
+                
+                    const config = {
+                        type: 'candlestick', // financial plugin에서 제공
+                        data: {
+                          datasets: [{
+                            data: []
+                          }]
+                        },
+                        options : {
+                            plugins:
+                            {           
+                                zoom:{
+                                    zoom:{
+                                        mode:'x',
+                                        wheel:{enabled:true}
+                                    },
+                                    pan:{
+                                        enabled:true,
+                                        mode:'x'
+                                    }
+                                },
+                                title:{
+                                    display:true,text: title,
+                                    font:{size:24}
+                                 },
+                                 chartArea:{
+                                    backgroundColor:'rgba(0,0,0,0.1)'
+                                 }
+                             },
+                             scales : {
+                                 x : {
+                                     categoryPercentage : 0.1,
+                                     barPercentage :0.1,
+                                     type : 'time',
+                                     time : {
+                                        unit : 'day',
+                                        displayFormats : {
+                                            day : 'yyyy-MM-dd'
+                                        }
+                                     },ticks : {
+                                         source : 'auto',
+                                         autoSkip :false
+                                     }
+                                 },
+                                 y : {
+                                     type : 'linear'
+                                 }
+                                 
+                             }
+                        }
+                      }
+
+                    chart = new Chart(ctx,config);
+
+                    chart.update();
+            	}
+            	
+            },
+            error: function(xhr,status,error) {
+                console.error(status,error);
+            }
+        });
+        
+        
+        
+
+        // (옵션) 데이터 동적 갱신 예시
+        // chart.data.datasets[0].data.push({ x: new Date('2025-08-15'), o: 104.2, h: 105.9, l: 102.2, c: 103.0 });
+        // chart.update();
+        
+        
+        
+        
+        
+        
+    });
+    
+$(document).on('click', '#RMIND', function() {
+   
+        
+        console.log("SMIND CLICKED");
+    
+        resetChart();
+        chart.destroy();
+        
+        console.log(" sMIND : " + sMind);
+
+        if( sMind ) {
+            
+            document.getElementById('sPrice').setAttribute('class','on');
+            document.getElementById('sCount').setAttribute('class','on');
+            document.getElementById('sRTMS').setAttribute('class','on');
+            
+            chart.destroy();
+            console.log(prevAPTConfig);
+            chart = new Chart(ctx,prevAPTConfig);
+            chart.data = prevAPTdata;
+            
+            chart.update();
+            sMind = false;
+            return;
+            
+        } else {
+            prevAPTConfig = JSON.parse(JSON.stringify(chart.config));
+            prevAPTdata = JSON.parse(JSON.stringify(chart.data));
+            
+            document.getElementById('sPrice').setAttribute('class','');
+            document.getElementById('sCount').setAttribute('class','');
+            document.getElementById('sRTMS').setAttribute('class','');
+            
+        }
+        
+        //http://10.1.8.27:8087/RAP/getAPTGapList?ST_YM=201001&ED_YM=202508&APT_CODE=20439501&AREA=76
+
+        //curretAptCode = '20099495';
+        //currentArea = '84';
+        const svcURL = server + "/getAPTGapList" +'?ST_YM='+stym +'&ED_YM='+edym+'&APT_CODE='+curretAptCode+'&AREA='+currentArea+'&TRADETYPECODE=B1';
+
+        //const svcURL = "http://10.1.8.27:8087/RAP/getAPTGapList?ST_YM=202501&ED_YM=202508&APT_CODE=20099495&AREA=84";
+        $.ajax({
+            url: svcURL,
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                
+                
+                if(data.data.datasets[0]) {
+                    
+                    const candles = data.data.datasets[0].data;
+                    
+                    const title = currentAptName +"("+currentArea+") 전세 심리 차트";
+                
+                    const config = {
+                        type: 'candlestick', // candlestick financial plugin에서 제공
+                        data: {
+                          datasets: [{
+                            label: 'OPEN : 최초가 , HIGH : 최고가 , LOW : 최저가 , CLOSE : 종가',
+                            data: [],
+                            // 기본 색상: 양봉/음봉
+                            backgroundColors: {
+                              up: 'rgba(255, 99, 132, 1)',
+                              down: 'rgba(91, 145, 255, 1)',
+                              unchanged: 'rgba(201, 203, 207, 1)',
+                            },
+                            borderColors: {
+                              up: 'rgb(255, 99, 132)',
+                              down: 'rgb(91, 145, 255)',
+                              unchanged: 'rgb(201, 203, 207)',
+                            }
+                          }]
+                        },
+                        plugins:[
+                            {
+                                id:'whileBackground',
+                                beforeDraw: function(chart) {
+                                    const ctx = chart.ctx;ctx.save();
+                                    ctx.fillStyle =  'white';ctx.fillRect(0,0,chart.width,chart.height);ctx.restore();
+                                }
+                            }
+                        ],
+                        options : {
+                            elements : {
+                                candlestick : {
+                                    barThickness : 0.1,
+                                    maxBarThickness : 0.1
+                                }
+                            },
+                            maintainAspectRatio:false,
+                            plugins:
+                            {           
+                                zoom:{
+                                    zoom:{
+                                        mode:'x',
+                                        wheel:{enabled:true}
+                                    },
+                                    pan:{
+                                        enabled:true,
+                                        mode:'x'
+                                    }
+                                },
+                                title:{
+                                    display:true,text: title,
+                                    font:{size:24}
+                                 },
+                                 chartArea:{
+                                    backgroundColor:'rgba(0,0,0,0.1)'
+                                 }
+                             },
+                             scales : {
+                                 x : {
+                                     type : 'time',
+                                     time : {
+                                        unit : 'day',
+                                        displayFormats : {
+                                            day : 'yyyyMMdd'
+                                        }
+                                     },ticks : {
+                                         source : 'auto',
+                                         autoSkip :true
+                                     }
+                                 },
+                                 y : {
+                                     type : 'linear'
+                                 }
+                                 
+                             }
+                        }
+                      }
+                    
+
+                    config.plugins[0].beforeDraw = new Function("chart",`
+                        const ctx = chart.ctx
+                        ctx.save();
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0,0,chart.width,chart.height);
+                        ctx.restore();
+                    `);
+
+                    chart = new Chart(ctx,config);
+                    
+                    chart.options.animation = {
+                            onComplete:() => {
+                                
+                                image = chart.toBase64Image('image/jpeg');
+                            }
+                        };
+                    
+                    candles.forEach((value) => {
+                        
+                        const date = new Date( value.x.slice(0,4) + "-" + value.x.slice(4,6) + "-" + value.x.slice(6,8));
+                        
+                        chart.data.datasets[0].data.push({x : date, o : value.o , l : value.l , h : value.h , c : value.c , DONG : value.DONG , HO : value.HO});
+                        
+                    })
+                    
+
+                    chart.update();
+                    sMind = true;
+                    
+                } else {
+                    
+                    const title = currentAptName +"("+currentArea+") 전세 심리 차트 - 데이터가 없습니다.";
+                
+                    const config = {
+                        type: 'candlestick', // financial plugin에서 제공
+                        data: {
+                          datasets: [{
+                            data: []
+                          }]
+                        },
+                        options : {
+                            plugins:
+                            {           
+                                zoom:{
+                                    zoom:{
+                                        mode:'x',
+                                        wheel:{enabled:true}
+                                    },
+                                    pan:{
+                                        enabled:true,
+                                        mode:'x'
+                                    }
+                                },
+                                title:{
+                                    display:true,text: title,
+                                    font:{size:24}
+                                 },
+                                 chartArea:{
+                                    backgroundColor:'rgba(0,0,0,0.1)'
+                                 }
+                             },
+                             scales : {
+                                 x : {
+                                     categoryPercentage : 0.1,
+                                     barPercentage :0.1,
+                                     type : 'time',
+                                     time : {
+                                        unit : 'day',
+                                        displayFormats : {
+                                            day : 'yyyy-MM-dd'
+                                        }
+                                     },ticks : {
+                                         source : 'auto',
+                                         autoSkip :false
+                                     }
+                                 },
+                                 y : {
+                                     type : 'linear'
+                                 }
+                                 
+                             }
+                        }
+                      }
+
+                    chart = new Chart(ctx,config);
+
+                    chart.update();
+                }
+                
+            },
+            error: function(xhr,status,error) {
+                console.error(status,error);
+            }
+        });
+        
+        
+        
+
+        // (옵션) 데이터 동적 갱신 예시
+        // chart.data.datasets[0].data.push({ x: new Date('2025-08-15'), o: 104.2, h: 105.9, l: 102.2, c: 103.0 });
+        // chart.update();
+        
+        
+        
+        
+        
+        
+    });
+    
+    
+    
+    
+    $("#jiList1 li").click(function() {
+        var jiyeokVal = $(this).attr("data-val");
+        var callURL = server +'/getREGList?_AS1='+ jiyeokVal;
+        
+        $(this).toggleClass("on");
+        $(this).siblings().removeClass();
+        
+        $.ajax({
+            url: callURL,
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                console.log(data);
+                const listRegionsDiv = document.getElementById('listRegions');
+                listRegionsDiv.innerHTML = '';
+                const ul = document.createElement('ul');
+                data.forEach((item, index) => {
+                    if(index !== 0) {
+                        const li = document.createElement('li');
+                        li.setAttribute('reg',item.REG);
+                        li.textContent = item.AS2;
+                        ul.appendChild(li);
+                        listRegionsDiv.appendChild(ul);
+                    }
+                });
+                
+            },
+            error: function(xhr,status,error) {
+                console.error(status,error);
+            }
+        });
+    });
+    
+    const input = document.getElementById('aptSch');
+    
+    input.addEventListener('input',() => {
+        
+    	const q = input.value.trim();
+    	
+    	const items = Array.from(document.querySelectorAll('#aptListResult'));
+    	
+    	items.forEach (el => {
+    		
+    		el.style.display = '';
+    		
+    		if(el.getAttribute('data-name').indexOf(q) > -1) {
+
+                //console.log(el.getAttribute('data-name'));
+                
+    		} else {
+    			el.style.display = 'none';
+    		}
+    		
+    	})
+    	
+    })
+    
+    $(document).on('click', '#listRegions li', function(){
+        var regVal = $(this).attr("reg");
+        var callURL = server +'/getREGAPTList?REG='+regVal+'&APT_TYPE=1&LANDMARK_YN=1&HO_CNT=300';
+        
+        $(this).toggleClass("on");
+        $(this).siblings().removeClass();
+        
+        $.ajax({
+            url: callURL,
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                console.log(data);
+                const aptListDiv = document.getElementById('aptList');
+                aptListDiv.innerHTML = '';
+                data.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    let clrType = null;
+                    div.style.textAlign = "left";
+                    div.setAttribute('id','aptListResult');
+                    div.setAttribute('data-name',item.APT_NM);
+                    div.setAttribute('class','aptBar type1');
+                    clrType = "type1";
+                    
+                    const p1 = document.createElement('p');
+                    const nmStr = document.createElement('strong');
+                    nmStr.textContent = item.APT_NM;
+                    p1.appendChild(nmStr);
+                    p1.setAttribute('clr', clrType);
+                
+                    div.appendChild(p1);
+                    const p2 = document.createElement('p');
+                    
+                    const dt = item.USEAPR_DT.substring(0,4) + "-" + item.USEAPR_DT.substring(4,6) + "-" +item.USEAPR_DT.substring(6,8);
+                    
+                    
+                    p2.textContent = item.JIBUN_NM+' '+item.LOAD_NM+' / '+dt+' / '+item.HO_CNT+' 세대';
+                    div.appendChild(p2);
+                    const hidden1 = document.createElement('input');
+                    hidden1.setAttribute('type','hidden');
+                    hidden1.setAttribute('id','aptCode');
+                    hidden1.value = item.APT_CODE;
+                    div.appendChild(hidden1);
+                    const hidden2 = document.createElement('input');
+                    hidden2.setAttribute('type','hidden');
+                    hidden2.setAttribute('id','areaList');
+                    let data = item.AREA_LIST.split("/").map(s => parseFloat(s.trim()));
+                    let result = [];
+                    data.forEach(num => {
+                        let intPart = Math.floor(num);
+                        if(!result.includes(intPart)) {
+                            result.push(intPart);
+                        }
+                    });
+                    hidden2.value = result;
+                    div.appendChild(hidden2);
+                    
+                    aptListDiv.appendChild(div);
+                });
+                
+            },
+            error: function(xhr,status,error) {
+                console.error(status,error);
+            }
+        });
+    });
+
+    $(document).on('click', '#aptList .aptBar', function(){
+        let title = $(this).find("p").eq(0).text();
+        let clrType = $(this).find("p").eq(0).attr('clr');
+        let content = $(this).find("p").eq(1).text();
+        let aptCode = $(this).find("input[type=hidden]").eq(0).val();
+        let areaList = $(this).find("input[type=hidden]").eq(1).val();
+        
+        const aptListDiv = document.getElementById('addAptList');
+        
+        const addAptBox = document.createElement('div');
+        addAptBox.setAttribute('class','addAptBox');
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.setAttribute('class','aptHide');       
+        const closeI = document.createElement('i');
+        closeI.setAttribute('class','xi-close');
+        closeBtn.appendChild(closeI);
+        addAptBox.appendChild(closeBtn);
+        
+        const divAptBar = document.createElement('div');
+        divAptBar.setAttribute('class','aptBar type2');
+        
+        const p1 = document.createElement('p');
+        const span = document.createElement('span');
+        span.setAttribute('class','inki');
+        span.textContent = "★ 랜드마크";
+        p1.appendChild(span);
+        p1.appendChild(document.createTextNode(title));
+        divAptBar.appendChild(p1);
+        
+        const p2 = document.createElement('p');
+        p2.textContent = content;
+        divAptBar.appendChild(p2);
+        addAptBox.appendChild(divAptBar);
+        
+        const aptSize = document.createElement('div');
+        aptSize.setAttribute('class','aptSize '+clrType);
+        
+        let arr = areaList.split(",").map(v => v.trim());
+        arr.forEach(num => {
+            let btn = document.createElement('button');
+            btn.setAttribute('class','');
+            btn.setAttribute('value',num);
+            btn.setAttribute('reg',aptCode);
+            btn.setAttribute('regTitle',title);
+            btn.textContent = num+'㎡';
+            aptSize.appendChild(btn);
+        });
+        addAptBox.appendChild(aptSize);
+        
+        const divMaeJeon = document.createElement('div');
+        divMaeJeon.setAttribute('id','SALE_TAB');
+        divMaeJeon.setAttribute('class','maeJeon');
+        const divMae = document.createElement('div');
+        divMae.setAttribute('class','mae');
+        const spanMae = document.createElement('span');
+        spanMae.setAttribute('class','on');
+        const spanMaeI = document.createElement('i');
+        spanMaeI.setAttribute('class','xi-chart-bar');
+        spanMae.appendChild(spanMaeI);
+        spanMae.appendChild(document.createTextNode('매매'));
+        divMae.appendChild(spanMae);
+        
+        const maeJeonList = ['매물호가','매물량','실거래','심리분석'];
+        maeJeonList.forEach((title,index) => {
+            let btn = document.createElement('button');
+            if(index === 0) {
+                btn.setAttribute('class','on');
+                btn.setAttribute('id','sPrice');
+            } else if(index === 1) {
+                btn.setAttribute('class','on');
+                btn.setAttribute('id','sCount');
+            } else if(index === 2) {
+                btn.setAttribute('class','on');
+                btn.setAttribute('id','sRTMS');
+            } else {
+                btn.setAttribute('id','SMIND');
+            }            
+            btn.textContent = title;
+            divMae.appendChild(btn);
+        });
+        divMaeJeon.appendChild(divMae);
+        
+        const divJeon = document.createElement('div');
+        divJeon.setAttribute('id','RENT_TAB');
+        divJeon.setAttribute('class','jeon');
+        const spanJeon = document.createElement('span');
+        const spanJeonI = document.createElement('i');
+        spanJeonI.setAttribute('class','xi-chart-bar');
+        spanJeon.appendChild(spanJeonI);
+        spanJeon.appendChild(document.createTextNode('전세'));
+        divJeon.appendChild(spanJeon);
+        
+        maeJeonList.forEach((title, index) => {
+            let btn = document.createElement('button');
+            if(index === 0) {
+                btn.setAttribute('class','');
+                btn.setAttribute('id','rPrice');
+            } else if(index === 1) {
+                btn.setAttribute('class','');
+                btn.setAttribute('id','rCount');
+            } else if(index === 2) {
+                btn.setAttribute('class','');
+                btn.setAttribute('id','rRTMS');
+            } else {
+                btn.setAttribute('id','RMIND');
+            }
+            btn.textContent = title;
+            divJeon.appendChild(btn);
+        });
+        divMaeJeon.appendChild(divJeon);
+        addAptBox.appendChild(divMaeJeon);
+        aptListDiv.appendChild(addAptBox);
+        
+        $(".atpPop").hide();
+        /* listRegions
+        aptList */
+        
+        /* console.log(title);
+        console.log(content);
+        console.log(aptCode);
+        console.log(areaList); */
+    });
+    
+    
+    
+    /*지역추가 팝업 열고닫기*/
+    $(".openPop").click(function() {
+        $(".jiyeokPop").show()
+    })
+    $(".closePop").click(function() {
+        $(this).parents(".jiyeokPop").hide();
+    })
+    
+    /*지역추가 팝업 열고닫기*/
+    $(".openPop").click(function() {
+        $(".jiyeokPop").show()
+    })
+    $(".closePop").click(function() {
+        $(this).parents(".jiyeokPop").hide();
+    })
+    
+
+    /*셀렉트 커스텀*/
+    const label = document.querySelectorAll('.label');
+    label.forEach(function(lb){
+        lb.addEventListener('click', e => {
+            let optionList = lb.nextElementSibling;
+            let optionItems = optionList.querySelectorAll('.optionItem');
+            clickLabel(lb, optionItems);
+        })
+    });
+    const clickLabel = (lb, optionItems) => {
+        if(lb.parentNode.classList.contains('active')) {
+            lb.parentNode.classList.remove('active');
+            optionItems.forEach((opt) => {
+                opt.removeEventListener('click', () => {
+                    handleSelect(lb, opt)
+                })
+            })
+        } else {
+            lb.parentNode.classList.add('active');
+            optionItems.forEach((opt) => {
+                opt.addEventListener('click', () => {
+                    handleSelect(lb, opt)
+                })
+            })
+        }
+    }
+    const handleSelect = (label, item) => {
+        label.innerHTML = item.textContent;
+        label.parentNode.classList.remove('active');
+    }
+    
+    /*매매전세 토글*/
+    $(document).on('click', '.mae > button', function(){
+        $(this).toggleClass("on");
+        $(this).parent(".mae").siblings(".jeon").find("button").removeClass();
+        $(this).siblings("span").addClass("on");
+        $(this).parent(".mae").siblings(".jeon").find("span").removeClass();        
+    });
+    $(document).on('click', '.jeon > button', function(){
+        $(this).toggleClass("on");
+        $(this).parent(".jeon").siblings(".mae").find("button").removeClass();
+        $(this).siblings("span").addClass("on");
+        $(this).parent(".jeon").siblings(".mae").find("span").removeClass();
+    });
+            
+    /*매매전세 닫기 마니어스버튼*/
+    $(document).on('click', '.aptHide', function(){
+        $(this).parent(".addAptBox").remove();
+    });
+            
+    </script>
+</body>
+
+</html>
