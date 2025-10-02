@@ -12,11 +12,9 @@ import useConfig from 'hooks/useConfig';
 
 // assets
 const defaultLayout = '/assets/images/customization/default.svg';
-const rtlLayout = '/assets/images/customization/rtl.svg';
 
 const layouts = [
-  { value: 'ltr', label: 'LTR', img: defaultLayout },
-  { value: 'rtl', label: 'RTL', img: rtlLayout }
+  { value: 'ltr', label: 'LTR', img: defaultLayout }
 ];
 
 // ==============================|| CUSTOMIZATION - MENU DIRECTION ||============================== //

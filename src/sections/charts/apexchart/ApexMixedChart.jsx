@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 // material-ui
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 
 // third-party
 import ReactApexChart from 'react-apexcharts';
@@ -157,20 +158,20 @@ export default function ApexMixedChart({ chartData }) {
 
   // chartData가 변경될 때마다 series와 categories 업데이트
   useEffect(() => {
-    if (chartData && chartData.data && chartData.data.datasets) {
+    if (chartData && chartData.data && chartData.data.datasets && Array.isArray(chartData.data.datasets)) {
       console.log('ApexMixedChart: Updating chart with new data', chartData);
       
       // datasets를 ApexCharts series 형식으로 변환
       const newSeries = chartData.data.datasets.map((dataset, index) => ({
         name: dataset.name || dataset.label || `데이터 ${index + 1}`,
         type: index === chartData.data.datasets.length - 1 ? 'line' : 'column', // 마지막 series는 line으로
-        data: dataset.data || []
+        data: Array.isArray(dataset.data) ? dataset.data : []
       }));
       
       setSeries(newSeries);
       
       // labels가 있으면 categories 업데이트
-      if (chartData.labels && chartData.labels.length > 0) {
+      if (chartData.labels && Array.isArray(chartData.labels) && chartData.labels.length > 0) {
         setCategories(chartData.labels);
       }
     }
@@ -216,7 +217,18 @@ export default function ApexMixedChart({ chartData }) {
 
   return (
     <Box id="chart" sx={{ bgcolor: 'transparent' }}>
-      <ReactApexChart options={options} series={series} type="line" />
+      {series && Array.isArray(series) && series.length > 0 && categories && Array.isArray(categories) ? (
+        <ReactApexChart options={options} series={series} type="line" height={450} />
+      ) : (
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          color: 'text.secondary'
+        }}>
+          <CircularProgress />
+        </Box>
+      )}
     </Box>
   );
 }

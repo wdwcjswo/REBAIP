@@ -12,6 +12,13 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import SendIcon from '@mui/icons-material/Send';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 
 // MUI X Tree View
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
@@ -46,13 +53,39 @@ export default function DashboardDataAnalytics() {
   const [menuData, setMenuData] = useState(null);
   const [loadingMenu, setLoadingMenu] = useState(true);
   const [error, setError] = useState(null);
+  const [showPolicyOverlay, setShowPolicyOverlay] = useState(false); // 정책자료 오버레이 상태
   const [cards, setCards] = useState([
-    { title: 't1', count: '0', statblid: 'test1' },
-    { title: 't2', count: '0', statblid: 'test2' },
-    { title: 't3', count: '0', statblid: 'test3' }
+    { title: 't1', count: '0', statblid: 'test1', region: '전국' },
+    { title: 't2', count: '0', statblid: 'test2', region: '전국' },
+    { title: 't3', count: '0', statblid: 'test3', region: '전국' }
   ]);
   const [chartData, setChartData] = useState(null); // 초기에는 null로 설정
-  const [chartLayers, setChartLayers] = useState([]); // 차트 레이어들을 누적 저
+  const [chartLayers, setChartLayers] = useState([]); // 차트 레이어들을 누적 저장
+  const [aiQuestion, setAiQuestion] = useState(''); // AI 질문 입력
+  const [selectedRegion, setSelectedRegion] = useState('전국'); // 지역 선택 상태
+
+  // 지역 옵션들
+  const regionOptions = [
+    '전국', '수도권', '지방권', '6대광역시', '5대광역시', '9개도', '8개도',
+    '서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종',
+    '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
+  ];
+
+  // 지역 선택 핸들러
+  const handleRegionChange = (event) => {
+    setSelectedRegion(event.target.value);
+    console.log('선택된 지역:', event.target.value);
+  };
+
+  // 개별 카드의 지역 선택 핸들러
+  const handleCardRegionChange = (cardIndex, region) => {
+    setCards(prevCards => 
+      prevCards.map((card, index) => 
+        index === cardIndex ? { ...card, region } : card
+      )
+    );
+    console.log(`카드 ${cardIndex + 1} 지역 변경:`, region);
+  };
   
 
   //  const server = "http://172.16.10.56:8087/RAP";
@@ -249,6 +282,26 @@ export default function DashboardDataAnalytics() {
     });
   };
 
+  // AI 질문 처리 함수
+  const handleAiQuestion = () => {
+    if (!aiQuestion.trim()) return;
+    
+    console.log('AI 질문:', aiQuestion);
+    // TODO: AI API 호출 로직 구현
+    // 현재는 콘솔에만 출력
+    
+    // 질문 전송 후 입력창 초기화
+    setAiQuestion('');
+  };
+
+  // Enter 키 처리
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      handleAiQuestion();
+    }
+  };
+
   // 카드 드롭 처리 - 제목(cName)과 count 반영
   const handleDropOnCard = (cardIndex, event) => {
     event.preventDefault();
@@ -263,7 +316,7 @@ export default function DashboardDataAnalytics() {
       const nextStatblid = obj.statblid || 'Untitled';
       
       setCards((prev) => {
-        const updated = prev.map((c, i) => (i === cardIndex ? { ...c, title: nextTitle, count: nextCount , statblid: nextStatblid } : c));
+        const updated = prev.map((c, i) => (i === cardIndex ? { ...c, title: nextTitle, count: nextCount , statblid: nextStatblid, region: c.region } : c));
         console.log('[handleDropOnCard] updated cards:', updated);
         return updated;
       });
@@ -337,12 +390,12 @@ export default function DashboardDataAnalytics() {
   }, []);
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh', ml: '-8px', width: 'calc(100% + 8px)' }}>
+    <Box sx={{ display: 'flex', height: '85vh', ml: '-8px', width: 'calc(100% + 8px)' }}>
       {/* 좌측 사이드바 - Tree View */}
       <Box 
         sx={{ 
-          width: 'calc(20% + 8px)', 
-          height: '100vh', 
+          width: 'calc(15% + 8px)', 
+          height: '85vh', 
           borderRight: '1px solid',
           borderColor: 'divider',
           overflow: 'hidden',
@@ -357,7 +410,7 @@ export default function DashboardDataAnalytics() {
           </Typography>
         </Box>
         
-        <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
           {loadingMenu && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
               <CircularProgress />
@@ -396,12 +449,18 @@ export default function DashboardDataAnalytics() {
           )}
           
           {menuData && (
-            <Box sx={{ flex: 1, overflow: 'auto', p: 0 }}>
+            <Box sx={{ 
+              flex: 1, 
+              overflow: 'auto', 
+              p: 0,
+              height: 'calc(75vh - 48px)' // 85vh 기준으로 조정
+            }}>
             <SimpleTreeView
               defaultExpandedItems={['item-0']} // 첫 번째 항목을 기본으로 확장
               sx={{
                 width: '100%',
-                height: '50%',
+                height: '100%', // 부모 컨테이너의 전체 높이 사용
+                overflow: 'auto',
                 '& .MuiTreeItem-root': {
                   width: '100%',
                 },
@@ -459,8 +518,8 @@ export default function DashboardDataAnalytics() {
         </Box>
       </Box>
 
-      {/* 우측 메인 콘텐츠 */}
-      <Box sx={{ width: '80%', overflow: 'auto', height: '100vh' }}>
+      {/* 중앙 메인 콘텐츠 - 차트 및 카드 */}
+      <Box sx={{ width: '65%', overflow: 'auto', height: '85vh' }}>
         <Grid container rowSpacing={4.5} columnSpacing={3} sx={{ p: 2 }}>
           {/* row 1 */}
           <Grid onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDropOnCard(0, e)} size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
@@ -471,6 +530,9 @@ export default function DashboardDataAnalytics() {
               statblid={cards[0].statblid}
               isActiveInChart={chartLayers.some(layer => layer.statblid === cards[0].statblid)}
               onRemoveFromChart={() => removeChartLayer(cards[0].statblid)}
+              region={cards[0].region}
+              onRegionChange={(newRegion) => handleCardRegionChange(0, newRegion)}
+              regionOptions={regionOptions}
             >
               <UsersCardChart />
             </AnalyticsDataCard>
@@ -483,6 +545,9 @@ export default function DashboardDataAnalytics() {
               statblid={cards[1].statblid}
               isActiveInChart={chartLayers.some(layer => layer.statblid === cards[1].statblid)}
               onRemoveFromChart={() => removeChartLayer(cards[1].statblid)}
+              region={cards[1].region}
+              onRegionChange={(newRegion) => handleCardRegionChange(1, newRegion)}
+              regionOptions={regionOptions}
             >
               <UsersCardChart />
             </AnalyticsDataCard>
@@ -495,6 +560,9 @@ export default function DashboardDataAnalytics() {
               statblid={cards[2].statblid}
               isActiveInChart={chartLayers.some(layer => layer.statblid === cards[2].statblid)}
               onRemoveFromChart={() => removeChartLayer(cards[2].statblid)}
+              region={cards[2].region}
+              onRegionChange={(newRegion) => handleCardRegionChange(2, newRegion)}
+              regionOptions={regionOptions}
             >
               <UsersCardChart />
             </AnalyticsDataCard>
@@ -533,28 +601,328 @@ export default function DashboardDataAnalytics() {
                 </Grid>
               )}
             </Grid>
-            {/* 그래프*/}
-            {/* ApexCharts로 변경된 그래프 - fetchChartData 결과를 전달 */}
-            {chartData ? (
-              <ApexMixedChart chartData={chartData} />
-            ) : (
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                height: 400,
-                bgcolor: 'background.default',
-                borderRadius: 1,
-                border: '1px dashed',
-                borderColor: 'divider'
-              }}>
-                <Typography variant="body1" color="text.secondary">
-                  트리에서 항목을 드래그해서 카드에 드롭하면 해당 차트가 표시됩니다
-                </Typography>
-              </Box>
-            )}
+            {/* 그래프 - 상대 위치로 설정하여 오버레이 가능하게 */}
+            <Box sx={{ position: 'relative' }}>
+              {/* ApexCharts로 변경된 그래프 - fetchChartData 결과를 전달 */}
+              {chartData ? (
+                <ApexMixedChart chartData={chartData} />
+              ) : (
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  height: 450,
+                  bgcolor: 'background.default',
+                  borderRadius: 1,
+                  border: '1px dashed',
+                  borderColor: 'divider'
+                }}>
+                  <Typography variant="body1" color="text.secondary">
+                    트리에서 항목을 드래그해서 카드에 드롭하면 해당 차트가 표시됩니다
+                  </Typography>
+                </Box>
+              )}
+
+              {/* 정책자료 오버레이 */}
+              {showPolicyOverlay && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 10,
+                    left: 10,
+                    right: 10,
+                    bottom: 100, // 버튼 영역을 확실히 가리지 않도록 설정
+                    backgroundColor: 'background.paper',
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                    borderRadius: 2,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                    zIndex: 1000, // 높은 z-index로 그래프 위에 표시
+                    overflow: 'hidden',
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}
+                  >
+                    {/* 오버레이 헤더 */}
+                    <Box sx={{ 
+                      p: 2, 
+                      borderBottom: '1px solid', 
+                      borderColor: 'divider',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      backgroundColor: 'primary.main',
+                      color: 'white'
+                    }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: 'white' }}>
+                        정책자료 데이터
+                      </Typography>
+                      <button
+                        onClick={() => setShowPolicyOverlay(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          fontSize: '20px',
+                          cursor: 'pointer',
+                          padding: '4px 8px',
+                          color: 'white'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </Box>
+
+                    {/* 데이터 테이블 */}
+                    <Box sx={{ flex: 1, overflow: 'auto', p: 1 }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#f5f5f5' }}>
+                            <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>선택</th>
+                            <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>날짜</th>
+                            <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>제목</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              <input type="checkbox" />
+                            </td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>20250627</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              (25.06.27) 가계부채 관리 강화 방안<br/>
+                              <small style={{ color: '#666' }}>
+                                LTV 등 규제 강화 / 가계대출 총량관리 강화 / 은행의 자율관리책자 추출 / 주요권으로 혹내 시행 / 추가대상명칭 추진선별 적용
+                              </small>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              <input type="checkbox" />
+                            </td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>20250529</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              (25.05.29) 금융 · 통화<br/>
+                              <small style={{ color: '#666' }}>
+                                한국은행 기준금리 인하
+                              </small>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              <input type="checkbox" />
+                            </td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>20250521</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              (25.05.21) 가계부채 관리화<br/>
+                              <small style={{ color: '#666' }}>
+                                3단계 스트레스 DSR 시행('25.7.1~)
+                              </small>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              <input type="checkbox" />
+                            </td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>20250520</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              (25.05.20) 가계대출규제 · DSR<br/>
+                              <small style={{ color: '#666' }}>
+                                3단계 스트레스 DSR 시행
+                              </small>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              <input type="checkbox" />
+                            </td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>20250520</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              (25.05.20) 전세시기 비례 지원<br/>
+                              <small style={{ color: '#666' }}>
+                                전세시기대체 지원 및 주기업집에 관한 특별법 일부개정
+                              </small>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              <input type="checkbox" />
+                            </td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>20250319</td>
+                            <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                              (25.03.19) 주택시장 안정화 방안<br/>
+                              <small style={{ color: '#666' }}>
+                                금융 · 가계대출 관리 강화 / 주거안정지역 · 부가처별지구 지정 긴드 / 주택공급 기간 강화 / 주택시장 거래질서 확립 / 주저기업 기간 강화 / 주택시장 거래질서기등
+                              </small>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </Box>
+                </Box>
+              )}
+            </Box>
+
+            {/* 차트 하단 버튼들 */}
+            <Box sx={{ 
+              mt: 2, 
+              display: 'flex', 
+              justifyContent: 'center', 
+              gap: 2 
+            }}>
+              <button 
+                onClick={() => {
+                  // 정책자료 오버레이 토글
+                  console.log('정책자료 버튼 클릭, 현재 상태:', showPolicyOverlay);
+                  setShowPolicyOverlay(!showPolicyOverlay);
+                  console.log('정책자료 상태 변경:', !showPolicyOverlay);
+                }}
+                style={{
+                  padding: '8px 20px',
+                  backgroundColor: showPolicyOverlay ? '#5a6268' : '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#5a6268'}
+                onMouseOut={(e) => e.target.style.backgroundColor = showPolicyOverlay ? '#5a6268' : '#6c757d'}
+              >
+                정책자료
+              </button>
+              
+              <button 
+                onClick={() => {
+                  // 차트 초기화 기능
+                  setChartLayers([]);
+                  setChartData(null);
+                  console.log('차트 초기화 클릭');
+                }}
+                style={{
+                  padding: '8px 20px',
+                  backgroundColor: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+              >
+                차트 초기화
+              </button>
+              
+              <button 
+                onClick={() => {
+                  // AI 분석 기능
+                  console.log('AI 분석 클릭');
+                  // TODO: AI 분석 모달이나 기능 구현
+                }}
+                style={{
+                  padding: '8px 20px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
+              >
+                AI 분석
+              </button>
+            </Box>
           </Grid>
         </Grid>
+      </Box>
+
+      {/* 우측 AI 컴포넌트 영역 */}
+      <Box 
+        sx={{ 
+          width: '20%', 
+          height: '85vh', 
+          borderLeft: '1px solid',
+          borderColor: 'divider',
+          overflow: 'auto',
+          backgroundColor: 'background.paper',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0, backgroundColor: 'primary.lighter' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main', textAlign: 'left' }}>
+            AI 분석 도구
+          </Typography>
+        </Box>
+        
+        <Box sx={{ flex: 1, overflow: 'auto', p: 2, display: 'flex', flexDirection: 'column' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+            AI 컴포넌트가 여기에 추가될 예정입니다.
+          </Typography>
+          
+          {/* TODO: AI 컴포넌트 추가 영역 */}
+          <Box sx={{ 
+            mt: 2, 
+            p: 2, 
+            border: '1px dashed', 
+            borderColor: 'divider', 
+            borderRadius: 1,
+            textAlign: 'center',
+            flex: 1
+          }}>
+            <Typography variant="caption" color="text.secondary">
+              AI 분석 도구
+            </Typography>
+          </Box>
+
+          {/* AI 질문 입력창 */}
+          <Box sx={{ 
+            mt: 2, 
+            display: 'flex', 
+            gap: 1,
+            alignItems: 'flex-end'
+          }}>
+            <TextField
+              fullWidth
+              multiline
+              maxRows={3}
+              variant="outlined"
+              placeholder="AI에게 질문하세요..."
+              value={aiQuestion}
+              onChange={(e) => setAiQuestion(e.target.value)}
+              onKeyPress={handleKeyPress}
+              size="small"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 1,
+                }
+              }}
+            />
+            <IconButton 
+              color="primary" 
+              onClick={handleAiQuestion}
+              disabled={!aiQuestion.trim()}
+              sx={{ 
+                bgcolor: 'primary.main',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: 'primary.dark',
+                },
+                '&.Mui-disabled': {
+                  bgcolor: 'action.disabledBackground',
+                  color: 'action.disabled'
+                }
+              }}
+            >
+              <SendIcon />
+            </IconButton>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

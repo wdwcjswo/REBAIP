@@ -9,7 +9,6 @@ import ThemeCustomization from 'themes';
 
 import Locales from 'components/Locales';
 import ScrollTop from 'components/ScrollTop';
-import RTLLayout from 'components/RTLLayout';
 import Snackbar from 'components/@extended/Snackbar';
 import Notistack from 'components/third-party/Notistack';
 
@@ -21,18 +20,16 @@ export default function ProviderWrapper({ children }) {
   return (
     <ConfigProvider>
       <ThemeCustomization>
-        <RTLLayout>
-          <Locales>
-            <ScrollTop>
-              <SessionProvider refetchInterval={0}>
-                <Notistack>
-                  <Snackbar />
-                  {children}
-                </Notistack>
-              </SessionProvider>
-            </ScrollTop>
-          </Locales>
-        </RTLLayout>
+        <Locales>
+          <ScrollTop>
+            <SessionProvider refetchInterval={0}>
+              <Notistack>
+                <Snackbar />
+                {children}
+              </Notistack>
+            </SessionProvider>
+          </ScrollTop>
+        </Locales>
       </ThemeCustomization>
     </ConfigProvider>
   );

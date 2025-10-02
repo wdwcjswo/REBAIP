@@ -6,6 +6,10 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 
 // project imports
 import MainCard from 'components/MainCard';
@@ -25,7 +29,10 @@ export default function AnalyticsDataCard({
   count, 
   statblid, 
   isActiveInChart = false,
-  onRemoveFromChart
+  onRemoveFromChart,
+  region = '전국',
+  onRegionChange,
+  regionOptions = []
 }) {
   return (
     <MainCard 
@@ -77,6 +84,28 @@ export default function AnalyticsDataCard({
               {statblid}
             </Typography>
           </Stack>
+          
+          {/* 지역 선택 드롭다운 */}
+          {regionOptions.length > 0 && (
+            <Box sx={{ mt: 1 }}>
+              <FormControl size="small" sx={{ minWidth: 120, width: '100%' }}>
+                <InputLabel id={`region-label-${statblid}`}>지역</InputLabel>
+                <Select
+                  labelId={`region-label-${statblid}`}
+                  value={region}
+                  label="지역"
+                  onChange={(e) => onRegionChange && onRegionChange(e.target.value)}
+                  sx={{ backgroundColor: 'background.paper' }}
+                >
+                  {regionOptions.map((regionOption) => (
+                    <MenuItem key={regionOption} value={regionOption}>
+                      {regionOption}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          )}
         </Stack>
       </Box>
     </MainCard>
@@ -89,5 +118,8 @@ AnalyticsDataCard.propTypes = {
   count: PropTypes.string,
   statblid: PropTypes.string,
   isActiveInChart: PropTypes.bool,
-  onRemoveFromChart: PropTypes.func
+  onRemoveFromChart: PropTypes.func,
+  region: PropTypes.string,
+  onRegionChange: PropTypes.func,
+  regionOptions: PropTypes.array
 };
