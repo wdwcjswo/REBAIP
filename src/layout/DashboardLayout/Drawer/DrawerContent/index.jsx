@@ -5,7 +5,7 @@ import NavUser from './NavUser';
 import NavCard from './NavCard';
 import Navigation from './Navigation';
 import SimpleBar from 'components/third-party/SimpleBar';
-import { useGetMenuMaster } from 'api/menu';
+import { useGetMenuMaster } from 'api/menu.jsx';
 
 // ==============================|| DRAWER CONTENT ||============================== //
 

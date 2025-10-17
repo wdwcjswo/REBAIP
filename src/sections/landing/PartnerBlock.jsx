@@ -13,19 +13,19 @@ import Marquee from 'react-fast-marquee';
 // project imports
 import Animation from './Animation';
 import { ThemeDirection, ThemeMode } from 'config';
-
-// assets
-const techCI = '/assets/images/landing/technology/tech-ci.png';
-const techAngular = '/assets/images/landing/technology/tech-angular.png';
-const techBootstrap = '/assets/images/landing/technology/tech-bootstrap.png';
-const techDotnet = '/assets/images/landing/technology/tech-dot-net.png';
-const techVue = '/assets/images/landing/technology/tech-vue.png';
-
-const techCIDark = '/assets/images/landing/technology/tech-ci-dark.png';
-const techAngularDark = '/assets/images/landing/technology/tech-angular-dark.png';
-const techBootstrapDark = '/assets/images/landing/technology/tech-bootstrap-dark.png';
-const techDotnetDark = '/assets/images/landing/technology/tech-dot-net-dark.png';
-const techVueDark = '/assets/images/landing/technology/tech-vue-dark.png';
+// assets (centralized)
+import {
+  techCI,
+  techAngular,
+  techBootstrap,
+  techDotnet,
+  techVue,
+  techCIDark,
+  techAngularDark,
+  techBootstrapDark,
+  techDotnetDark,
+  techVueDark
+} from 'assets/images/landing';
 
 // ================================|| SLIDER - ITEMS ||================================ //
 

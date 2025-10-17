@@ -15,7 +15,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 
 // project imports
-import { handlerActiveComponent, handlerComponentDrawer, useGetMenuMaster } from 'api/menu';
+import { handlerActiveComponent, handlerComponentDrawer, useGetMenuMaster } from 'api/menu.jsx';
 
 // third-party
 import { FormattedMessage } from 'react-intl';

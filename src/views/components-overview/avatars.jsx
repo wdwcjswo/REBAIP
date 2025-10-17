@@ -1,3 +1,17 @@
+import avatar1 from 'assets/images/users/avatar-1.png';
+import avatar2 from 'assets/images/users/avatar-2.png';
+import avatar3 from 'assets/images/users/avatar-3.png';
+import avatar4 from 'assets/images/users/avatar-4.png';
+import avatar5 from 'assets/images/users/avatar-5.png';
+import avatar6 from 'assets/images/users/avatar-6.png';
+import avatar7 from 'assets/images/users/avatar-7.png';
+import avatar8 from 'assets/images/users/avatar-8.png';
+import avatar9 from 'assets/images/users/avatar-9.png';
+import avatar10 from 'assets/images/users/avatar-10.png';
+import vector1 from 'assets/images/users/vector-1.png';
+import vector2 from 'assets/images/users/vector-2.png';
+import vector3 from 'assets/images/users/vector-3.png';
+import vector4 from 'assets/images/users/vector-4.png';
 'use client';
 
 import { useState } from 'react';
@@ -58,22 +72,22 @@ export default function ComponentAvatar() {
                 <Grid container spacing={1}>
                   <Grid>
                     <Avatar>
-                      <CardMedia component="img" sx={{ height: 40 }} alt="Natacha" src="/assets/images/users/vector-1.png" />
+                      <CardMedia component="img" sx={{ height: 40 }} alt="Natacha" src={vector1} />
                     </Avatar>
                   </Grid>
                   <Grid>
                     <Avatar>
-                      <CardMedia component="img" sx={{ height: 40 }} alt="Natacha" src="/assets/images/users/vector-2.png" />
+                      <CardMedia component="img" sx={{ height: 40 }} alt="Natacha" src={vector2} />
                     </Avatar>
                   </Grid>
                   <Grid>
                     <Avatar>
-                      <CardMedia component="img" sx={{ height: 40 }} alt="Natacha" src="/assets/images/users/vector-3.png" />
+                      <CardMedia component="img" sx={{ height: 40 }} alt="Natacha" src={vector3} />
                     </Avatar>
                   </Grid>
                   <Grid>
                     <Avatar>
-                      <CardMedia component="img" sx={{ height: 40 }} alt="Natacha" src="/assets/images/users/vector-4.png" />
+                      <CardMedia component="img" sx={{ height: 40 }} alt="Natacha" src={vector4} />
                     </Avatar>
                   </Grid>
                 </Grid>
@@ -138,7 +152,7 @@ export default function ComponentAvatar() {
                 <Grid container spacing={1}>
                   <Grid>
                     <Badge badgeContent={4} color="error" overlap="circular">
-                      <Avatar alt="Natacha" type="filled" src="/assets/images/users/avatar-6.png" />
+                      <Avatar alt="Natacha" type="filled" src={avatar6} />
                     </Badge>
                   </Grid>
                   <Grid>
@@ -150,7 +164,7 @@ export default function ComponentAvatar() {
                   </Grid>
                   <Grid>
                     <Badge color="error" overlap="circular" variant="dot">
-                      <Avatar alt="Natacha" type="filled" src="/assets/images/users/avatar-2.png" />
+                      <Avatar alt="Natacha" type="filled" src={avatar2} />
                     </Badge>
                   </Grid>
                   <Grid>
@@ -169,16 +183,16 @@ export default function ComponentAvatar() {
                   </Grid>
                   <Grid>
                     <Badge color="success" variant="dot">
-                      <Avatar alt="Natacha" variant="rounded" type="filled" src="/assets/images/users/avatar-1.png" />
+                      <Avatar alt="Natacha" variant="rounded" type="filled" src={avatar1} />
                     </Badge>
                   </Grid>
                   <Grid>
                     <Badge
                       overlap="circular"
                       anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                      badgeContent={<Avatar size="badge" alt="Remy Sharp" src="/assets/images/users/avatar-6.png" />}
+                      badgeContent={<Avatar size="badge" alt="Remy Sharp" src={avatar6} />}
                     >
-                      <Avatar alt="Travis Howard" src="/assets/images/users/avatar-1.png" />
+                      <Avatar alt="Travis Howard" src={avatar1} />
                     </Badge>
                   </Grid>
                 </Grid>
@@ -186,7 +200,7 @@ export default function ComponentAvatar() {
               <MainCard title="Image">
                 <Grid container spacing={1}>
                   <Grid>
-                    <Avatar alt="Avatar 1" src="/assets/images/users/avatar-1.png" />
+                    <Avatar alt="Avatar 1" src={avatar1} />
                   </Grid>
                   <Grid>
                     <Avatar alt="Avatar 2" src="/assets/images/users/avatar-2.png" />
@@ -333,7 +347,7 @@ export default function ComponentAvatar() {
                           }
                         }}
                       >
-                        <Avatar alt="Remy Sharp" src="/assets/images/users/avatar-1.png" />
+                        <Avatar alt="Remy Sharp" src={avatar1} />
                         <Avatar alt="Travis Howard" src="/assets/images/users/avatar-2.png" />
                         <Avatar alt="Cindy Baker" src="/assets/images/users/avatar-3.png" />
                         <Avatar alt="Agnes Walker" src="/assets/images/users/avatar-4.png" />
@@ -375,7 +389,7 @@ export default function ComponentAvatar() {
                           }
                         }}
                       >
-                        <Avatar alt="Remy Sharp" src="/assets/images/users/avatar-1.png" />
+                        <Avatar alt="Remy Sharp" src={avatar1} />
                         <Avatar alt="Travis Howard" src="/assets/images/users/avatar-2.png" />
                         <Avatar alt="Cindy Baker" src="/assets/images/users/avatar-3.png" />
                         <Avatar alt="Agnes Walker" src="/assets/images/users/avatar-4.png" />
@@ -393,7 +407,7 @@ export default function ComponentAvatar() {
               <MainCard title="Sizes">
                 <Grid container spacing={1} alignItems="center">
                   <Grid>
-                    <Avatar size="xs" alt="Avatar 1" src="/assets/images/users/avatar-1.png" />
+                    <Avatar size="xs" alt="Avatar 1" src={avatar1} />
                   </Grid>
                   <Grid>
                     <Avatar size="sm" alt="Avatar 2" src="/assets/images/users/avatar-2.png" />

@@ -15,7 +15,7 @@ import { MenuFromAPI } from 'menu-items/dashboard';
 
 import useConfig from 'hooks/useConfig';
 import { HORIZONTAL_MAX_ITEM, MenuOrientation } from 'config';
-import { useGetMenu, useGetMenuMaster } from 'api/menu';
+import { useGetMenu, useGetMenuMaster } from 'api/menu.jsx';
 
 function isFound(arr, str) {
   return arr.items.some((element) => {
@@ -30,7 +30,7 @@ function isFound(arr, str) {
 
 export default function Navigation() {
   const { menuOrientation } = useConfig();
-  const { menuLoading } = useGetMenu();
+  const { menuLoading, errorComponent } = useGetMenu();
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
@@ -122,6 +122,7 @@ export default function Navigation() {
         display: isHorizontal ? { xs: 'block', lg: 'flex' } : 'block'
       }}
     >
+      {errorComponent}
       {navGroups}
     </Box>
   );

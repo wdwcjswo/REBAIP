@@ -10,7 +10,7 @@ import Toolbar from '@mui/material/Toolbar';
 // project imports
 import Loader from 'components/Loader';
 import ComponentLayoutPage from './ComponentLayout';
-import { useGetMenuMaster } from 'api/menu';
+import { useGetMenuMaster } from 'api/menu.jsx';
 
 const Header = lazy(() => import('./Header'));
 

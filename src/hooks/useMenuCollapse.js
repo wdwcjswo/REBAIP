@@ -64,7 +64,7 @@ function setParentOpenedMenu(items, pathname, menuId, setSelected, setOpen) {
 
 export default function useMenuCollapse(menu, pathname, miniMenuOpened, setSelected, setOpen, setAnchorEl) {
   useEffect(() => {
-    setOpen(false); // Close the menu initially
+    setOpen(true); // Open the menu initially
 
     // Reset selection based on menu state
     if (!miniMenuOpened) {

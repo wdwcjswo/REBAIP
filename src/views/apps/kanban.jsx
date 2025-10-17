@@ -16,7 +16,7 @@ import Board from 'sections/apps/kanban/Board';
 import Backlogs from 'sections/apps/kanban/Backlogs';
 
 import { APP_DEFAULT_PATH } from 'config';
-import { handlerActiveItem, useGetMenuMaster } from 'api/menu';
+import { handlerActiveItem, useGetMenuMaster } from 'api/menu.jsx';
 
 function a11yProps(index) {
   return {

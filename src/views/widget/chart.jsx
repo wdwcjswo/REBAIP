@@ -10,9 +10,6 @@ import Box from '@mui/material/Box';
 // project imports
 import MainCard from 'components/MainCard';
 import AnalyticsDataCard from 'components/cards/statistics/AnalyticsDataCard';
-
-import MonthlyBarChart from 'sections/dashboard/default/MonthlyBarChart';
-import UniqueVisitorCard from 'sections/dashboard/default/UniqueVisitorCard';
 import UsersCardChart from 'sections/dashboard/analytics/UsersCardChart';
 import OrdersCardChart from 'sections/dashboard/analytics/OrdersCardChart';
 import SalesCardChart from 'sections/dashboard/analytics/SalesCardChart';

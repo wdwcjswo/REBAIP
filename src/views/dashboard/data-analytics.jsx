@@ -4,28 +4,17 @@ import dynamic from 'next/dynamic';
 
 // material-ui
 import Grid from '@mui/material/Grid';
-import List from '@mui/material/List';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Alert from '@mui/material/Alert';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import SendIcon from '@mui/icons-material/Send';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-
-// MUI X Tree View
-import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
-import { TreeItem } from '@mui/x-tree-view/TreeItem';
+import Slider from '@mui/material/Slider';
+import Rating from '@mui/material/Rating';
 
 // react
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 // project imports
 import MainCard from 'components/MainCard';
@@ -49,20 +38,27 @@ import SaleReportCard from 'sections/dashboard/analytics/SaleReportCard';
 
 // ==============================|| DASHBOARD - DATA ANALYTICS ||============================== //
 
+
 export default function DashboardDataAnalytics() {
-  const [menuData, setMenuData] = useState(null);
-  const [loadingMenu, setLoadingMenu] = useState(true);
   const [error, setError] = useState(null);
   const [showPolicyOverlay, setShowPolicyOverlay] = useState(false); // 정책자료 오버레이 상태
   const [cards, setCards] = useState([
-    { title: 't1', count: '0', statblid: 'test1', region: '전국' },
-    { title: 't2', count: '0', statblid: 'test2', region: '전국' },
-    { title: 't3', count: '0', statblid: 'test3', region: '전국' }
+    { title: 'OPT1', figures: '0', newdate:'202501', statblid: 'OPT1', region: '전국', color: '#1976d2', chartType: 'line' }, // 파랑
+    { title: 'OPT2', figures: '0', newdate:'202501', statblid: 'OPT2', region: '전국', color: '#2e7d32', chartType: 'line' },   // 초록
+    { title: 'OPT3', figures: '0', newdate:'202501', statblid: 'OPT3', region: '전국', color: '#d32f2f', chartType: 'line' }   // 빨강
   ]);
   const [chartData, setChartData] = useState(null); // 초기에는 null로 설정
   const [chartLayers, setChartLayers] = useState([]); // 차트 레이어들을 누적 저장
   const [aiQuestion, setAiQuestion] = useState(''); // AI 질문 입력
   const [selectedRegion, setSelectedRegion] = useState('전국'); // 지역 선택 상태
+  // 조회 년도 범위 상태 (최근 10년, 올해 기준)
+  const SLIDER_END_YEAR = new Date().getFullYear();
+  const SLIDER_START_YEAR = SLIDER_END_YEAR - 9;
+  const monthCount = (SLIDER_END_YEAR - SLIDER_START_YEAR) * 12 + 12; 
+  const [yearRange, setYearRange] = useState([0, monthCount - 1]);
+
+  // 카드별 고정 색상 배열 (cards에서 추출)
+  const cardColors = cards.map(card => card.color);
 
   // 지역 옵션들
   const regionOptions = [
@@ -86,57 +82,54 @@ export default function DashboardDataAnalytics() {
     );
     console.log(`카드 ${cardIndex + 1} 지역 변경:`, region);
   };
+
+  // 카드 리셋 핸들러
+  const handleResetCard = (cardIndex) => {
+    setCards(prevCards => 
+      prevCards.map((card, index) => 
+        index === cardIndex 
+          ? { 
+              ...card, 
+              title: ['OPT1', 'OPT2', 'OPT3'][cardIndex], 
+              figures: '0', 
+              statblid: ['OPT1', 'OPT2', 'OPT3'][cardIndex],
+              chartType: 'line',
+              region: '전국' 
+            }
+          : card
+      )
+    );
+    console.log(`카드 ${cardIndex + 1} 리셋됨`);
+  };
+
+  // 각 카드의 차트 데이터를 가져오는 함수 (카드별로 독립적인 데이터 관리)
+  const getCardChartData = (statblid, cardIndex) => {
+    const layer = chartLayers.find(layer => layer.statblid === statblid);
+    if (layer && layer.data && layer.data.datasets && layer.data.datasets.length > 0) {
+      // 첫 번째 dataset의 데이터를 반환
+      return layer.data.datasets[0].data || [];
+    }
+    return [];
+  };
   
 
   //  const server = "http://172.16.10.56:8087/RAP";
   const server = "http://127.0.0.1:8087/RAP";
 
-  useEffect(() => {
-    const fetchMenuData = async () => {
-      try {
-        setLoadingMenu(true);
-        setError(null);
-
-        // Next.js 프록시를 통해 API 호출
-        const response = await fetch('/api/rap/getMenuJSON', {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          }
-        });
-
-        console.log('Response status:', response.status);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('API Error Response:', errorText);
-          throw new Error(`API 호출 실패 (${response.status}): ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log('setMenuData, loaded', data?.length || 0, 'items');
-        setMenuData(data);
-
-      } catch (err) {
-        console.error('API 호출 오류 상세:', err);
-        setError(`연결 오류: ${err.message}. 서버가 실행 중인지 확인해주세요.`);
-      } finally {
-        setLoadingMenu(false);
-      }
-    };
-
-    fetchMenuData();
-  }, []);
-
-  // fetchChartData 함수를 독립적으로 분리
-  const fetchChartData = async (statbleId) => {
+  // fetchChartData 함수를 독립적으로 분리 (카드별로 독립적인 데이터 관리)
+  const fetchChartData = async (statblid, cardIndex) => {
     try {
       setError(null);
 
-      // statbleId가 없으면 함수 종료
-      if (!statbleId) {
-        console.log('fetchChartData: statbleId가 제공되지 않음');
+      // statblid가 없으면 함수 종료
+      if (!statblid) {
+        console.log('fetchChartData: statblid가 제공되지 않음');
         return;
+      }
+
+      // cardIndex가 없으면 -1로 설정 (기본 차트용)
+      if (cardIndex === undefined) {
+        cardIndex = -1;
       }
 
       let stym = '202001';
@@ -149,16 +142,16 @@ export default function DashboardDataAnalytics() {
       //STATBL_ID=A_2024_00050&ST_YM=202001&ED_YM=202509&GRP_ID=null&CLS_ID=1000010&CLS_DATANO=500001&TITLE=전세가격지수 아파트
       let svcURL = '';
     
-      if (statbleId === 'A_2024_00016') {
-        svcURL = "/api/rap/getChart_RONE_OPT" +'?STATBL_ID='+statbleId +'&ST_YM='+202001+'&ED_YM='+202509+'&GRP_ID='+REG+'&CLS_ID=51000000&CLS_DATANO=500017&TITLE=매매가격지수 주택종합';
-      } else if (statbleId === 'A_2024_00045') {
-        svcURL = "/api/rap/getChart_RONE_OPT" +'?STATBL_ID='+statbleId +'&ST_YM='+202001+'&ED_YM='+202509+'&GRP_ID='+REG+'&CLS_ID=1000070&CLS_DATANO=500007&TITLE=매매가격지수 아파트';
-      } else if (statbleId === 'A_2024_00050') {
-        svcURL = "/api/rap/getChart_RONE_OPT" +'?STATBL_ID='+statbleId +'&ST_YM='+202001+'&ED_YM='+202509+'&GRP_ID='+REG+'&CLS_ID=1000010&CLS_DATANO=500001&TITLE=전세가격지수 아파트';
+      if (statblid === 'A_2024_00016') {
+        svcURL = "/api/rap/getChart_RONE_OPT" +'?STATBL_ID='+statblid +'&ST_YM='+202001+'&ED_YM='+202509+'&GRP_ID='+REG+'&CLS_ID=51000000&CLS_DATANO=500017&TITLE=매매가격지수 주택종합';
+      } else if (statblid === 'A_2024_00045') {
+        svcURL = "/api/rap/getChart_RONE_OPT" +'?STATBL_ID='+statblid +'&ST_YM='+202001+'&ED_YM='+202509+'&GRP_ID='+REG+'&CLS_ID=1000070&CLS_DATANO=500007&TITLE=매매가격지수 아파트';
+      } else if (statblid === 'A_2024_00050') {
+        svcURL = "/api/rap/getChart_RONE_OPT" +'?STATBL_ID='+statblid +'&ST_YM='+202001+'&ED_YM='+202509+'&GRP_ID='+REG+'&CLS_ID=1000010&CLS_DATANO=500001&TITLE=전세가격지수 아파트';
       }
       
 
-      console.log('fetchChartData called with statbleId:', statbleId);
+      console.log('fetchChartData called with statblid:', statblid);
       console.log('API URL:', svcURL);
 
       // Next.js 프록시를 통해 API 호출
@@ -180,23 +173,29 @@ export default function DashboardDataAnalytics() {
       const data = await response.json();
       console.log('Chart data received:', data);
       
-      // 새로운 레이어 추가 (같은 statblid가 있으면 교체, 없으면 추가)
+      // 새로운 레이어 추가
       setChartLayers(prevLayers => {
-        const existingIndex = prevLayers.findIndex(layer => layer.statblid === statbleId);
+        const existingIndex = prevLayers.findIndex(layer => layer.statblid === statblid);
         let newLayers;
         
         if (existingIndex >= 0) {
           // 같은 statblid가 있으면 교체
           newLayers = [...prevLayers];
-          newLayers[existingIndex] = { ...data, statblid: statbleId };
-          console.log('Updated existing layer for statblid:', statbleId);
+          newLayers[existingIndex] = { 
+            ...data, 
+            statblid: statblid
+          };
+          console.log('Updated existing layer for statblid:', statblid);
         } else {
           // 새로운 레이어 추가
-          newLayers = [...prevLayers, { ...data, statblid: statbleId }];
-          console.log('Added new layer for statblid:', statbleId);
+          newLayers = [...prevLayers, { 
+            ...data, 
+            statblid: statblid
+          }];
+          console.log('Added new layer for statblid:', statblid);
         }
         
-        // 차트 데이터 병합
+        // 메인 차트 데이터 병합
         const mergedChartData = mergeChartLayers(newLayers);
         setChartData(mergedChartData);
         
@@ -229,7 +228,7 @@ export default function DashboardDataAnalytics() {
           mergedData.data.datasets.push({
             ...dataset,
             name: `${dataset.name || layer.statblid || 'Dataset'} (${index + 1})`,
-            statblid: layer.statblid // statblid 정보 보존
+            statblid: layer.statblid
           });
         });
       }
@@ -255,22 +254,14 @@ export default function DashboardDataAnalytics() {
     console.log('Component mounted - waiting for user interaction to load chart data');
   }, []);
 
-  // 드래그 시작 - Tree 항목 JSON 전달
-  const onDragStart = (event, item) => {
-    try {
-      event.dataTransfer.setData('application/json', JSON.stringify(item));
-      event.dataTransfer.effectAllowed = 'copy';
-    } catch {}
-  };
-
   // 차트 레이어 제거 함수
-  const removeChartLayer = (statblid) => {
+  const removeChartLayer = (statblid, cardIndex) => {
     setChartLayers(prevLayers => {
       const newLayers = prevLayers.filter(layer => layer.statblid !== statblid);
       console.log('Removed layer for statblid:', statblid);
       console.log('Remaining layers:', newLayers);
       
-      // 차트 데이터 재병합
+      // 메인 차트 데이터 재병합
       if (newLayers.length > 0) {
         const mergedChartData = mergeChartLayers(newLayers);
         setChartData(mergedChartData);
@@ -280,6 +271,25 @@ export default function DashboardDataAnalytics() {
       
       return newLayers;
     });
+
+    // 카드 상태를 초기화 (X버튼을 숨기기 위해)
+    if (cardIndex !== undefined) {
+      setCards(prevCards => 
+        prevCards.map((card, index) => 
+          index === cardIndex 
+            ? { 
+                ...card, 
+                title: ['OPT1', 'OPT2', 'OPT3'][cardIndex], 
+                figures: '0', 
+                statblid: ['OPT1', 'OPT2', 'OPT3'][cardIndex],
+                chartType: 'line',
+                region: '전국' 
+              }
+            : card
+        )
+      );
+      console.log(`카드 ${cardIndex + 1} 상태 초기화됨`);
+    }
   };
 
   // AI 질문 처리 함수
@@ -302,7 +312,7 @@ export default function DashboardDataAnalytics() {
     }
   };
 
-  // 카드 드롭 처리 - 제목(cName)과 count 반영
+  // 카드 드롭 처리 - 제목(cName)과 수치(figures) 반영
   const handleDropOnCard = (cardIndex, event) => {
     event.preventDefault();
     let payload = event.dataTransfer.getData('application/json') || event.dataTransfer.getData('text/plain');
@@ -312,19 +322,35 @@ export default function DashboardDataAnalytics() {
       const obj = JSON.parse(payload);
       console.log('[handleDropOnCard] parsed object:', obj);
       const nextTitle = obj.cname || obj.cContents || 'Untitled';
-      const nextCount = obj.count ? String(obj.count) : '';
+      // figures가 undefined/null/빈문자열이면 '0'으로 강제
+      const nextFigures = (obj.figures !== undefined && obj.figures !== null && String(obj.figures).trim() !== '') ? String(obj.figures) : '0';
       const nextStatblid = obj.statblid || 'Untitled';
       
+      // 기존 카드의 statblid 가져오기 (기존 메인차트 레이어 제거용)
+      const currentCard = cards[cardIndex];
+      const oldStatblid = currentCard.statblid;
+      
+      // 기존 메인차트 레이어 제거 (OPT1/OPT2/OPT3가 아닌 경우만)
+      if (oldStatblid && !['OPT1', 'OPT2', 'OPT3'].includes(oldStatblid)) {
+        console.log('[handleDropOnCard] removing old main chart layer for statblid:', oldStatblid);
+        setChartLayers(prevLayers => {
+          const filteredLayers = prevLayers.filter(layer => 
+            !(layer.statblid === oldStatblid && layer.cardIndex === undefined)
+          );
+          return filteredLayers;
+        });
+      }
+      
       setCards((prev) => {
-        const updated = prev.map((c, i) => (i === cardIndex ? { ...c, title: nextTitle, count: nextCount , statblid: nextStatblid, region: c.region } : c));
+        const updated = prev.map((c, i) => (i === cardIndex ? { ...c, title: nextTitle, figures: nextFigures , statblid: nextStatblid, region: c.region } : c));
         console.log('[handleDropOnCard] updated cards:', updated);
         return updated;
       });
       
       // statblid가 있으면 fetchChartData를 호출해서 실제 차트 데이터를 가져옴
       if (obj.statblid) {
-        console.log('[handleDropOnCard] calling fetchChartData with statblid:', obj.statblid);
-        fetchChartData(obj.statblid);
+        console.log('[handleDropOnCard] calling fetchChartData with statblid:', obj.statblid, 'cardIndex:', cardIndex);
+        fetchChartData(obj.statblid, cardIndex);
       }
       
     } catch (err) {
@@ -332,286 +358,166 @@ export default function DashboardDataAnalytics() {
     }
   };
 
-  // JSON 데이터를 Tree View 형식으로 변환 (중복 제거) - 메모이제이션 적용
-  const convertToTreeItems = useMemo(() => (items, parentId = '') => {
-    return items.map((item, index) => {
-      const itemId = parentId ? `${parentId}-${index}` : `item-${index}`;
-      const labelNode = (
-        <Box
-          draggable
-          onDragStart={(e) => onDragStart(e, item)}
-          sx={{ cursor: 'grab', width: '100%', textAlign: 'left' }}
-        >
-          {item.cContents || 'Untitled'}
-        </Box>
-      );
-
-      return (
-        <TreeItem key={itemId} itemId={itemId} label={labelNode}>
-          {item.children && item.children.length > 0 && convertToTreeItems(item.children, itemId)}
-        </TreeItem>
-      );
-    });
-  }, []);
-
-    // 중복 데이터 필터링 함수 - 개선된 버전 - 메모이제이션 적용
-    const filterDuplicateItems = useMemo(() => (items) => {
-    const filteredItems = [];
-    const seenItems = new Set();
-    
-    // 먼저 모든 하위 항목의 이름을 수집
-    const childNames = new Set();
-    items.forEach(item => {
-      if (item.children && item.children.length > 0) {
-        item.children.forEach(child => {
-          childNames.add(child.cContents);
-        });
-      }
-    });
-    
-    // 상위 항목만 필터링 (하위 항목으로도 존재하지 않는 항목들)
-    items.forEach(item => {
-      if (item.children && item.children.length > 0) {
-        // 상위 항목이고 중복되지 않은 경우
-        if (!seenItems.has(item.cContents)) {
-          seenItems.add(item.cContents);
-          filteredItems.push(item);
-        }
-      } else if (!childNames.has(item.cContents)) {
-        // 하위 항목이 아니고 중복되지 않은 독립 항목
-        if (!seenItems.has(item.cContents)) {
-          seenItems.add(item.cContents);
-          filteredItems.push(item);
-        }
-      }
-    });
-    
-    return filteredItems;
-  }, []);
-
   return (
-    <Box sx={{ display: 'flex', height: '85vh', ml: '-8px', width: 'calc(100% + 8px)' }}>
-      {/* 좌측 사이드바 - Tree View */}
-      <Box 
-        sx={{ 
-          width: 'calc(15% + 8px)', 
-          height: '85vh', 
-          borderRight: '1px solid',
-          borderColor: 'divider',
-          overflow: 'hidden',
-          backgroundColor: 'background.paper',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
-        <Box sx={{ p: 0.5, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0, backgroundColor: 'primary.lighter' }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main', textAlign: 'left' }}>
-            테스트 통계 메뉴
-          </Typography>
-        </Box>
-        
-        <Box sx={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-          {loadingMenu && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
-              <CircularProgress />
-            </Box>
-          )}
-          
-          {error && (
-            <Box sx={{ p: 2 }}>
-              <Alert severity="error">
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  API 연결 실패
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  {error}
-                </Typography>
-                <Typography variant="caption" sx={{ mt: 1, display: 'block', color: 'text.secondary' }}>
-                  가능한 해결 방법:
-                </Typography>
-                <Typography variant="caption" component="div" sx={{ mt: 0.5, color: 'text.secondary' }}>
-                  1. http://localhost:8087 서버가 실행 중인지 확인
-                </Typography>
-                <Typography variant="caption" component="div" sx={{ color: 'text.secondary' }}>
-                  2. 브라우저 개발자 도구의 Network 탭에서 상세 오류 확인
-                </Typography>
-                <Typography variant="caption" component="div" sx={{ color: 'text.secondary' }}>
-                  3. CORS 설정이 올바른지 확인
-                </Typography>
-              </Alert>
-            </Box>
-          )}
-          
-          {!loadingMenu && !menuData && !error && (
-            <Box sx={{ p: 2, textAlign: 'center', color: 'text.secondary' }}>
-              <Typography variant="body2">메뉴 데이터가 없습니다.</Typography>
-            </Box>
-          )}
-          
-          {menuData && (
-            <Box sx={{ 
-              flex: 1, 
-              overflow: 'auto', 
-              p: 0,
-              height: 'calc(75vh - 48px)' // 85vh 기준으로 조정
-            }}>
-            <SimpleTreeView
-              defaultExpandedItems={['item-0']} // 첫 번째 항목을 기본으로 확장
-              sx={{
-                width: '100%',
-                height: '100%', // 부모 컨테이너의 전체 높이 사용
-                overflow: 'auto',
-                '& .MuiTreeItem-root': {
-                  width: '100%',
-                },
-                '& .MuiTreeItem-content': {
-                  width: '100%',
-                  padding: '4px 6px',
-                  borderRadius: '0px',
-                  margin: '0',
-                  minHeight: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-start',
-                  borderBottom: '1px solid',
-                  borderColor: 'divider',
-                  '&:hover': {
-                    backgroundColor: 'action.hover',
-                  },
-                  '&.Mui-selected': {
-                    backgroundColor: 'primary.lighter',
-                    '&:hover': {
-                      backgroundColor: 'primary.lighter',
-                    },
-                  },
-                },
-                '& .MuiTreeItem-label': {
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  width: '100%',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  textAlign: 'left',
-                  lineHeight: 1.2,
-                },
-                '& .MuiTreeItem-group': {
-                  marginLeft: '8px',
-                  width: 'calc(100% - 8px)',
-                  '& .MuiTreeItem-content': {
-                    paddingLeft: '12px',
-                    backgroundColor: 'background.default',
-                  },
-                },
-                '& .MuiTreeItem-iconContainer': {
-                  marginRight: '4px',
-                  flexShrink: 0,
-                  width: '14px',
-                  height: '14px',
-                },
+    <Box sx={{ display: 'flex', height: '90vh', ml: '-8px', width: 'calc(100% + 8px)' }}>
+      <Box sx={{ width: '75%', overflow: 'auto', height: '90vh' }}>
+        {/* 조회 년도 범위 (사용자 조정 가능) */}
+        <Box sx={{ p: 0, pb: 1 }}>
+          <Grid container alignItems="center" justifyContent="flex-start" sx={{ m: 0 }}>
+            <Grid sx={{ pl: 0, ml: 0 }}>
+              <Typography variant="h5" sx={{ pl: 0, ml: 0 }}>조회 년도 범위
+                <Typography variant="caption" color="text.secondary">{
+                  (() => {
+                    const y = SLIDER_START_YEAR + Math.floor(yearRange[0] / 12);
+                    const m = (yearRange[0] % 12) + 1;
+                    return ` [ ${y}년${String(m).padStart(2,'0')}월`;
+                  })()
+                }</Typography>
+                <Typography variant="caption" color="text.secondary">{
+                  (() => {
+                    const y = SLIDER_START_YEAR + Math.floor(yearRange[1] / 12);
+                    const m = (yearRange[1] % 12) + 1;
+                    return `~ ${y}년${String(m).padStart(2,'0')}월 ]`;
+                  })()
+                }</Typography>
+              </Typography>
+            </Grid>
+          </Grid>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '90%', justifyContent: 'center', margin: '0 auto' }}>
+            <Slider
+              value={yearRange}
+              min={0}
+              max={monthCount - 1}
+              step={1}
+              valueLabelDisplay="auto"
+              sx={{ flex: 1, height: 8,
+                '& .MuiSlider-thumb': { width: 24, height: 24 },
+                '& .MuiSlider-track': { height: 8 },
+                '& .MuiSlider-rail': { height: 8 },
+                mt: 2, mb: 2
               }}
-            >
-              {convertToTreeItems(filterDuplicateItems(menuData))}
-            </SimpleTreeView>
-            </Box>
-          )}
+              onChange={(e, newValue) => setYearRange(newValue)}
+              marks={(() => {
+                const marks = [];
+                for(let i=0; i<monthCount; i++) {
+                    const year = SLIDER_START_YEAR + Math.floor(i/12);
+                  const month = (i%12)+1;
+                  if(month === 1 || i === monthCount-1) {
+                    marks.push({ value: i, label: `${year}.${String(month).padStart(2,'0')}` });
+                  }
+                }
+                return marks;
+              })()}
+              getAriaValueText={v => {
+                const year = SLIDER_START_YEAR + Math.floor(v/12);
+                const month = (v%12)+1;
+                return `${year}년${String(month).padStart(2,'0')}월`;
+              }}
+              valueLabelFormat={v => {
+                const year = SLIDER_START_YEAR + Math.floor(v/12);
+                const month = (v%12)+1;
+                return `${year}년${String(month).padStart(2,'0')}월`;
+              }}
+            />
+            
+          </Box>
         </Box>
-      </Box>
-
-      {/* 중앙 메인 콘텐츠 - 차트 및 카드 */}
-      <Box sx={{ width: '65%', overflow: 'auto', height: '85vh' }}>
-        <Grid container rowSpacing={4.5} columnSpacing={3} sx={{ p: 2 }}>
-          {/* row 1 */}
-          <Grid onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDropOnCard(0, e)} size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
-            <AnalyticsDataCard 
-              key={cards[0].title + cards[0].count + cards[0].statblid}
-              title={cards[0].title} 
-              count={cards[0].count} 
-              statblid={cards[0].statblid}
-              isActiveInChart={chartLayers.some(layer => layer.statblid === cards[0].statblid)}
-              onRemoveFromChart={() => removeChartLayer(cards[0].statblid)}
-              region={cards[0].region}
-              onRegionChange={(newRegion) => handleCardRegionChange(0, newRegion)}
-              regionOptions={regionOptions}
-            >
-              <UsersCardChart />
-            </AnalyticsDataCard>
-          </Grid>
-          <Grid onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDropOnCard(1, e)} size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
-            <AnalyticsDataCard 
-              key={cards[1].title + cards[1].count + cards[1].statblid}
-              title={cards[1].title} 
-              count={cards[1].count} 
-              statblid={cards[1].statblid}
-              isActiveInChart={chartLayers.some(layer => layer.statblid === cards[1].statblid)}
-              onRemoveFromChart={() => removeChartLayer(cards[1].statblid)}
-              region={cards[1].region}
-              onRegionChange={(newRegion) => handleCardRegionChange(1, newRegion)}
-              regionOptions={regionOptions}
-            >
-              <UsersCardChart />
-            </AnalyticsDataCard>
-          </Grid>          
-          <Grid onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDropOnCard(2, e)} size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
-            <AnalyticsDataCard 
-              key={cards[2].title + cards[2].count + cards[2].statblid}
-              title={cards[2].title} 
-              count={cards[2].count} 
-              statblid={cards[2].statblid}
-              isActiveInChart={chartLayers.some(layer => layer.statblid === cards[2].statblid)}
-              onRemoveFromChart={() => removeChartLayer(cards[2].statblid)}
-              region={cards[2].region}
-              onRegionChange={(newRegion) => handleCardRegionChange(2, newRegion)}
-              regionOptions={regionOptions}
-            >
-              <UsersCardChart />
-            </AnalyticsDataCard>
-          </Grid>
-          <Grid sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} size={{ md: 8 }} />
-          {/* row 2 */}
-          <Grid size={{ xs: 12, md: 10, lg: 12 }}>
-            <Grid container alignItems="center" justifyContent="space-between">
-              <Grid>
-                <Typography variant="h5">그래프</Typography>
-                {chartLayers.length > 0 && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    활성 레이어: {chartLayers.map(layer => layer.statblid).join(', ')} (총 {chartLayers.length}개)
-                  </Typography>
-                )}
+        <Grid container rowSpacing={4.5} columnSpacing={3} sx={{ p: 2, pt: 0 }}>
+          {/* row 1 - 3 AnalyticsDataCard wrapped in a centered Grid */}
+          <Grid sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <Grid container spacing={3} sx={{ width: '100%', justifyContent: 'center', alignItems: 'stretch', flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
+              <Grid sx={{ display: 'flex', minWidth: 0, alignItems: 'stretch' }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDropOnCard(0, e)}>
+                <AnalyticsDataCard 
+                  key={cards[0].title + cards[0].figures + cards[0].statblid}
+                  title={cards[0].title} 
+                  figures={cards[0].figures} 
+                  statblid={cards[0].statblid}
+                  isActiveInChart={cards[0].statblid !== 'OPT1'}
+                  onRemoveFromChart={() => removeChartLayer(cards[0].statblid, 0)}
+                  onResetCard={handleResetCard}
+                  region={cards[0].region}
+                  onRegionChange={(newRegion) => handleCardRegionChange(0, newRegion)}
+                  regionOptions={regionOptions}
+                  chartData={getCardChartData(cards[0].statblid, 0)}
+                  cardIndex={0}
+                  chartColor={cards[0].color}
+                  chartType={cards[0].chartType}
+                  sx={{ flex: 1, minHeight: 260, display: 'flex', flexDirection: 'column' }}
+                >
+                  <UsersCardChart />
+                </AnalyticsDataCard>
               </Grid>
-              {chartLayers.length > 0 && (
-                <Grid>
-                  <button 
-                    onClick={() => {
-                      setChartLayers([]);
-                      setChartData(null);
-                    }}
-                    style={{
-                      padding: '8px 16px',
-                      backgroundColor: '#f44336',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px'
-                    }}
-                  >
-                    모든 레이어 삭제
-                  </button>
-                </Grid>
-              )}
+              <Grid sx={{ display: 'flex' }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDropOnCard(1, e)}>
+                <AnalyticsDataCard 
+                  key={cards[1].title + cards[1].figures + cards[1].statblid}
+                  title={cards[1].title} 
+                  figures={cards[1].figures} 
+                  statblid={cards[1].statblid}
+                  isActiveInChart={cards[1].statblid !== 'OPT2'}
+                  onRemoveFromChart={() => removeChartLayer(cards[1].statblid, 1)}
+                  onResetCard={handleResetCard}
+                  region={cards[1].region}
+                  onRegionChange={(newRegion) => handleCardRegionChange(1, newRegion)}
+                  regionOptions={regionOptions}
+                  chartData={getCardChartData(cards[1].statblid, 1)}
+                  cardIndex={1}
+                  chartColor={cards[1].color}
+                  chartType={cards[1].chartType}
+                  sx={{ flex: 1, minHeight: 260, display: 'flex', flexDirection: 'column' }}
+                >
+                  <UsersCardChart />
+                </AnalyticsDataCard>
+              </Grid>
+              <Grid sx={{ display: 'flex' }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDropOnCard(2, e)}>
+                <AnalyticsDataCard 
+                  key={cards[2].title + cards[2].figures + cards[2].statblid}
+                  title={cards[2].title} 
+                  figures={cards[2].figures} 
+                  statblid={cards[2].statblid}
+                  isActiveInChart={cards[2].statblid !== 'OPT3'}
+                  onRemoveFromChart={() => removeChartLayer(cards[2].statblid, 2)}
+                  onResetCard={handleResetCard}
+                  region={cards[2].region}
+                  onRegionChange={(newRegion) => handleCardRegionChange(2, newRegion)}
+                  regionOptions={regionOptions}
+                  chartData={getCardChartData(cards[2].statblid, 2)}
+                  cardIndex={2}
+                  chartColor={cards[2].color}
+                  chartType={cards[2].chartType}
+                  sx={{ flex: 1, minHeight: 260, display: 'flex', flexDirection: 'column' }}
+                >
+                  <UsersCardChart />
+                </AnalyticsDataCard>
+              </Grid>
+            </Grid>
+          </Grid>
+          {/* row 2 */}
+          <Grid size={{ xs: 12, md: 10, lg: 12 }} sx={{ mt: 1 }}>
+            <Grid container alignItems="center" justifyContent="space-between">
+                <Typography variant="h5">그래프</Typography>
             </Grid>
             {/* 그래프 - 상대 위치로 설정하여 오버레이 가능하게 */}
             <Box sx={{ position: 'relative' }}>
-              {/* ApexCharts로 변경된 그래프 - fetchChartData 결과를 전달 */}
+              {/* fetchChartData 결과 전달 */}
               {chartData ? (
-                <ApexMixedChart chartData={chartData} />
+                <ApexMixedChart 
+                  chartData={chartData} 
+                  chartColors={cardColors}
+                  colorMapping={cards.reduce((map, card, index) => {
+                    map[card.statblid] = card.color;
+                    return map;
+                  }, {})}
+                  chartTypeMapping={cards.reduce((map, card, index) => {
+                    map[card.statblid] = card.chartType;
+                    return map;
+                  }, {})}
+                />
               ) : (
                 <Box sx={{ 
                   display: 'flex', 
                   justifyContent: 'center', 
                   alignItems: 'center', 
-                  height: 450,
+                  height: 400,
                   bgcolor: 'background.default',
                   borderRadius: 1,
                   border: '1px dashed',
@@ -766,8 +672,8 @@ export default function DashboardDataAnalytics() {
             <Box sx={{ 
               mt: 2, 
               display: 'flex', 
-              justifyContent: 'center', 
-              gap: 2 
+              justifyContent: 'flex-start', // 왼쪽 정렬로 변경
+              gap: 1.0 // 간격 조금 줄임
             }}>
               <button 
                 onClick={() => {
@@ -777,13 +683,13 @@ export default function DashboardDataAnalytics() {
                   console.log('정책자료 상태 변경:', !showPolicyOverlay);
                 }}
                 style={{
-                  padding: '8px 20px',
+                  padding: '6px 16px', // 패딩 줄임
                   backgroundColor: showPolicyOverlay ? '#5a6268' : '#6c757d',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '14px',
+                  fontSize: '13px', // 폰트 크기 줄임
                   fontWeight: '500'
                 }}
                 onMouseOver={(e) => e.target.style.backgroundColor = '#5a6268'}
@@ -794,19 +700,23 @@ export default function DashboardDataAnalytics() {
               
               <button 
                 onClick={() => {
+                  // 모든 카드 리셋
+                  [0, 1, 2].forEach(cardIndex => {
+                    handleResetCard(cardIndex);
+                  });
                   // 차트 초기화 기능
                   setChartLayers([]);
                   setChartData(null);
-                  console.log('차트 초기화 클릭');
+                  console.log('차트 초기화 및 모든 카드 리셋 완료');
                 }}
                 style={{
-                  padding: '8px 20px',
+                  padding: '6px 16px', // 패딩 줄임
                   backgroundColor: '#dc3545',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '14px',
+                  fontSize: '13px', // 폰트 크기 줄임
                   fontWeight: '500'
                 }}
                 onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
@@ -822,13 +732,13 @@ export default function DashboardDataAnalytics() {
                   // TODO: AI 분석 모달이나 기능 구현
                 }}
                 style={{
-                  padding: '8px 20px',
+                  padding: '6px 16px', // 패딩 줄임
                   backgroundColor: '#007bff',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '14px',
+                  fontSize: '13px', // 폰트 크기 줄임
                   fontWeight: '500'
                 }}
                 onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
@@ -844,8 +754,8 @@ export default function DashboardDataAnalytics() {
       {/* 우측 AI 컴포넌트 영역 */}
       <Box 
         sx={{ 
-          width: '20%', 
-          height: '85vh', 
+          width: '28%', 
+          height: '90vh', 
           borderLeft: '1px solid',
           borderColor: 'divider',
           overflow: 'auto',
@@ -854,52 +764,57 @@ export default function DashboardDataAnalytics() {
           flexDirection: 'column'
         }}
       >
-        <Box sx={{ p: 1, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0, backgroundColor: 'primary.lighter' }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main', textAlign: 'left' }}>
+        <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0, backgroundColor: 'primary.lighter' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main', textAlign: 'left' }}>
             AI 분석 도구
           </Typography>
         </Box>
         
-        <Box sx={{ flex: 1, overflow: 'auto', p: 2, display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+        <Box sx={{ flex: 1, overflow: 'auto', p: 2.5, display: 'flex', flexDirection: 'column' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
             AI 컴포넌트가 여기에 추가될 예정입니다.
           </Typography>
           
           {/* TODO: AI 컴포넌트 추가 영역 */}
           <Box sx={{ 
-            mt: 2, 
-            p: 2, 
+            mt: 3, 
+            p: 3, 
             border: '1px dashed', 
             borderColor: 'divider', 
-            borderRadius: 1,
+            borderRadius: 2,
             textAlign: 'center',
-            flex: 1
+            flex: 1,
+            minHeight: '300px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="body1" color="text.secondary">
               AI 분석 도구
             </Typography>
           </Box>
 
           {/* AI 질문 입력창 */}
           <Box sx={{ 
-            mt: 2, 
+            mt: 3, 
             display: 'flex', 
-            gap: 1,
+            gap: 1.5,
             alignItems: 'flex-end'
           }}>
             <TextField
               fullWidth
               multiline
-              maxRows={3}
+              maxRows={4}
               variant="outlined"
               placeholder="AI에게 질문하세요..."
               value={aiQuestion}
               onChange={(e) => setAiQuestion(e.target.value)}
               onKeyPress={handleKeyPress}
-              size="small"
+              size="medium"
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 1,
+                  borderRadius: 2,
+                  fontSize: '14px'
                 }
               }}
             />
@@ -910,6 +825,8 @@ export default function DashboardDataAnalytics() {
               sx={{ 
                 bgcolor: 'primary.main',
                 color: 'white',
+                width: 48,
+                height: 48,
                 '&:hover': {
                   bgcolor: 'primary.dark',
                 },

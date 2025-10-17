@@ -22,7 +22,7 @@ import AnimateButton from 'components/@extended/AnimateButton';
 
 import { APP_DEFAULT_PATH } from 'config';
 import useUser from 'hooks/useUser';
-import { handlerComponentDrawer, useGetMenuMaster } from 'api/menu';
+import { handlerComponentDrawer, useGetMenuMaster } from 'api/menu.jsx';
 
 // assets
 import MenuOutlined from '@ant-design/icons/MenuOutlined';

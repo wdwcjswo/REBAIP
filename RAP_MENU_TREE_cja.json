@@ -1,0 +1,434 @@
+[
+  {
+    "children": [
+      {
+        "children": [],
+        "cContents": "매매가격지수_주택종합ㅇㅇ",
+        "href": "#",
+        "statblid": "A_2024_00016",
+        "newdate": "202507",
+        "cFigures": "1380",
+        "ctype": "dt-index",
+        "cname": "매매가격지수 주택종합ㅇ"
+      },
+      {
+        "children": [],
+        "cContents": "매매가격지수_아파트",
+        "href": "#",
+        "statblid": "A_2024_00045",
+        "newdate": "202507",
+        "cFigures": "1380",
+        "ctype": "dt-index",
+        "cname": "매매가격지수 아파트"
+      },
+      {
+        "children": [],
+        "cContents": "전세가격지수_아파트",
+        "href": "#",
+        "statblid": "A_2024_00050",
+        "newdate": "202507",
+        "cFigures": "1380",
+        "ctype": "dt-index",
+        "cname": "전세가격지수 아파트"
+      },
+      {
+        "children": [],
+        "cContents": "지역별 매매지수_아파트",
+        "href": "#",
+        "statblid": "A_2024_00178",
+        "newdate": "202506",
+        "cFigures": "140",
+        "ctype": "dt-index",
+        "cname": "지역별 매매지수 아파트"
+      },
+      {
+        "children": [],
+        "cContents": "행정구역별 아파트거래현황",
+        "href": "#",
+        "statblid": "A_2024_00549",
+        "newdate": "202506",
+        "cFigures": "2810",
+        "ctype": "dt-index",
+        "cname": "행정구역별 아파트거래현황"
+      },
+      {
+        "children": [],
+        "cContents": "행정구역별 아파트매매거래현황",
+        "href": "#",
+        "statblid": "A_2024_00554",
+        "newdate": "202506",
+        "cFigures": "2810",
+        "ctype": "dt-index",
+        "cname": "행정구역별 아파트매매거래현황"
+      },
+      {
+        "children": [],
+        "cContents": "오피스텔 매매가격지수(시계열)",
+        "href": "#",
+        "statblid": "A_2024_00615",
+        "newdate": "202507",
+        "cFigures": "510",
+        "ctype": "dt-index",
+        "cname": "오피스텔 매매가격지수(시계열)"
+      },
+      {
+        "children": [],
+        "cContents": "지역별 지가지수",
+        "href": "#",
+        "statblid": "A_2024_00901",
+        "newdate": "202506",
+        "cFigures": "26840",
+        "ctype": "dt-index",
+        "cname": "지역별 지가지수"
+      },
+      {
+        "children": [],
+        "cContents": "지역별 지가변동률",
+        "href": "#",
+        "statblid": "A_2024_00903",
+        "newdate": "202506",
+        "cFigures": "53680",
+        "ctype": "dt-percent",
+        "cname": "지역별 지가변동률"
+      }
+    ],
+    "cContents": "자주 찾는 통계표",
+    "href": "#"
+  },
+  {
+    "children": [
+      {
+        "children": [],
+        "cContents": "전세가율 - 아파트 (최근 1년)",
+        "href": "#",
+        "statblid": "KTECH_RENT_01",
+        "newdate": "202507",
+        "cFigures": "1380",
+        "ctype": "dt-percent",
+        "cname": "전세가율 - 아파트 (최근 1년)"
+      },
+      {
+        "children": [],
+        "cContents": "전세가율 - 아파트 (최근 3개월)",
+        "href": "#",
+        "statblid": "KTECH_RENT_02",
+        "newdate": "202507",
+        "cFigures": "1380",
+        "ctype": "dt-percent",
+        "cname": "전세가율 - 아파트 (최근 3개월)"
+      },
+      {
+        "children": [],
+        "cContents": "전세가율 - 연립/다세대 (최근 1년)",
+        "href": "#",
+        "statblid": "KTECH_RENT_03",
+        "newdate": "202507",
+        "cFigures": "1380",
+        "ctype": "dt-percent",
+        "cname": "전세가율 - 연립/다세대 (최근 1년)"
+      },
+      {
+        "children": [],
+        "cContents": "전세가율 - 연립/다세대 (최근 3개월)",
+        "href": "#",
+        "statblid": "KTECH_RENT_04",
+        "newdate": "202507",
+        "cFigures": "1380",
+        "ctype": "dt-percent",
+        "cname": "전세가율 - 연립/다세대 (최근 3개월)"
+      },
+      {
+        "children": [],
+        "cContents": "보증사고현황 - 사고건수",
+        "href": "#",
+        "statblid": "KTECH_SURETY_01",
+        "newdate": "202507",
+        "cFigures": "1380",
+        "ctype": "dt-count",
+        "cname": "보증사고현황 - 사고건수"
+      },
+      {
+        "children": [],
+        "cContents": "보증사고현황 - 사고금액",
+        "href": "#",
+        "statblid": "KTECH_SURETY_02",
+        "newdate": "202506",
+        "cFigures": "140",
+        "ctype": "dt-price",
+        "cname": "보증사고현황 - 사고금액"
+      },
+      {
+        "children": [],
+        "cContents": "보증사고현황 - 사고율",
+        "href": "#",
+        "statblid": "KTECH_SURETY_03",
+        "newdate": "202506",
+        "cFigures": "2810",
+        "ctype": "dt-percent",
+        "cname": "보증사고현황 - 사고율"
+      },
+      {
+        "children": [],
+        "cContents": "경매낙찰 통계 - 경매건수",
+        "href": "#",
+        "statblid": "KTECH_AUCTION_01",
+        "newdate": "202506",
+        "cFigures": "2810",
+        "ctype": "dt-count",
+        "cname": "경매낙찰 통계 - 경매건수"
+      },
+      {
+        "children": [],
+        "cContents": "경매낙찰 통계 - 낙찰건수",
+        "href": "#",
+        "statblid": "KTECH_AUCTION_02",
+        "newdate": "202507",
+        "cFigures": "510",
+        "ctype": "dt-count",
+        "cname": "경매낙찰 통계 - 낙찰건수"
+      },
+      {
+        "children": [],
+        "cContents": "경매낙찰 통계 - 낙찰률",
+        "href": "#",
+        "statblid": "KTECH_AUCTION_03",
+        "newdate": "202506",
+        "cFigures": "26840",
+        "ctype": "dt-percent",
+        "cname": "경매낙찰 통계 - 낙찰률"
+      },
+      {
+        "children": [],
+        "cContents": "경매낙찰 통계 - 낙찰가율",
+        "href": "#",
+        "statblid": "KTECH_AUCTION_04",
+        "newdate": "202506",
+        "cFigures": "53680",
+        "ctype": "dt-percent",
+        "cname": "경매낙찰 통계 - 낙찰가율"
+      }
+    ],
+    "cContents": "임대차",
+    "href": "#"
+  },
+  {
+    "children": [
+      {
+        "children": [],
+        "cContents": "발주자/공종별 건설수주액(경상)",
+        "href": "#",
+        "statblid": "T236933129926065",
+        "newdate": "202506",
+        "cFigures": "2760",
+        "ctype": "dt-price",
+        "cname": "발주자 공종별 건설수주액(경상)"
+      },
+      {
+        "children": [],
+        "cContents": "공종별 건설 기성액(경상)",
+        "href": "#",
+        "statblid": "T238333129571085",
+        "newdate": "202506",
+        "cFigures": "54",
+        "ctype": "dt-price",
+        "cname": "공종별 건설 기성액(경상)"
+      }
+    ],
+    "cContents": "건설경기동향조사",
+    "href": "#"
+  },
+  {
+    "children": [
+      {
+        "children": [],
+        "cContents": "행정구역별 건축물거래현황",
+        "href": "#",
+        "statblid": "A_2024_00542",
+        "newdate": "202506",
+        "cFigures": "2810",
+        "ctype": "dt-hCount",
+        "cname": "행정구역별 건축물거래현황"
+      },
+      {
+        "children": [],
+        "cContents": "외국인거래 건축물거래현황",
+        "href": "#",
+        "statblid": "A_2024_00543",
+        "newdate": "202506",
+        "cFigures": "2810",
+        "ctype": "dt-hCount",
+        "cname": "외국인거래 건축물거래현황"
+      },
+      {
+        "children": [],
+        "cContents": "신탁/신탁해지 건축물거래현황",
+        "href": "#",
+        "statblid": "A_2024_00544",
+        "newdate": "202506",
+        "cFigures": "2810",
+        "ctype": "dt-hCount",
+        "cname": "신탁/신탁해지 건축물거래현황"
+      },
+      {
+        "children": [],
+        "cContents": "용도지역별 건축물거래현황",
+        "href": "#",
+        "statblid": "A_2024_00570",
+        "newdate": "202506",
+        "cFigures": "30910",
+        "ctype": "dt-hCount",
+        "cname": "용도지역별 건축물거래현황"
+      },
+      {
+        "children": [],
+        "cContents": "지목별 건축물거래현황",
+        "href": "#",
+        "statblid": "A_2024_00571",
+        "newdate": "202506",
+        "cFigures": "19670",
+        "ctype": "dt-hCount",
+        "cname": "지목별 건축물거래현황"
+      },
+      {
+        "children": [],
+        "cContents": "매입자거주지별 건축물거래현황",
+        "href": "#",
+        "statblid": "A_2024_00572",
+        "newdate": "202506",
+        "cFigures": "14050",
+        "ctype": "dt-hCount",
+        "cname": "매입자거주지별 건축물거래현황"
+      },
+      {
+        "children": [],
+        "cContents": "거래주체별 건축물거래현황",
+        "href": "#",
+        "statblid": "A_2024_00573",
+        "newdate": "202506",
+        "cFigures": "28100",
+        "ctype": "dt-hCount",
+        "cname": "거래주체별 건축물거래현황"
+      },
+      {
+        "children": [],
+        "cContents": "거래규모별 건축물거래현황",
+        "href": "#",
+        "statblid": "A_2024_00574",
+        "newdate": "202506",
+        "cFigures": "25290",
+        "ctype": "dt-hCount",
+        "cname": "거래규모별 건축물거래현황"
+      },
+      {
+        "children": [],
+        "cContents": "거래원인별 건축물거래현황",
+        "href": "#",
+        "statblid": "A_2024_00575",
+        "newdate": "202506",
+        "cFigures": "19670",
+        "ctype": "dt-hCount",
+        "cname": "거래원인별 건축물거래현황"
+      },
+      {
+        "children": [],
+        "cContents": "건물용도별 건축물거래현황",
+        "href": "#",
+        "statblid": "A_2024_00576",
+        "newdate": "202506",
+        "cFigures": "33720",
+        "ctype": "dt-hCount",
+        "cname": "건물용도별 건축물거래현황"
+      }
+    ],
+    "cContents": "건축물 거래현황",
+    "href": "#"
+  },
+  {
+    "children": [
+      {
+        "children": [],
+        "cContents": "지역별 매매지수_공동주택통합",
+        "href": "#",
+        "statblid": "A_2024_00176",
+        "newdate": "202506",
+        "cFigures": "45",
+        "ctype": "dt-index",
+        "cname": "지역별 매매지수_공동주택통합"
+      },
+      {
+        "children": [],
+        "cContents": "지역별 매매지수(계절조정)_공동주택통합",
+        "href": "#",
+        "statblid": "A_2024_00177",
+        "newdate": "202506",
+        "cFigures": "45",
+        "ctype": "dt-index",
+        "cname": "지역별 매매지수(계절조정)_공동주택통합"
+      }
+    ],
+    "cContents": "공동주택 통합",
+    "href": "#"
+  },
+  {
+    "children": [
+      {
+        "children": [],
+        "cContents": "시군구별 이동자수",
+        "href": "#",
+        "statblid": "T231293129595643",
+        "newdate": "202506",
+        "cFigures": "13048",
+        "ctype": "dt-count",
+        "cname": "시군구별 이동자수"
+      },
+      {
+        "children": [],
+        "cContents": "시군구별 이동건수",
+        "href": "#",
+        "statblid": "T239483129957721",
+        "newdate": "202506",
+        "cFigures": "195720",
+        "ctype": "dt-count",
+        "cname": "시군구별 이동건수"
+      }
+    ],
+    "cContents": "국내인구이동통계",
+    "href": "#"
+  },
+  {
+    "children": [
+      {
+        "children": [],
+        "cContents": "규모별 전월세 전환율_아파트",
+        "href": "#",
+        "statblid": "A_2024_00159",
+        "newdate": "202506",
+        "cFigures": "435",
+        "ctype": "dt-percent",
+        "cname": "규모별 전월세 전환율_아파트"
+      },
+      {
+        "children": [],
+        "cContents": "규모별 전월세 전환율_연립/다세대",
+        "href": "#",
+        "statblid": "A_2024_00160",
+        "newdate": "202506",
+        "cFigures": "435",
+        "ctype": "dt-percent",
+        "cname": "규모별 전월세 전환율_연립/다세대"
+      },
+      {
+        "children": [],
+        "cContents": "규모별 전월세 전환율_단독주택",
+        "href": "#",
+        "statblid": "A_2024_00161",
+        "newdate": "202506",
+        "cFigures": "435",
+        "ctype": "dt-percent",
+        "cname": "전월세 전환율_단독주택"
+      }
+    ],
+    "cContents": "규모별 전월세 전환율",
+    "href": "#"
+  }
+]

@@ -24,17 +24,23 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
-          const user = await axios.post('/api/account/login', {
-            password: credentials?.password,
-            email: credentials?.email
-          });
-
-          if (user) {
-            user.data.user['accessToken'] = user.data.serviceToken;
-            return user.data.user;
+          // Mock 사용자 데이터로 로그인 (실제 API 호출 대신)
+          const mockUser = users.find(
+            user => user.email === credentials?.email && user.password === credentials?.password
+          );
+          
+          if (mockUser) {
+            return {
+              id: mockUser.id,
+              name: mockUser.name,
+              email: mockUser.email,
+              accessToken: 'mock-token-' + Date.now()
+            };
+          } else {
+            throw new Error('Invalid credentials');
           }
         } catch (e) {
-          const errorMessage = e?.message || e?.response?.data?.message || 'Something went wrong!';
+          const errorMessage = e?.message || 'Something went wrong!';
           throw new Error(errorMessage);
         }
       }

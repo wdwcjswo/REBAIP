@@ -13,7 +13,7 @@ import TabPersonal from 'sections/apps/profiles/user/TabPersonal';
 import TabPayment from 'sections/apps/profiles/user/TabPayment';
 import TabPassword from 'sections/apps/profiles/user/TabPassword';
 import TabSettings from 'sections/apps/profiles/user/TabSettings';
-import { handlerActiveItem, useGetMenuMaster } from 'api/menu';
+import { handlerActiveItem, useGetMenuMaster } from 'api/menu.jsx';
 
 // ==============================|| PROFILE - USER ||============================== //
 

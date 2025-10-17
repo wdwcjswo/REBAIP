@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useLayoutEffect } from 'react';
 
 // next
 import Link from 'next/link';
@@ -30,7 +30,7 @@ import { MenuOrientation, ThemeMode } from 'config';
 
 import useConfig from 'hooks/useConfig';
 import useMenuCollapse from 'hooks/useMenuCollapse';
-import { handlerActiveItem, useGetMenuMaster } from 'api/menu';
+import { handlerActiveItem, useGetMenuMaster, icons as menuIcons } from 'api/menu.jsx';
 
 // third-party
 import { FormattedMessage } from 'react-intl';
@@ -86,9 +86,21 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
   const { mode, menuOrientation } = useConfig();
   const router = useRouter();
 
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(null);
+  // 기본적으로 열려있을 메뉴 ID들
+  const defaultOpenMenus = ['data-analytics', 'apartment-info'];
+  const shouldBeOpen = defaultOpenMenus.includes(menu.id);
+
+  const [open, setOpen] = useState(shouldBeOpen);
+  const [selected, setSelected] = useState(shouldBeOpen ? menu.id : null);
   const [anchorEl, setAnchorEl] = useState(null);
+
+  // 초기 상태를 확실히 설정
+  useLayoutEffect(() => {
+    if (shouldBeOpen) {
+      setOpen(true);
+      setSelected(menu.id);
+    }
+  }, [shouldBeOpen, menu.id]);
 
   const [anchorElCollapse, setAnchorElCollapse] = React.useState(null);
 
@@ -140,7 +152,7 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
     setAnchorEl(null);
   };
 
-  useMemo(() => {
+  useEffect(() => {
     if (selected === selectedItems) {
       if (level === 1) {
         setOpen(true);
@@ -200,8 +212,14 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
 
   const isSelected = selected === menu.id;
   const borderIcon = level === 1 ? <BorderOutlined style={{ fontSize: '1rem' }} /> : false;
-  const Icon = menu.icon;
-  const menuIcon = menu.icon ? <Icon style={{ fontSize: drawerOpen ? '1rem' : '1.25rem' }} /> : borderIcon;
+  // Resolve icon: if menu.icon is a string key, map to actual component from menuIcons
+  let IconComponent = null;
+  if (typeof menu.icon === 'string') {
+    IconComponent = menuIcons[menu.icon] || ArrowRightIcon;
+  } else if (menu.icon) {
+    IconComponent = menu.icon;
+  }
+  const menuIcon = IconComponent ? <IconComponent style={{ fontSize: drawerOpen ? '1rem' : '1.25rem' }} /> : borderIcon;
   const textColor = mode === ThemeMode.DARK ? 'grey.400' : 'text.primary';
   const iconSelectedColor = mode === ThemeMode.DARK && drawerOpen ? 'text.primary' : 'primary.main';
   const popperId = miniMenuOpened ? `collapse-pop-${menu.id}` : undefined;
@@ -330,9 +348,9 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
                       })}
                     >
                       <ClickAwayListener onClickAway={handleClose}>
-                        <>
+                        <div>
                           <SimpleBar sx={{ overflowX: 'hidden', overflowY: 'auto', maxHeight: '50vh' }}>{navCollapse}</SimpleBar>
-                        </>
+                        </div>
                       </ClickAwayListener>
                     </Paper>
                   </Transitions>

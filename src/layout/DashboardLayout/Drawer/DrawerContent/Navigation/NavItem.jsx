@@ -24,7 +24,7 @@ import { FormattedMessage } from 'react-intl';
 
 import { MenuOrientation, ThemeMode, NavActionType } from 'config';
 import useConfig from 'hooks/useConfig';
-import { handlerHorizontalActiveItem, handlerActiveItem, handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
+import { handlerHorizontalActiveItem, handlerActiveItem, handlerDrawerOpen, useGetMenuMaster } from 'api/menu.jsx';
 
 // ==============================|| NAVIGATION - LIST ITEM ||============================== //
 
@@ -46,6 +46,23 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
 
     if (isParents && setSelectedID) {
       setSelectedID(item.id);
+    }
+  };
+
+  // 드래그 시작 핸들러
+  const handleDragStart = (event) => {
+      if (item.draggable && item.statblid) {
+      event.dataTransfer.setData('application/json', JSON.stringify({
+        id: item.id,
+        cname: item.title, // handleDropOnCard가 기대하는 필드명
+        cContents: item.title, // 백업 필드
+        statblid: item.statblid,
+        url: item.url,
+        newdate: item.newdate || '000000',
+        figures: item.figures || '0',
+        ctype: item.ctype || ''
+      }));
+      event.dataTransfer.effectAllowed = 'copy';
     }
   };
 
@@ -84,10 +101,16 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
             target={itemTarget}
             disabled={item.disabled}
             selected={isSelected}
+            draggable={item.draggable || false}
+            onDragStart={handleDragStart}
             sx={(theme) => ({
               zIndex: 1201,
               pl: drawerOpen ? `${level * 28}px` : 1.5,
               py: !drawerOpen && level === 1 ? 1.25 : 1,
+              cursor: item.draggable ? 'grab' : 'pointer',
+              '&:active': {
+                cursor: item.draggable ? 'grabbing' : 'pointer'
+              },
               ...(drawerOpen && {
                 '&:hover': { bgcolor: 'primary.lighter', ...theme.applyStyles('dark', { bgcolor: 'divider' }) },
                 '&.Mui-selected': {

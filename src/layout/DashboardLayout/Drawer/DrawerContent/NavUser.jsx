@@ -10,16 +10,16 @@ import { styled } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
+// import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemText from '@mui/material/ListItemText';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Box from '@mui/material/Box';
 
 // project imports
-import Avatar from 'components/@extended/Avatar';
+// import Avatar from 'components/@extended/Avatar';
 import useUser from 'hooks/useUser';
-import { useGetMenuMaster } from 'api/menu';
+import { useGetMenuMaster } from 'api/menu.jsx';
 
 // assets
 import RightOutlined from '@ant-design/icons/RightOutlined';
@@ -102,9 +102,7 @@ export default function NavUser() {
           }
           sx={{ '& .MuiListItemSecondaryAction-root': { right: !drawerOpen ? -20 : -16 } }}
         >
-          <ListItemAvatar>
-            {user && <Avatar alt="Avatar" src={user.avatar} sx={{ ...(drawerOpen && { width: 46, height: 46 }) }} />}
-          </ListItemAvatar>
+          {/* 이름/직책만 남김 */}
           {user && <ListItemText primary={user?.name} secondary="UI/UX Designer" />}
         </ListItem>
       </List>

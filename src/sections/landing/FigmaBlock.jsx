@@ -10,6 +10,7 @@ import Box from '@mui/material/Box';
 
 // project imports
 import { ThemeMode } from 'config';
+import landingAssets from 'assets/images/landing';
 
 // icons
 import ShoppingCartOutlined from '@ant-design/icons/ShoppingCartOutlined';
@@ -49,7 +50,11 @@ export default function FigmaBlock() {
         </Grid>
         <Grid size={{ xs: 12, sm: 9 }}>
           <Box sx={{ position: 'relative', mb: 3 }}>
-            <CardMedia component="img" image={`/assets/images/landing/figma-${FigmaImg}.png`} sx={{ width: '100%', m: '0 auto' }} />
+            <CardMedia
+              component="img"
+              image={landingAssets.dynamic[`figma-${FigmaImg}`] || landingAssets.figmaDefault}
+              sx={{ width: '100%', m: '0 auto' }}
+            />
           </Box>
         </Grid>
         <Grid size={12}>

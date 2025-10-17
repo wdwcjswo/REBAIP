@@ -27,7 +27,7 @@ import Transitions from 'components/@extended/Transitions';
 
 import { MenuOrientation } from 'config';
 import useConfig from 'hooks/useConfig';
-import { handlerHorizontalActiveItem, useGetMenuMaster } from 'api/menu';
+import { handlerHorizontalActiveItem, useGetMenuMaster } from 'api/menu.jsx';
 
 // assets
 import DownOutlined from '@ant-design/icons/DownOutlined';

@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 
 // project imports
 import useConfig from 'hooks/useConfig';
+import landingAssets from 'assets/images/landing';
 
 // ==============================|| LANDING - BROWSER  PAGE ||============================== //
 
@@ -28,8 +29,8 @@ export default function BrowserBlockPage() {
             }}
           />
         }
-        itemOne={<ReactCompareSliderImage src={`/assets/images/landing/${presetColor}-dark.jpg`} />}
-        itemTwo={<ReactCompareSliderImage src={`/assets/images/landing/${presetColor}-light.jpg`} />}
+        itemOne={<ReactCompareSliderImage src={landingAssets.dynamic[`${presetColor}-dark`] || landingAssets.dynamic['default-dark']} />}
+        itemTwo={<ReactCompareSliderImage src={landingAssets.dynamic[`${presetColor}-light`] || landingAssets.dynamic['default-light']} />}
       />
     </Box>
   );

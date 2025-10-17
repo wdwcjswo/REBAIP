@@ -11,7 +11,7 @@ import Stack from '@mui/material/Stack';
 // project imports
 import Drawer from './Drawer';
 import { DRAWER_WIDTH } from 'config';
-import { handlerComponentDrawer, useGetMenuMaster } from 'api/menu';
+import { handlerComponentDrawer, useGetMenuMaster } from 'api/menu.jsx';
 
 // components content
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({ theme }) => ({

@@ -113,7 +113,6 @@ export default function Profile() {
       >
         {user && (
           <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center', p: 0.5 }}>
-            <Avatar alt="profile user" src={user.avatar} size="sm" />
             <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
               {user?.name}
             </Typography>
@@ -148,7 +147,6 @@ export default function Profile() {
                       <Grid>
                         {user && (
                           <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center' }}>
-                            <Avatar alt={user.name} src={user.avatar} sx={{ width: 32, height: 32 }} />
                             <Stack>
                               <Typography variant="h6">{user?.name}</Typography>
                               <Typography variant="body2" color="text.secondary">

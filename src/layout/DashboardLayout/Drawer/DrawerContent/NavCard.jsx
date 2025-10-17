@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 // project imports
 import AnimateButton from 'components/@extended/AnimateButton';
 import MainCard from 'components/MainCard';
+import avatarGroup from 'assets/images/users/avatar-group.png';
 
 const avatar = '/assets/images/users/avatar-group.png';
 
@@ -17,7 +18,7 @@ export default function NavCard() {
   return (
     <MainCard sx={{ bgcolor: 'grey.50', m: 3 }}>
       <Stack sx={{ gap: 2.5, alignItems: 'center' }}>
-        <CardMedia component="img" image={avatar} />
+        <CardMedia component="img" />
         <Stack sx={{ alignItems: 'center' }}>
           <Typography variant="h5">Help?</Typography>
           <Typography variant="h6" color="secondary">

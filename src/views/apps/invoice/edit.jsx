@@ -56,7 +56,7 @@ import {
   useGetInvoiceMaster
 } from 'api/invoice';
 import { openSnackbar } from 'api/snackbar';
-import { handlerActiveItem, useGetMenuMaster } from 'api/menu';
+import { handlerActiveItem, useGetMenuMaster } from 'api/menu.jsx';
 
 //asset
 import EditOutlined from '@ant-design/icons/EditOutlined';

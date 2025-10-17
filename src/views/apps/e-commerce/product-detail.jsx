@@ -26,7 +26,7 @@ import ProductSpecifications from 'sections/apps/e-commerce/product-details/Prod
 import RelatedProducts from 'sections/apps/e-commerce/product-details/RelatedProducts';
 
 import { resetCart, useGetCart } from 'api/cart';
-import { handlerActiveItem, useGetMenuMaster } from 'api/menu';
+import { handlerActiveItem, useGetMenuMaster } from 'api/menu.jsx';
 import { useGetProducts } from 'api/products';
 
 function TabPanel({ children, value, index, ...other }) {

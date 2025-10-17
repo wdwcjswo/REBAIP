@@ -19,20 +19,21 @@ const mixedChartOptions = {
   chart: {
     type: 'line',
     stacked: false,
-    height: 450,
+    height: 400,
     background: 'transparent'
   },
   dataLabels: {
     enabled: false
   },
   stroke: {
-    width: [1, 1, 4]
+    width: [2, 2, 3] // column: 2, area: 2, line: 3
   },
   xaxis: {
     categories: [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016]
   },
   legend: {
     show: true,
+    showForSingleSeries: true, // 단일 시리즈일 때도 범례 표시
     fontFamily: `'Roboto', sans-serif`,
     position: 'bottom',
     offsetX: 10,
@@ -57,17 +58,17 @@ const mixedChartOptions = {
       },
       axisBorder: {
         show: true,
-        color: '#008FFB'
+        color: '#1976d2'
       },
       labels: {
         style: {
-          colors: '#008FFB'
+          colors: '#1976d2'
         }
       },
       title: {
-        text: 'Income (thousand crores)',
+        text: 'OPT1',
         style: {
-          color: '#008FFB'
+          color: '#1976d2'
         }
       },
       tooltip: {
@@ -75,46 +76,46 @@ const mixedChartOptions = {
       }
     },
     {
-      seriesName: 'Income',
+      seriesName: 'OPT2',
       opposite: true,
       axisTicks: {
         show: true
       },
       axisBorder: {
         show: true,
-        color: '#00E396'
+        color: '#2e7d32'
       },
       labels: {
         style: {
-          colors: '#00E396'
+          colors: '#2e7d32'
         }
       },
       title: {
-        text: 'Operating Cashflow (thousand crores)',
+        text: 'OPT2',
         style: {
-          color: '#00E396'
+          color: '#2e7d32'
         }
       }
     },
     {
-      seriesName: 'Revenue',
+      seriesName: 'OPT3',
       opposite: true,
       axisTicks: {
         show: true
       },
       axisBorder: {
         show: true,
-        color: '#FEB019'
+        color: '#d32f2f'
       },
       labels: {
         style: {
-          colors: '#FEB019'
+          colors: '#d32f2f'
         }
       },
       title: {
-        text: 'Revenue (thousand crores)',
+        text: 'OPT3',
         style: {
-          color: '#FEB019'
+          color: '#d32f2f'
         }
       }
     }
@@ -123,7 +124,7 @@ const mixedChartOptions = {
 
 // ==============================|| APEXCHART - MIXED ||============================== //
 
-export default function ApexMixedChart({ chartData }) {
+export default function ApexMixedChart({ chartData, chartColors, colorMapping, chartTypeMapping }) {
   const theme = useTheme();
   const { mode } = useConfig();
 
@@ -138,17 +139,20 @@ export default function ApexMixedChart({ chartData }) {
   // chartData를 기반으로 series와 categories 생성
   const [series, setSeries] = useState([
     {
-      name: 'Income',
-      type: 'column',
+      name: 'OPT1', // 범례에 표시될 이름
+      label: 'OPT1', // y축 title용
+      type: 'line',
       data: [14, 2, 25, 15, 25, 28, 38, 46]
     },
     {
-      name: 'Cashflow',
-      type: 'column',
+      name: 'OPT2', // 범례에 표시될 이름
+      label: 'OPT2', // y축 title용
+      type: 'line',
       data: [11, 3, 31, 4, 41, 49, 65, 85]
     },
     {
-      name: 'Revenue',
+      name: 'OPT3', // 범례에 표시될 이름
+      label: 'OPT3', // y축 title용
       type: 'line',
       data: [20, 29, 37, 36, 44, 45, 55, 86]
     }
@@ -159,14 +163,34 @@ export default function ApexMixedChart({ chartData }) {
   // chartData가 변경될 때마다 series와 categories 업데이트
   useEffect(() => {
     if (chartData && chartData.data && chartData.data.datasets && Array.isArray(chartData.data.datasets)) {
-      console.log('ApexMixedChart: Updating chart with new data', chartData);
+      //console.log('ApexMixedChart: Updating chart with new data', chartData);
+      //console.log('ApexMixedChart: Color mapping', colorMapping);
       
       // datasets를 ApexCharts series 형식으로 변환
-      const newSeries = chartData.data.datasets.map((dataset, index) => ({
-        name: dataset.name || dataset.label || `데이터 ${index + 1}`,
-        type: index === chartData.data.datasets.length - 1 ? 'line' : 'column', // 마지막 series는 line으로
-        data: Array.isArray(dataset.data) ? dataset.data : []
-      }));
+      const newSeries = chartData.data.datasets.map((dataset, index) => {
+        // statblid 기반으로 차트 타입 결정 (chartTypeMapping이 있으면 우선 사용)
+        let chartType;
+        if (dataset.statblid && chartTypeMapping && chartTypeMapping[dataset.statblid]) {
+          chartType = chartTypeMapping[dataset.statblid];
+        } else {
+          // fallback: 인덱스 기반 차트 타입
+          switch (index % 3) {
+            case 0: chartType = 'column'; break;
+            case 1: chartType = 'area'; break;
+            case 2: chartType = 'line'; break;
+            default: chartType = 'column';
+          }
+        }
+        
+        return {
+          name: dataset.label || dataset.name || `데이터 ${index + 1}`, // 범례에 표시될 이름
+          label: dataset.label || dataset.name || `데이터 ${index + 1}`, // y축 title용
+          type: chartType, // statblid 기반 동적 차트 타입
+          data: Array.isArray(dataset.data) ? dataset.data : [],
+          yAxisIndex: index % 3, // 0, 1, 2 순환하여 각 y축에 할당
+          statblid: dataset.statblid // statblid 정보 보존
+        };
+      });
       
       setSeries(newSeries);
       
@@ -175,7 +199,7 @@ export default function ApexMixedChart({ chartData }) {
         setCategories(chartData.labels);
       }
     }
-  }, [chartData]);
+  }, [chartData, colorMapping, chartTypeMapping]);
 
   const [options, setOptions] = useState({ 
     ...mixedChartOptions, 
@@ -183,9 +207,29 @@ export default function ApexMixedChart({ chartData }) {
   });
 
   useEffect(() => {
+    // statblid 기반으로 동적 색상 배열 생성
+    const dynamicColors = series.map(seriesItem => {
+      if (seriesItem.statblid && colorMapping && colorMapping[seriesItem.statblid]) {
+        return colorMapping[seriesItem.statblid];
+      }
+      // fallback: 기본 색상 배열 사용
+      const fallbackIndex = series.findIndex(s => s === seriesItem);
+      return chartColors[fallbackIndex] || chartColors[0] || '#1976d2';
+    });
+
+    //console.log('ApexMixedChart: Dynamic colors', dynamicColors);
+    //console.log('ApexMixedChart: Series', series);
+
     setOptions((prevState) => ({
       ...prevState,
-      colors: [secondary, primaryMain, successDark],
+      colors: dynamicColors, // statblid 기반 동적 색상 사용
+      fill: {
+        colors: dynamicColors // fill 색상도 명시적으로 설정
+      },
+      stroke: {
+        colors: dynamicColors, // stroke 색상도 명시적으로 설정
+        width: [2, 2, 3] // column: 2, area: 2, line: 3
+      },
       xaxis: {
         categories: categories, // 동적으로 업데이트된 categories 사용
         labels: {
@@ -194,31 +238,119 @@ export default function ApexMixedChart({ chartData }) {
           }
         }
       },
-      yaxis: {
-        labels: {
-          style: {
-            colors: [primary]
+      yaxis: [
+        {
+          seriesName: series[0]?.label || series[0]?.name || 'OPT1',
+          axisTicks: {
+            show: true
+          },
+          axisBorder: {
+            show: true,
+            color: dynamicColors[0] || chartColors[0] // 동적 색상 사용
+          },
+          labels: {
+            style: {
+              colors: dynamicColors[0] || chartColors[0] // 동적 색상 사용
+            },
+            formatter: function (val) {
+              return Math.floor(val); // 소수점 제거
+            }
+          },
+          title: {
+            text: series[0]?.label || 'OPT1',
+            style: {
+              color: dynamicColors[0] || chartColors[0] // 동적 색상 사용
+            }
+          },
+          tooltip: {
+            enabled: true
+          }
+        },
+        {
+          seriesName: series[1]?.label || series[1]?.name || 'OPT2',
+          opposite: true,
+          axisTicks: {
+            show: true
+          },
+          axisBorder: {
+            show: true,
+            color: dynamicColors[1] || chartColors[1] // 동적 색상 사용
+          },
+          labels: {
+            style: {
+              colors: dynamicColors[1] || chartColors[1] // 동적 색상 사용
+            },
+            formatter: function (val) {
+              return Math.floor(val); // 소수점 제거
+            }
+          },
+          title: {
+            text: series[1]?.label || 'OPT2',
+            style: {
+              color: dynamicColors[1] || chartColors[1] // 동적 색상 사용
+            }
+          }
+        },
+        {
+          seriesName: series[2]?.label || series[2]?.name || 'OPT3',
+          opposite: true,
+          axisTicks: {
+            show: true
+          },
+          axisBorder: {
+            show: true,
+            color: dynamicColors[2] || chartColors[2] // 동적 색상 사용
+          },
+          labels: {
+            style: {
+              colors: dynamicColors[2] || chartColors[2] // 동적 색상 사용
+            },
+            formatter: function (val) {
+              return Math.floor(val); // 소수점 제거
+            }
+          },
+          title: {
+            text: series[2]?.label || 'OPT3',
+            style: {
+              color: dynamicColors[2] || chartColors[2] // 동적 색상 사용
+            }
           }
         }
-      },
+      ],
       grid: {
         borderColor: line
       },
       legend: {
+        show: true,
+        showForSingleSeries: true, // 단일 시리즈일 때도 범례 표시
+        position: 'bottom',
+        fontFamily: `'Roboto', sans-serif`,
+        offsetX: 10,
+        offsetY: 10,
         labels: {
-          colors: 'grey.500'
+          colors: 'grey.500',
+          useSeriesColors: false
+        },
+        markers: {
+          width: 16,
+          height: 16,
+          radius: 5
+        },
+        itemMargin: {
+          horizontal: 15,
+          vertical: 8
         }
       },
       theme: {
         mode: mode === ThemeMode.DARK ? 'dark' : 'light'
       }
     }));
-  }, [mode, primary, line, grey200, secondary, primaryMain, successDark, categories]); // categories 의존성 추가
+  }, [mode, primary, line, grey200, secondary, primaryMain, successDark, categories, series, chartColors, colorMapping, chartTypeMapping]); 
 
   return (
     <Box id="chart" sx={{ bgcolor: 'transparent' }}>
       {series && Array.isArray(series) && series.length > 0 && categories && Array.isArray(categories) ? (
-        <ReactApexChart options={options} series={series} type="line" height={450} />
+        <ReactApexChart options={options} series={series} type="line" height={400} />
       ) : (
         <Box sx={{ 
           display: 'flex', 

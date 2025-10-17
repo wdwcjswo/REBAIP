@@ -17,9 +17,9 @@ import Animation from './Animation';
 
 // assets
 import SendOutlined from '@ant-design/icons/SendOutlined';
-const imgdemo1 = '/assets/images/landing/img-demo1.jpg';
-const imgdemo2 = '/assets/images/landing/img-demo2.jpg';
-const imgdemo3 = '/assets/images/landing/img-demo3.jpg';
+import imgdemo1 from 'assets/images/landing/img-demo1.jpg';
+import imgdemo2 from 'assets/images/landing/img-demo2.jpg';
+import imgdemo3 from 'assets/images/landing/img-demo3.jpg';
 
 // ==============================|| LANDING - DEMO PAGE ||============================== //
 

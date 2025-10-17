@@ -13,7 +13,7 @@ import DrawerContent from './DrawerContent';
 import MainCard from 'components/MainCard';
 
 import { DRAWER_WIDTH } from 'config';
-import { handlerComponentDrawer, useGetMenuMaster } from 'api/menu';
+import { handlerComponentDrawer, useGetMenuMaster } from 'api/menu.jsx';
 
 // assets
 import SearchOutlined from '@ant-design/icons/SearchOutlined';

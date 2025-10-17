@@ -34,7 +34,7 @@ import Breadcrumbs from 'components/@extended/Breadcrumbs';
 import ExportPDFView from 'sections/apps/invoice/export-pdf';
 
 import { APP_DEFAULT_PATH } from 'config';
-import { handlerActiveItem, useGetMenuMaster } from 'api/menu';
+import { handlerActiveItem, useGetMenuMaster } from 'api/menu.jsx';
 import { useGetInvoice, useGetInvoiceMaster } from 'api/invoice';
 
 // assets

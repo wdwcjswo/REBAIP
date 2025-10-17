@@ -32,9 +32,11 @@ import InstagramFilled from '@ant-design/icons/InstagramFilled';
 import LinkedinFilled from '@ant-design/icons/LinkedinFilled';
 import YoutubeFilled from '@ant-design/icons/YoutubeFilled';
 import XOutlined from '@ant-design/icons/XOutlined';
-
-const imgfooterlogo = '/assets/images/landing/codedthemes-logo.svg';
-const figma = '/assets/images/icons/figma.svg';
+// landing assets (bundled)
+import landingAssets from 'assets/images/landing';
+const imgfooterlogo = landingAssets.footer?.codedthemesLogo || landingAssets.codedthemesLogo;
+// figma icon fallback: prefer dynamic figma image then icons/figma
+const figma = landingAssets.dynamic?.['figma-default'] || landingAssets?.figmaDefault;
 
 // link - custom style
 const FooterLink = styled(Link)(({ theme }) => ({
@@ -45,6 +47,9 @@ const FooterLink = styled(Link)(({ theme }) => ({
 
 export default function FooterBlock({ isFull }) {
   const { presetColor } = useConfig();
+  // derive footer image from centralized assets map (fallback to legacy public path)
+  const footerImgKey = presetColor === 'default' ? 'imgFooterDefault' : `imgFooter${presetColor.charAt(0).toUpperCase() + presetColor.slice(1)}`;
+  const footerImage = landingAssets.footer?.[footerImgKey];
 
   const linkSX = {
     color: 'common.white',
@@ -105,7 +110,7 @@ export default function FooterBlock({ isFull }) {
         >
           <CardMedia
             component="img"
-            image={`/assets/images/landing/img-footer-${presetColor}.png`}
+            image={footerImage}
             sx={(theme) => ({
               display: { xs: 'none', md: 'block' },
               width: '55%',

@@ -13,7 +13,7 @@ import Box from '@mui/material/Box';
 import { APP_DEFAULT_PATH } from 'config';
 
 // assets
-const error500 = '/assets/images/maintenance/Error500.png';
+const error500 = 'src/assets/images/maintenance/Error500.png';
 
 // ==============================|| ERROR 500 - MAIN ||============================== //
 

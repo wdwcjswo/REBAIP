@@ -22,7 +22,7 @@ import TabRole from 'sections/apps/profiles/account/TabRole';
 import TabSettings from 'sections/apps/profiles/account/TabSettings';
 
 import { APP_DEFAULT_PATH } from 'config';
-import { handlerActiveItem, useGetMenuMaster } from 'api/menu';
+import { handlerActiveItem, useGetMenuMaster } from 'api/menu.jsx';
 
 // assets
 import ContainerOutlined from '@ant-design/icons/ContainerOutlined';

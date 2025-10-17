@@ -11,7 +11,7 @@ import HeaderContent from './HeaderContent';
 import IconButton from 'components/@extended/IconButton';
 
 import useConfig from 'hooks/useConfig';
-import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
+import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu.jsx';
 import { MenuOrientation, DRAWER_WIDTH, MINI_DRAWER_WIDTH } from 'config';
 
 // assets
@@ -34,7 +34,7 @@ export default function Header() {
 
   // common header
   const mainHeader = (
-    <Toolbar>
+    <Toolbar> 
       {!isHorizontal ? (
         <IconButton
           aria-label="open drawer"

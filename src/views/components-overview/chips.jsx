@@ -1,3 +1,4 @@
+import avatar1 from 'assets/images/users/avatar-1.png';
 'use client';
 import { useState } from 'react';
 
@@ -73,7 +74,7 @@ export default function ComponentChip() {
                 </Grid>
                 <Grid>
                   <Chip
-                    avatar={<Avatar variant="rounded" alt="Natacha" src="/assets/images/users/avatar-1.png" />}
+                    avatar={<Avatar variant="rounded" alt="Natacha" src={avatar1} />}
                     label="Avatar"
                     color="primary"
                   />

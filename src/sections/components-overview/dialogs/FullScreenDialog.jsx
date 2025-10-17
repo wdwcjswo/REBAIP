@@ -5,6 +5,8 @@ import { useState } from 'react';
 
 // material-ui
 import Avatar from '@mui/material/Avatar';
+import avatar1 from 'assets/images/users/avatar-1.png';
+import avatar2 from 'assets/images/users/avatar-2.png';
 import AppBar from '@mui/material/AppBar';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -62,14 +64,14 @@ export default function FullScreenDialog() {
         <List sx={{ p: 3 }}>
           <ListItemButton>
             <ListItemAvatar>
-              <Avatar src="/assets/images/users/avatar-1.png" />
+              <Avatar src={avatar1} />
             </ListItemAvatar>
             <ListItemText primary="Phone ringtone" secondary="Default" />
           </ListItemButton>
           <Divider />
           <ListItemButton>
             <ListItemAvatar>
-              <Avatar src="/assets/images/users/avatar-2.png" />
+              <Avatar src={avatar2} />
             </ListItemAvatar>
             <ListItemText primary="Default notification ringtone" secondary="Tethys" />
           </ListItemButton>

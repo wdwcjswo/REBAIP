@@ -34,13 +34,12 @@ import { presetDarkPalettes, presetPalettes } from '@ant-design/colors';
 
 // assets
 import CheckOutlined from '@ant-design/icons/CheckOutlined';
+import landingAssets from 'assets/images/landing';
 
 // Prefetch critical routes using Vite's prefetch
 const prefetchRoutes = () => {
   // Use dynamic imports to trigger Vite's prefetching
   // These will be prefetched when the landing page loads
-  import('views/dashboard/analytics');
-  import('views/dashboard/default');
   import('views/auth/login');
   import('views/auth/register');
   import('views/apps/e-commerce/products');
@@ -160,7 +159,7 @@ export default function Landing() {
       >
         <CardMedia
           component="img"
-          image={`/assets/images/landing/bg-mockup-${presetColor}.png`}
+          image={landingAssets.bgMockup?.[presetColor]}
           sx={{
             position: 'absolute',
             width: { md: '78%', lg: '70%', xl: '65%' },

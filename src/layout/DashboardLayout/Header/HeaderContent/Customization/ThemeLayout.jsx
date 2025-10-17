@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography';
 import MainCard from 'components/MainCard';
 import useConfig from 'hooks/useConfig';
 import { MenuOrientation } from 'config';
-import { handlerDrawerOpen } from 'api/menu';
+import { handlerDrawerOpen } from 'api/menu.jsx';
 
 // assets
 const defaultLayout = '/assets/images/customization/default.svg';

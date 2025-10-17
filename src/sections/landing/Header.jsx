@@ -14,10 +14,9 @@ import { motion } from 'framer-motion';
 
 // project imports
 import AnimateButton from 'components/@extended/AnimateButton';
-
 // assets
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
-const headertechimg = '/assets/images/landing/img-headertech.svg';
+import { imgHeaderTech as headertechimg } from 'assets/images/landing';
 
 // ==============================|| LANDING - HEADER PAGE ||============================== //
 

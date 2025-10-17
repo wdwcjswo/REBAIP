@@ -15,7 +15,6 @@ import Box from '@mui/material/Box';
 // project imports
 import Drawer from './Drawer';
 import Header from './Header';
-import Footer from './Footer';
 import HorizontalBar from './Drawer/HorizontalBar';
 import Loader from 'components/Loader';
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
@@ -24,7 +23,7 @@ import AuthGuard from 'utils/route-guard/AuthGuard';
 
 import { MenuOrientation } from 'config';
 import useConfig from 'hooks/useConfig';
-import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
+import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu.jsx';
 
 // ==============================|| MAIN LAYOUT ||============================== //
 
@@ -54,7 +53,7 @@ export default function DashboardLayout({ children }) {
         <Header />
         {!isHorizontal ? <Drawer /> : <HorizontalBar />}
 
-        <Box component="main" sx={{ width: 'calc(100% - 260px)', flexGrow: 1, p: { xs: 2, sm: 3 } }}>
+        <Box component="main" sx={{ width: 'calc(100% - 320px)', flexGrow: 1, p: { xs: 2, sm: 3 } }}>
           <Toolbar sx={{ mt: isHorizontal ? 8 : 'inherit' }} />
           <Container
             maxWidth={container ? 'xl' : false}
@@ -68,7 +67,7 @@ export default function DashboardLayout({ children }) {
           >
             {pathname !== '/apps/profiles/account/my-account' && <Breadcrumbs />}
             {children}
-            <Footer />
+            
           </Container>
         </Box>
         <AddCustomer />

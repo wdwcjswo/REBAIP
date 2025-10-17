@@ -12,6 +12,7 @@ import Slider from 'react-slick';
 // project imports
 import Avatar from 'components/@extended/Avatar';
 import MainCard from 'components/MainCard';
+import landingAssets, { clients } from 'assets/images/landing';
 
 // ================================|| TESTIMONIAL - ITEMS ||================================ //
 
@@ -20,7 +21,7 @@ function Item({ item }) {
     <MainCard sx={{ mx: 2 }} contentSX={{ p: 3 }}>
       <Grid container spacing={1}>
         <Grid>
-          <Avatar src={item.image ? `/assets/images/landing/clients/${item.image}` : undefined} alt={item.client}>
+          <Avatar src={item.image ? clients[item.image] : undefined} alt={item.client}>
             {item.client.slice(0, 1)}
           </Avatar>
         </Grid>

@@ -2,6 +2,8 @@ import PropTypes from 'prop-types';
 
 // next
 import Image from 'next/image';
+import rebLogo from 'assets/images/REB/reb_logo.svg';
+import rebLogo2 from 'assets/images/REB/reb_logo2.svg';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -18,10 +20,10 @@ import { ThemeMode } from 'config';
  */
 
 // REB 로고 아이콘 이미지 설정
-const logoIconDark = '/assets/images/REB/reb_logo.svg';
-const logoIcon = '/assets/images/REB/reb_logo.svg';
-const logoIconOpen = '/assets/images/REB/reb_logo2.svg';
-const logoIconOpenDark = '/assets/images/REB/reb_logo2.svg';
+const logoIconDark = rebLogo;
+const logoIcon = rebLogo;
+const logoIconOpen = rebLogo2;
+const logoIconOpenDark = rebLogo2;
 
 // ==============================|| LOGO ICON SVG ||============================== //
 

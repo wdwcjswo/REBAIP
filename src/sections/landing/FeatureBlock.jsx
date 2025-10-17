@@ -8,10 +8,10 @@ import Typography from '@mui/material/Typography';
 import MainCard from 'components/MainCard';
 import Animation from './Animation';
 
-// assets
-const imgfeature1 = '/assets/images/landing/img-feature1.svg';
-const imgfeature2 = '/assets/images/landing/img-feature2.svg';
-const imgfeature3 = '/assets/images/landing/img-feature3.svg';
+// assets (import from src assets to centralize and enable bundler handling)
+import imgfeature1 from 'assets/images/landing/img-feature1.svg';
+import imgfeature2 from 'assets/images/landing/img-feature2.svg';
+import imgfeature3 from 'assets/images/landing/img-feature3.svg';
 
 // ==============================|| LANDING - FEATURE PAGE ||============================== //
 

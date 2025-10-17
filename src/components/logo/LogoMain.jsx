@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 
 // next
 import Image from 'next/image';
+import rebLogo from 'assets/images/REB/reb_logo.svg';
+import rebLogo2 from 'assets/images/REB/reb_logo2.svg';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -21,10 +23,10 @@ import { ThemeMode } from 'config';
  */
 
 // REB 로고 이미지 설정
-const logoDark = '/assets/images/REB/reb_logo.svg';
-const logo = '/assets/images/REB/reb_logo.svg';
-const logoOpen = '/assets/images/REB/reb_logo2.svg';
-const logoOpenDark = '/assets/images/REB/reb_logo2.svg';
+const logoDark = rebLogo;
+const logo = rebLogo;
+const logoOpen = rebLogo2;
+const logoOpenDark = rebLogo2;
 
 // ==============================|| LOGO SVG ||============================== //
 

@@ -10,11 +10,12 @@ import { motion } from 'framer-motion';
 
 // project imports
 import useConfig from 'hooks/useConfig';
+import landingAssets from 'assets/images/landing';
 
 // assets
 import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
-const imgelementmsg = '/assets/images/landing/img-element-msg.png';
-const imgelementwidget = '/assets/images/landing/img-element-widget.png';
+const imgelementmsg = landingAssets.imgElementMsg;
+const imgelementwidget = landingAssets.imgElementWidget;
 
 // ==============================|| LANDING - ELEMENT PAGE ||============================== //
 
@@ -93,14 +94,14 @@ export default function ElementBlock() {
           </Grid>
           <Grid size={9}>
             <Box sx={{ position: 'relative', mb: 3 }}>
-              <motion.div
+                <motion.div
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ type: 'spring', stiffness: 150, damping: 30, delay: 0.4 }}
               >
                 <CardMedia
                   component="img"
-                  image={`/assets/images/landing/img-element-main-${presetColor}.png`}
+                  image={landingAssets.dynamic[`img-element-main-${presetColor}`] || landingAssets.imgElementMainDefault}
                   sx={{ width: '100%', m: '0 auto' }}
                 />
               </motion.div>
