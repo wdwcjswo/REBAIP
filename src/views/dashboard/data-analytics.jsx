@@ -1,5 +1,7 @@
 'use client';
 
+import { useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import dynamic from 'next/dynamic';
 
 // material-ui
@@ -9,7 +11,6 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
-import SendIcon from '@mui/icons-material/Send';
 import Slider from '@mui/material/Slider';
 import Rating from '@mui/material/Rating';
 
@@ -38,7 +39,6 @@ import SaleReportCard from 'sections/dashboard/analytics/SaleReportCard';
 
 // ==============================|| DASHBOARD - DATA ANALYTICS ||============================== //
 
-
 export default function DashboardDataAnalytics() {
   const [error, setError] = useState(null);
   const [showPolicyOverlay, setShowPolicyOverlay] = useState(false); // 정책자료 오버레이 상태
@@ -51,37 +51,25 @@ export default function DashboardDataAnalytics() {
   const [chartLayers, setChartLayers] = useState([]); // 차트 레이어들을 누적 저장
   const [aiQuestion, setAiQuestion] = useState(''); // AI 질문 입력
   const [selectedRegion, setSelectedRegion] = useState('전국'); // 지역 선택 상태
-  // 조회 년도 범위 상태 (최근 10년, 올해 기준)
-  const SLIDER_END_YEAR = new Date().getFullYear();
-  const SLIDER_START_YEAR = SLIDER_END_YEAR - 9;
-  const monthCount = (SLIDER_END_YEAR - SLIDER_START_YEAR) * 12 + 12; 
-  const [yearRange, setYearRange] = useState([0, monthCount - 1]);
+  const [chartImageHistory, setChartImageHistory] = useState([]); // 차트 이미지 히스토리
 
-  // 카드별 고정 색상 배열 (cards에서 추출)
-  const cardColors = cards.map(card => card.color);
-
-  // 지역 옵션들
+  // 지역 옵션 배열 정의
   const regionOptions = [
     '전국', '수도권', '지방권', '6대광역시', '5대광역시', '9개도', '8개도',
     '서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종',
     '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
   ];
-
-  // 지역 선택 핸들러
-  const handleRegionChange = (event) => {
-    setSelectedRegion(event.target.value);
-    console.log('선택된 지역:', event.target.value);
-  };
-
-  // 개별 카드의 지역 선택 핸들러
-  const handleCardRegionChange = (cardIndex, region) => {
-    setCards(prevCards => 
-      prevCards.map((card, index) => 
-        index === cardIndex ? { ...card, region } : card
-      )
-    );
-    console.log(`카드 ${cardIndex + 1} 지역 변경:`, region);
-  };
+  // 카드별 고정 색상 배열 (차트 색상용)
+  const cardColors = cards.map(card => card.color);
+  
+  // Ref for ApexMixedChart
+  const chartRef = useRef(null);
+  // 조회 년도 범위 상태 (최근 10년, 올해 기준)
+  const SLIDER_END_YEAR = new Date().getFullYear();
+  const SLIDER_START_YEAR = SLIDER_END_YEAR - 9;
+  const monthCount = (SLIDER_END_YEAR - SLIDER_START_YEAR) * 12 + 12; 
+  const [yearRange, setYearRange] = useState([0, monthCount - 1]);
+  // (fixed misplaced code fragment)
 
   // 카드 리셋 핸들러
   const handleResetCard = (cardIndex) => {
@@ -212,7 +200,7 @@ export default function DashboardDataAnalytics() {
   const mergeChartLayers = (layers) => {
     if (!layers || layers.length === 0) return null;
     
-    console.log('Merging chart layers:', layers);
+    //console.log('Merging chart layers:', layers);
     
     const mergedData = {
       data: { datasets: [] },
@@ -244,7 +232,6 @@ export default function DashboardDataAnalytics() {
       }
     });
     
-    console.log('Merged chart data:', mergedData);
     return mergedData;
   };
 
@@ -359,8 +346,8 @@ export default function DashboardDataAnalytics() {
   };
 
   return (
-    <Box sx={{ display: 'flex', height: '90vh', ml: '-8px', width: 'calc(100% + 8px)' }}>
-      <Box sx={{ width: '75%', overflow: 'auto', height: '90vh' }}>
+    <Box sx={{ display: 'flex', height: '90vh', width: '100%' }}>
+      <Box sx={{ flex: 1, overflow: 'auto', height: '90vh' }}>
         {/* 조회 년도 범위 (사용자 조정 가능) */}
         <Box sx={{ p: 0, pb: 1 }}>
           <Grid container alignItems="center" justifyContent="flex-start" sx={{ m: 0 }}>
@@ -511,6 +498,7 @@ export default function DashboardDataAnalytics() {
                     map[card.statblid] = card.chartType;
                     return map;
                   }, {})}
+                  ref={chartRef}
                 />
               ) : (
                 <Box sx={{ 
@@ -726,10 +714,43 @@ export default function DashboardDataAnalytics() {
               </button>
               
               <button 
-                onClick={() => {
-                  // AI 분석 기능
-                  console.log('AI 분석 클릭');
-                  // TODO: AI 분석 모달이나 기능 구현
+                onClick={async () => {
+                  // 차트가 렌더링된 후에만 이미지 추출
+                  if (
+                    chartRef.current &&
+                    chartData &&
+                    chartData.data &&
+                    Array.isArray(chartData.data.datasets) &&
+                    chartData.data.datasets.length > 0 
+                  ) {
+                    // 강제 리렌더링용 dummy state
+                    setChartData(prev => ({ ...prev, _force: Math.random() }));
+                    await new Promise(res => setTimeout(res, 50)); // 리렌더링 대기
+                    let cardId = cards && cards[0] && cards[0].statblid ? cards[0].statblid : 'chart';
+                    const imgURI = await chartRef.current.exportToImage();
+                    if (imgURI) {
+                      let uri = imgURI;
+                      let ext = 'svg';
+                      if (imgURI.startsWith('<svg')) {
+                        // SVG 문자열을 Blob으로 변환 후 Object URL 생성
+                        const svgBlob = new Blob([imgURI], { type: 'image/svg+xml' });
+                        uri = URL.createObjectURL(svgBlob);
+                        ext = 'svg';
+                      } else if (imgURI.startsWith('data:image/png')) {
+                        ext = 'png';
+                      }
+                      setChartImageHistory(prev => {
+                        const uuid = uuidv4();
+                        const next = [{ uri, ext, date: new Date().toISOString(), cardId, uuid }, ...prev];
+                        console.log('chartImageHistory updated:', next);
+                        return next;
+                      });
+                    } else {
+                      alert('이미지 생성에 실패했습니다.');
+                    }
+                  } else {
+                    alert('차트가 먼저 그려져야 이미지를 생성할 수 있습니다.');
+                  }
                 }}
                 style={{
                   padding: '6px 16px', // 패딩 줄임
@@ -747,100 +768,36 @@ export default function DashboardDataAnalytics() {
                 AI 분석
               </button>
             </Box>
+
+            {/* 이미지 다운로드 링크 리스트 */}
+            {chartImageHistory.length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>생성된 차트 이미지 다운로드</Typography>
+                <ul style={{ paddingLeft: 16 }}>
+                  {chartImageHistory.map((img, idx) => (
+                    <li key={img.date + idx} style={{ marginBottom: 4 }}>
+                      <a
+                        href={
+                          img.uri.startsWith('data:')
+                            ? img.uri
+                            : img.uri + (img.uuid ? `?v=${img.uuid}` : `?v=${img.date}`)
+                        }
+                        download={`chart_${img.uuid || 'chart'}.${img.ext}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {`차트 이미지 ${idx + 1} [${img.cardId || 'chart'}] (${img.ext.toUpperCase()})`}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </Box>
+            )}
           </Grid>
         </Grid>
       </Box>
 
-      {/* 우측 AI 컴포넌트 영역 */}
-      <Box 
-        sx={{ 
-          width: '28%', 
-          height: '90vh', 
-          borderLeft: '1px solid',
-          borderColor: 'divider',
-          overflow: 'auto',
-          backgroundColor: 'background.paper',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
-        <Box sx={{ p: 1.5, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0, backgroundColor: 'primary.lighter' }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'primary.main', textAlign: 'left' }}>
-            AI 분석 도구
-          </Typography>
-        </Box>
-        
-        <Box sx={{ flex: 1, overflow: 'auto', p: 2.5, display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
-            AI 컴포넌트가 여기에 추가될 예정입니다.
-          </Typography>
-          
-          {/* TODO: AI 컴포넌트 추가 영역 */}
-          <Box sx={{ 
-            mt: 3, 
-            p: 3, 
-            border: '1px dashed', 
-            borderColor: 'divider', 
-            borderRadius: 2,
-            textAlign: 'center',
-            flex: 1,
-            minHeight: '300px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <Typography variant="body1" color="text.secondary">
-              AI 분석 도구
-            </Typography>
-          </Box>
 
-          {/* AI 질문 입력창 */}
-          <Box sx={{ 
-            mt: 3, 
-            display: 'flex', 
-            gap: 1.5,
-            alignItems: 'flex-end'
-          }}>
-            <TextField
-              fullWidth
-              multiline
-              maxRows={4}
-              variant="outlined"
-              placeholder="AI에게 질문하세요..."
-              value={aiQuestion}
-              onChange={(e) => setAiQuestion(e.target.value)}
-              onKeyPress={handleKeyPress}
-              size="medium"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  fontSize: '14px'
-                }
-              }}
-            />
-            <IconButton 
-              color="primary" 
-              onClick={handleAiQuestion}
-              disabled={!aiQuestion.trim()}
-              sx={{ 
-                bgcolor: 'primary.main',
-                color: 'white',
-                width: 48,
-                height: 48,
-                '&:hover': {
-                  bgcolor: 'primary.dark',
-                },
-                '&.Mui-disabled': {
-                  bgcolor: 'action.disabledBackground',
-                  color: 'action.disabled'
-                }
-              }}
-            >
-              <SendIcon />
-            </IconButton>
-          </Box>
-        </Box>
-      </Box>
     </Box>
   );
 }

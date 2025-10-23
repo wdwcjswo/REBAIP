@@ -41,10 +41,10 @@ export default function HeaderContent() {
       {/*<Message />*/}
       {!downLG && <FullScreen />}
       {/*<Customization />*/}
-      <Box sx={{ ml: 'auto' }}>
+      {/* <Box sx={{ ml: 'auto' }}>
         {!downLG && <Profile />}
         {downLG && <MobileSection />}
-      </Box>
+      </Box> */}
     </>
   );
 }
