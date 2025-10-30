@@ -49,7 +49,8 @@ export default function AnalyticsDataCard({
   chartData = [], // 차트 데이터 추가
   cardIndex = 0, // 카드 순서 추가 (0: 파랑, 1: 초록, 2: 빨강)
   chartColor = null, // 직접 차트 색상 지정 (우선순위)
-  chartType = null // 직접 차트 타입 지정 (우선순위)
+  chartType = null, // 직접 차트 타입 지정 (우선순위)
+  ctype = null // ctype 추가
 }) {
   // 클라이언트 사이드에서만 차트 렌더링
   const [isClient, setIsClient] = useState(false);
@@ -78,17 +79,17 @@ export default function AnalyticsDataCard({
   }, [chartData.length, chartType, isClient]); // cardIndex 제거하여 불필요한 리렌더링 방지
 
   // 디버깅용: isActiveInChart 상태 확인
-  useEffect(() => {
-    console.log(`Card ${cardIndex} - isActiveInChart:`, isActiveInChart, 'onRemoveFromChart:', !!onRemoveFromChart);
-  }, [isActiveInChart, onRemoveFromChart, cardIndex]);
+  // useEffect(() => {
+  //   console.log(`Card ${cardIndex} - isActiveInChart:`, isActiveInChart, 'onRemoveFromChart:', !!onRemoveFromChart);
+  // }, [isActiveInChart, onRemoveFromChart, cardIndex]);
 
   // 카드 인덱스에 따라 차트 타입 결정 (chartType prop이 있으면 우선 사용)
   const getChartType = (index) => {
     switch (index % 3) {
-      case 0: return 'column';
-      case 1: return 'area';
+      case 0: return 'line';
+      case 1: return 'line';
       case 2: return 'line';
-      default: return 'column';
+      default: return 'line';
     }
   };
   
@@ -143,16 +144,6 @@ export default function AnalyticsDataCard({
     },
     grid: {
       show: false
-    },
-    xaxis: {
-      labels: {
-        show: false
-      }
-    },
-    yaxis: {
-      labels: {
-        show: false
-      }
     }
   };
 
@@ -161,10 +152,36 @@ export default function AnalyticsDataCard({
       content={false}
       sx={{ 
         position: 'relative',
-        border: isActiveInChart ? '2px solid #1976d2' : '1px solid #e0e0e0',
+        border: isActiveInChart ? '2px solid #b0b3b8' : '1px solid #e0e0e0',
         backgroundColor: isActiveInChart ? '#f3f7ff' : 'inherit'
       }}
     >
+      {/* 헤더 영역 */}
+      <Box sx={{
+        height: 36,
+        background: (ctype === 'dt-index') ? 'rgba(255, 183, 77, 1)'
+          : (ctype === 'dt-percent') ? 'rgba(186, 104, 200, 1)'
+          : (ctype === 'dt-count') ? 'rgba(229, 115, 115, 1)'
+          : (ctype === 'dt-price') ? 'rgba(77, 208, 225, 1)'
+          : (ctype === 'dt-hCount') ? 'rgba(174, 213, 129, 1)'
+          : 'rgba(176,179,184,0.55)',
+        borderTopLeftRadius: 1,
+        borderTopRightRadius: 1,
+        borderBottom: '1px solid #b0b3b8',
+        px: 1.5,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        fontWeight: 600,
+        fontSize: 13,
+        color: '#fff',
+        fontStyle: 'italic',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+      }}>
+        {title ? title : '제목 없음'}
+      </Box>
       {isActiveInChart && onRemoveFromChart && (
         <Box sx={{ position: 'absolute', top: 4, right: 4, zIndex: 10 }}>
           <Tooltip title="차트에서 제거">
@@ -201,18 +218,8 @@ export default function AnalyticsDataCard({
           </Tooltip>
         </Box>
       )}
-      
       <Box sx={{ p: 2.25 }}>
         <Stack sx={{ gap: 0.5 }}>
-          <Typography variant="h6" color="text.secondary">
-            {title}
-          </Typography>
-          <Stack direction="row" sx={{ alignItems: 'center' }}>
-            <Typography variant="h4" color="inherit">
-              {figures} <span style={{ fontSize: '12px' }}>건</span>
-            </Typography>
-          </Stack>
-          
           {/* 동적 차트 타입 (column, area, line) */}
           <Box sx={{ height: 60, mt: 1, mb: 1 }}>
             {isClient && chartReady ? (
@@ -239,16 +246,15 @@ export default function AnalyticsDataCard({
               </Box>
             )}
           </Box>
-          
           {/* 지역 선택 드롭다운 */}
           {regionOptions.length > 0 && (
             <Box sx={{ mt: 1 }}>
               <FormControl size="small" sx={{ minWidth: 120, width: '100%' }}>
-                <InputLabel id={`region-label-${statblid}`}>지역</InputLabel>
+                {/* <InputLabel id={`region-label-${statblid}`}>지역</InputLabel> */}
                 <Select
                   labelId={`region-label-${statblid}`}
                   value={region}
-                  label="지역"
+                  // label="지역"
                   onChange={(e) => onRegionChange && onRegionChange(e.target.value)}
                   sx={{ backgroundColor: 'background.paper' }}
                 >
@@ -281,5 +287,6 @@ AnalyticsDataCard.propTypes = {
   chartData: PropTypes.array,
   cardIndex: PropTypes.number,
   chartColor: PropTypes.string,
-  chartType: PropTypes.string
+  chartType: PropTypes.string,
+  ctype: PropTypes.string
 };

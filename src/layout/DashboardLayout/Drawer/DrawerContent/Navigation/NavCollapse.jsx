@@ -87,7 +87,7 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
   const router = useRouter();
 
   // 기본적으로 열려있을 메뉴 ID들
-  const defaultOpenMenus = ['data-analytics', 'apartment-info'];
+  const defaultOpenMenus = ['data-analytics', 'info-apartment'];
   const shouldBeOpen = defaultOpenMenus.includes(menu.id);
 
   const [open, setOpen] = useState(shouldBeOpen);

@@ -19,7 +19,7 @@ import { fetcher } from 'utils/axios';
 export const icons = { loading: LoadingOutlined, dashboard: DashboardOutlined, components: GoldOutlined };
 
 const initialState = {
-  openedItem: 'data-analytics',
+  openedItem: null,
   openedComponent: 'buttons',
   openedHorizontalItem: null,
   isDashboardDrawerOpened: true,
@@ -33,11 +33,11 @@ const endpoints = {
 };
 
 const apartmentInfoMenuItem = {
-  id: 'apartment-info',
+  id: 'info-apartment',
   title: '아파트 정보',
   type: 'item',
   icon: 'components',
-  url: '/dashboard/apartment-info/search'
+  url: '/dashboard/info-apartment'
 };
 
 export function useGetMenu() {
@@ -389,7 +389,7 @@ export const convertApiDataToMenuItem = (apiData) => {
   
 
   return {
-    id: 'data-analytics-dynamic',
+    id: 'data-analytics',
     title: '통계 데이터',
     type: 'collapse',
     icon: 'components',

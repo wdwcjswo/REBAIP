@@ -1,6 +1,5 @@
 // project imports
-import applications from './applications';
-import widget from './widget';
+
 import formsTables from './forms-tables';
 import samplePage from './sample-page';
 import rebMap from './rebMap';

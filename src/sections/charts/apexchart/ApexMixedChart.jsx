@@ -1,7 +1,7 @@
-
 'use client';
 
-import { useEffect, useState, forwardRef, useRef, useImperativeHandle } from 'react';
+
+import { useState, forwardRef, useRef, useImperativeHandle, useMemo } from 'react';
 
 // ApexCharts exec를 위해 window에 강제로 attach
 import ApexCharts from 'apexcharts';
@@ -33,7 +33,7 @@ const mixedChartOptions = {
     enabled: false
   },
   stroke: {
-    width: [2, 2, 3] // column: 2, area: 2, line: 3
+    width: [2, 2, 2] 
   },
   xaxis: {
     categories: [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016]
@@ -131,7 +131,7 @@ const mixedChartOptions = {
 
 // ==============================|| APEXCHART - MIXED ||============================== //
 
-const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColors = [], colorMapping = {}, chartTypeMapping = {} }, ref) {
+const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColors = [], colorMapping = {}, chartTypeMapping = {}, policyAnnotations = [], ctype = [] }, ref) {
   const theme = useTheme();
   const { mode } = useConfig();
 
@@ -143,63 +143,56 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
   // 동적 차트 id (여러 인스턴스 대비)
   const [chartId] = useState('chart-' + Math.random().toString(36).substring(2, 9));
 
-  // chartData를 기반으로 series와 categories 생성
-  const [series, setSeries] = useState([]);
-  const [categories, setCategories] = useState([]);
+  // yaxis min/max 값 상수로 관리
+  const YAXIS_PERCENT_MIN = 0;
+  const YAXIS_PERCENT_MAX = 3;
+  const YAXIS_INDEX_MIN = 90;
+  const YAXIS_INDEX_MAX = 120;
 
-  // chartData가 변경될 때마다 series와 categories 업데이트
-  useEffect(() => {
+  // chartData에서 series, categories를 직접 계산 (useMemo)
+  const series = useMemo(() => {
     if (chartData && chartData.data && chartData.data.datasets && Array.isArray(chartData.data.datasets)) {
-      //console.log('ApexMixedChart: Updating chart with new data', chartData);
-      //console.log('ApexMixedChart: Color mapping', colorMapping);
-      
-      // datasets를 ApexCharts series 형식으로 변환
-      const newSeries = chartData.data.datasets.map((dataset, index) => {
-        // statblid 기반으로 차트 타입 결정 (chartTypeMapping이 있으면 우선 사용)
+      const filteredCtypes = Array.isArray(ctype) ? ctype.filter(Boolean).slice(0, chartData.data.datasets.length) : [];
+      const allSame = filteredCtypes.length > 0 && filteredCtypes.every(ct => ct === filteredCtypes[0]);
+      const uniqueCtypes = allSame ? [filteredCtypes[0]] : [...new Set(filteredCtypes)];
+      return chartData.data.datasets.map((dataset, index) => {
         let chartType;
         if (dataset.statblid && chartTypeMapping && chartTypeMapping[dataset.statblid]) {
           chartType = chartTypeMapping[dataset.statblid];
         } else {
-          // fallback: 인덱스 기반 차트 타입
-          switch (index % 3) {
-            case 0: chartType = 'column'; break;
-            case 1: chartType = 'area'; break;
-            case 2: chartType = 'line'; break;
-            default: chartType = 'column';
-          }
+          chartType = 'line';
         }
-        
+        // 모두 같으면 yAxisIndex는 0, 아니면 uniqueCtypes 인덱스
+        let yAxisIndex = 0;
+        if (!allSame && Array.isArray(ctype) && ctype[index]) {
+          yAxisIndex = uniqueCtypes.indexOf(ctype[index]);
+        }
         return {
-          name: dataset.label || dataset.name || `데이터 ${index + 1}`, // 범례에 표시될 이름
-          label: dataset.label || dataset.name || `데이터 ${index + 1}`, // y축 title용
-          type: chartType, // statblid 기반 동적 차트 타입
+          name: dataset.label || dataset.name || `데이터 ${index + 1}`,
+          label: dataset.label || dataset.name || `데이터 ${index + 1}`,
+          type: chartType,
           data: Array.isArray(dataset.data) ? dataset.data : [],
-          yAxisIndex: index % 3, // 0, 1, 2 순환하여 각 y축에 할당
-          statblid: dataset.statblid // statblid 정보 보존
+          yAxisIndex,
+          statblid: dataset.statblid
         };
       });
-      
-      setSeries(newSeries);
-      
-      // labels가 있으면 categories 업데이트, 없으면 series[0].data의 x값을 사용
-      if (chartData.labels && Array.isArray(chartData.labels) && chartData.labels.length > 0) {
-        setCategories(chartData.labels);
-      } else if (newSeries.length > 0 && Array.isArray(newSeries[0].data) && newSeries[0].data.length > 0 && newSeries[0].data[0].x !== undefined) {
-        setCategories(newSeries[0].data.map(item => item.x));
-      } else {
-        setCategories([]);
-      }
     }
-  }, [chartData, colorMapping, chartTypeMapping]);
+    return [];
+  }, [chartData, chartTypeMapping, ctype]);
 
-  const [options, setOptions] = useState({ 
-    ...mixedChartOptions, 
-    yaxis: [...mixedChartOptions.yaxis, { logarithmic: true }] 
-  });
+  const categories = useMemo(() => {
+    if (chartData && chartData.labels && Array.isArray(chartData.labels) && chartData.labels.length > 0) {
+      return chartData.labels;
+    } else if (series.length > 0 && Array.isArray(series[0].data) && series[0].data.length > 0 && series[0].data[0].x !== undefined) {
+      return series[0].data.map(item => item.x);
+    }
+    return [];
+  }, [chartData, series]);
 
 
-  useEffect(() => {
-    // statblid 기반으로 동적 색상 배열 생성
+  // options를 useMemo로 계산하여 바로 Chart에 넘김
+  const options = useMemo(() => {
+    // 시리즈별 색상은 항상 series 순서대로 강제 지정 (yAxisIndex와 무관)
     const dynamicColors = series.map((seriesItem, idx) => {
       let color = colorMapping?.[seriesItem.statblid];
       if (!color) color = chartColors[idx];
@@ -208,121 +201,174 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
       return color;
     });
 
-    //console.log('ApexMixedChart Dynamic colors', dynamicColors);
-    console.log('ApexMixedChart series:', series);
-    console.log('ApexMixedChart categories:', categories);
-    console.log('ApexMixedChart chartData:', chartData);
+    let yaxis = null;
+    if (ctype && ctype.length > 0 && series.length > 0) {
+      // 항상 series.length에 맞춰 yaxis, ctype, colors 동기화
+      const filtered = ctype.filter(Boolean).slice(0, series.length);
+      // 실제 남은 시리즈의 ctype이 모두 같으면 1개, 다르면 각각 yaxis 생성
+      const allSame = filtered.length > 0 && filtered.every(ct => ct === filtered[0]);
+      const yaxisColors = dynamicColors.slice(0, series.length);
+      if (filtered.length === 1 || allSame) {
+        // 1개만 남았거나 모두 같으면 yaxis 1개만 생성
+        const axisColor = yaxisColors[0] || '#1976d2';
+        yaxis = [
+          {
+            seriesName: filtered[0] || 'Y',
+            axisTicks: { show: true },
+            axisBorder: { show: true, color: axisColor },
+            labels: {
+              style: { colors: axisColor },
+              formatter: val => Math.floor(val)
+            },
+            title: {
+              text: filtered[0] || 'Y',
+              style: { color: axisColor }
+            },
+            opposite: false,
+            tooltip: { enabled: true }
+          }
+        ];
+      } else {
+        // 남은 시리즈의 ctype이 다르면 각각 yaxis 생성 (항상 series.length만큼)
+        yaxis = Array.from({ length: series.length }).map((_, idx) => {
+          const ct = filtered[idx];
+          const axisColor = yaxisColors[idx % yaxisColors.length];
+          const isIndexRight = ct === 'dt-index';
+          const isPercentRight = ct === 'dt-percent' && idx > 0;
+          const base = {
+            seriesName: ct,
+            axisTicks: { show: true },
+            axisBorder: { show: true, color: axisColor },
+            labels: {
+              style: { colors: axisColor },
+              formatter: val => Math.floor(val)
+            },
+            title: {
+              text: ct,
+              style: { color: axisColor }
+            },
+            opposite: idx > 0,
+            tooltip: { enabled: true }
+          };
+          return {
+            ...base,
+            ...(isPercentRight ? { min: YAXIS_PERCENT_MIN, max: YAXIS_PERCENT_MAX } : {}),
+            ...(isIndexRight ? { min: YAXIS_INDEX_MIN, max: YAXIS_INDEX_MAX } : {})
+          };
+        });
+      }
+    }
 
-    setOptions((prevState) => ({
-      ...prevState,
-      colors: dynamicColors, // statblid 기반 동적 색상 사용
+    let annotations = { xaxis: [], points: [] };
+    if (Array.isArray(policyAnnotations) && policyAnnotations.length > 0 && categories && categories.length > 0) {
+      function normalizeDate(date) {
+        if (!date) return '';
+        if (date.length === 8) return date.slice(0,6);
+        return date;
+      }
+      annotations.xaxis = policyAnnotations.map((policy, idx) => {
+        const normDate = normalizeDate(policy.date);
+        const catIdx = categories.findIndex(cat => {
+          const catStr = String(cat).replace(/[^0-9]/g, '').slice(0,6);
+          return catStr === normDate;
+        });
+        if (catIdx === -1) return null;
+        return {
+          x: categories[catIdx],
+          borderColor: '#0e0d0dff',
+          strokeDashArray: 6,
+          opacity: 1,
+          width: 2,
+          label: { show: false }
+        };
+      }).filter(Boolean);
+      annotations.points = policyAnnotations.map((policy, idx) => {
+        const normDate = normalizeDate(policy.date);
+        const catIdx = categories.findIndex(cat => {
+          const catStr = String(cat).replace(/[^0-9]/g, '').slice(0,6);
+          return catStr === normDate;
+        });
+        if (catIdx === -1) return null;
+        let yVal = null;
+        if (series && series.length > 0 && Array.isArray(series[0].data)) {
+          const d = series[0].data[catIdx];
+          yVal = (typeof d === 'object' && d !== null && 'y' in d) ? d.y : d;
+        }
+        if (yVal === null || isNaN(yVal)) return null;
+        return {
+          x: categories[catIdx],
+          y: yVal,
+          marker: {
+            size: 0,
+            fillColor: '#888',
+            strokeColor: '#888',
+            shape: 'rect',
+            radius: 2
+          },
+          label: {
+            borderColor: '#888',
+            style: {
+              color: '#fff',
+              background: 'rgba(0,0,0,0.5)',
+              fontSize: '12px',
+              fontWeight: 700,
+              borderRadius: 10,
+              padding: { left: 18, right: 18, top: 8, bottom: 8 },
+              letterSpacing: '0.04em',
+              boxShadow: '0 2px 8px 0 rgba(0,0,0,0.5)'
+            },
+            orientation: 'horizontal',
+            text: policy.title,
+            position: 'top',
+            offsetY: -12,
+            offsetX: 0
+          }
+        };
+      }).filter(Boolean);
+    }
+
+    return {
+      ...mixedChartOptions,
+      colors: dynamicColors,
       fill: {
-        colors: dynamicColors // fill 색상도 명시적으로 설정
+        colors: dynamicColors
       },
       stroke: {
-        colors: dynamicColors, // stroke 색상도 명시적으로 설정
-        width: [2, 2, 3] // column: 2, area: 2, line: 3
+        colors: dynamicColors,
+        width: Array(series.length).fill(2)
+      },
+      markers: {
+        colors: dynamicColors
       },
       xaxis: {
-        categories: categories, // 동적으로 업데이트된 categories 사용
+        type: 'category',
+        categories: categories,
+        tickAmount: 20,
+        min: 0,
+        max: categories.length > 0 ? categories.length - 1 : undefined,
         labels: {
+          show: true,
           style: {
             colors: [primary, primary, primary, primary, primary, primary, primary, primary]
           }
         }
       },
-      yaxis: [
-        {
-          seriesName: series[0]?.label || series[0]?.name || 'OPT1',
-          axisTicks: {
-            show: true
-          },
-          axisBorder: {
-            show: true,
-            color: dynamicColors[0] || chartColors[0] // 동적 색상 사용
-          },
-          labels: {
-            style: {
-              colors: dynamicColors[0] || chartColors[0] // 동적 색상 사용
-            },
-            formatter: function (val) {
-              return Math.floor(val); // 소수점 제거
-            }
-          },
-          title: {
-            text: series[0]?.label || 'OPT1',
-            style: {
-              color: dynamicColors[0] || chartColors[0] // 동적 색상 사용
-            }
-          },
-          tooltip: {
-            enabled: true
-          }
-        },
-        {
-          seriesName: series[1]?.label || series[1]?.name || 'OPT2',
-          opposite: true,
-          axisTicks: {
-            show: true
-          },
-          axisBorder: {
-            show: true,
-            color: dynamicColors[1] || chartColors[1] // 동적 색상 사용
-          },
-          labels: {
-            style: {
-              colors: dynamicColors[1] || chartColors[1] // 동적 색상 사용
-            },
-            formatter: function (val) {
-              return Math.floor(val); // 소수점 제거
-            }
-          },
-          title: {
-            text: series[1]?.label || 'OPT2',
-            style: {
-              color: dynamicColors[1] || chartColors[1] // 동적 색상 사용
-            }
-          }
-        },
-        {
-          seriesName: series[2]?.label || series[2]?.name || 'OPT3',
-          opposite: true,
-          axisTicks: {
-            show: true
-          },
-          axisBorder: {
-            show: true,
-            color: dynamicColors[2] || chartColors[2] // 동적 색상 사용
-          },
-          labels: {
-            style: {
-              colors: dynamicColors[2] || chartColors[2] // 동적 색상 사용
-            },
-            formatter: function (val) {
-              return Math.floor(val); // 소수점 제거
-            }
-          },
-          title: {
-            text: series[2]?.label || 'OPT3',
-            style: {
-              color: dynamicColors[2] || chartColors[2] // 동적 색상 사용
-            }
-          }
-        }
-      ],
+      yaxis,
       grid: {
         borderColor: line
       },
       legend: {
         show: true,
-        showForSingleSeries: true, // 단일 시리즈일 때도 범례 표시
+        showForSingleSeries: true,
         position: 'bottom',
         fontFamily: `'Roboto', sans-serif`,
         offsetX: 10,
         offsetY: 10,
+        floating: false,
         labels: {
           colors: 'grey.500',
-          useSeriesColors: false
+          useSeriesColors: false,
+          maxWidth: 9999 // 한 줄로 길게
         },
         markers: {
           width: 16,
@@ -330,21 +376,25 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
           radius: 5
         },
         itemMargin: {
-          horizontal: 15,
-          vertical: 8
-        }
+          horizontal: 8,
+          vertical: 0
+        },
+        onItemClick: { toggleDataSeries: true },
+        onItemHover: { highlightDataSeries: true },
+        style: { whiteSpace: 'nowrap', flexWrap: 'nowrap' }
       },
       theme: {
         mode: mode === ThemeMode.DARK ? 'dark' : 'light'
-      }
-    }));
-  }, [mode, primary, line, grey200, secondary, categories, series, chartColors, colorMapping, chartTypeMapping]); 
+      },
+      annotations
+    };
+  }, [mode, primary, line, grey200, secondary, chartColors, colorMapping, chartTypeMapping, policyAnnotations, ctype, series, categories, mixedChartOptions]);
 
 
   // exportToImage 메서드를 ref로 노출 (ApexCharts exec 사용)
   useImperativeHandle(ref, () => ({
     async exportToImage(retry = 0) {
-      console.log(`[exportToImage] called, retry: ${retry}, window.ApexCharts:`, typeof window !== 'undefined' ? window.ApexCharts : undefined);
+      //console.log(`[exportToImage] called, retry: ${retry}, window.ApexCharts:`, typeof window !== 'undefined' ? window.ApexCharts : undefined);
       if (
         typeof window !== 'undefined' &&
         window.ApexCharts &&
@@ -380,10 +430,18 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
     }
   }), [chartId, series, categories]);
 
+  // 강제 리렌더링을 위해 key에 annotation hash 추가 (options.annotations가 아닌 policyAnnotations 등에서 파생)
+  const annotationKey = JSON.stringify(policyAnnotations || []);
   return (
     <Box id="chart" sx={{ bgcolor: 'transparent' }}>
       {series && Array.isArray(series) && series.length > 0 && categories && Array.isArray(categories) ? (
-        <ReactApexChart options={{ ...options, chart: { ...options.chart, id: chartId } }} series={series} type="line" height={400} />
+        <ReactApexChart
+          key={chartId + annotationKey}
+          options={{ ...options, chart: { ...options.chart, id: chartId }, annotations: options.annotations }}
+          series={series}
+          type="line"
+          height={400}
+        />
       ) : (
         <Box sx={{ 
           display: 'flex', 

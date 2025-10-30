@@ -11,6 +11,7 @@ import Box from '@mui/material/Box';
 import NavItem from './NavItem';
 import NavGroup from './NavGroup';
 import menuItem from 'menu-items';
+import rebMap from 'menu-items/rebMap';
 import { MenuFromAPI } from 'menu-items/dashboard';
 
 import useConfig from 'hooks/useConfig';
@@ -43,16 +44,20 @@ export default function Navigation() {
   const dashboardMenu = MenuFromAPI();
 
   useLayoutEffect(() => {
+    // 항상 loadingMenu를 id로 찾아서 제거
+    menuItem.items = menuItem.items.filter(item => item.id !== 'group-dashboard-loading');
+
     if (menuLoading && !isFound(menuItem, 'group-dashboard-loading')) {
       menuItem.items.splice(0, 0, dashboardMenu);
-      setMenuItems({ items: [...menuItem.items] });
     } else if (!menuLoading && dashboardMenu?.id !== undefined && !isFound(menuItem, 'group-dashboard')) {
       menuItem.items.splice(0, 1, dashboardMenu);
-      setMenuItems({ items: [...menuItem.items] });
-    } else {
-      setMenuItems({ items: [...menuItem.items] });
+    } 
+    
+    // rebMap(지도) 메뉴가 없으면 항상 추가
+    if (!menuItem.items.some(item => item.id === 'map')) {
+      menuItem.items.push(rebMap);
     }
-    // eslint-disable-next-line
+    setMenuItems({ items: [...menuItem.items] });
   }, [menuLoading]);
 
   const isHorizontal = menuOrientation === MenuOrientation.HORIZONTAL && !downLG;

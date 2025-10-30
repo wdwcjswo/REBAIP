@@ -47,9 +47,6 @@ const prefetchRoutes = () => {
   import('views/apps/kanban');
   import('views/apps/calendar');
   import('views/apps/chat');
-  import('views/widget/chart');
-  import('views/widget/data');
-  import('views/widget/statistics');
 };
 
 // ==============================|| LANDING PAGE ||============================== //

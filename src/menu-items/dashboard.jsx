@@ -9,7 +9,7 @@ import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
 // type
 const icons = { dashboard: DashboardOutlined, components: GoldOutlined, loading: LoadingOutlined };
 
-const dataAnalyticsItem = { id: 'data-analytics', title: '통계 데이터', type: 'collapse', icon: 'components', url: '/dashboard/data-analytics', breadcrumbs: false };
+const dataAnalyticsItem = { id: 'dashboard', title: 'AI 데이터 분석', type: 'collapse', icon: 'dashboard', url: '/dashboard/data-analytics', breadcrumbs: false };
 
 const loadingMenu = {
   id: 'group-dashboard-loading',
@@ -26,6 +26,7 @@ export function MenuFromAPI() {
   const { menu, menuLoading } = useGetMenu();
 
   if (menuLoading) return loadingMenu;
+  // if (!menu) return { id: 'empty', title: '', type: 'group', children: [] };
 
   const subChildrenList = (children) => {
     return children?.map((subList) => {
