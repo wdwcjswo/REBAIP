@@ -17,9 +17,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 
 // project imports
-import MainCard from 'components/MainCard';
 import AnalyticsDataCard from 'components/cards/statistics/AnalyticsDataCard';
-import UsersCardChart from 'sections/dashboard/analytics/UsersCardChart';
 import { useContext } from 'react';
 import { ChartImageHistoryContext } from 'layout/DashboardLayout/index';
 
@@ -36,7 +34,6 @@ export default function DashboardDataAnalytics() {
   // Context에서 chartImageHistory, setChartImageHistory 가져오기
   const { chartImageHistory, setChartImageHistory } = useContext(ChartImageHistoryContext);
   const [error, setError] = useState(null);
-  const [showPolicyOverlay, setShowPolicyOverlay] = useState(false); // 정책자료 오버레이 상태
   const [cards, setCards] = useState([
     { selected: false, color: '#1976d2' },
     { selected: false, color: '#2e7d32' },
@@ -44,7 +41,6 @@ export default function DashboardDataAnalytics() {
   ]);
   const [chartData, setChartData] = useState(null); // 초기에는 null로 설정
   const [chartLayers, setChartLayers] = useState([]); // 차트 레이어들을 누적 저장
-  const [selectedRegion, setSelectedRegion] = useState('전국'); // 지역 선택 상태
 
   // 지역 옵션 배열 정의
   const regionOptions = [
@@ -54,7 +50,6 @@ export default function DashboardDataAnalytics() {
   ];
   // 카드별 고정 색상 배열 (차트 색상용)
   const fixedColors = ['#1976d2', '#2e7d32', '#d32f2f'];
-  const cardColors = [0,1,2].map(idx => fixedColors[idx]);
   
   // Ref for ApexMixedChart
   const chartRef = useRef(null);
@@ -120,10 +115,10 @@ export default function DashboardDataAnalytics() {
         cardIndex = -1;
       }
 
-      let stym = '202001';
-      let edym = '202509';
-      let REG = null
-
+      // API 파라미터 상수
+      const START_YM = 202001;
+      const END_YM = 202509;
+      const GRP_ID = null;
   
       //STATBL_ID=A_2024_00016&ST_YM=202001&ED_YM=202509&GRP_ID=null&CLS_ID=51000000&CLS_DATANO=500017&TITLE=매매가격지수 주택종합
       //STATBL_ID=A_2024_00045&ST_YM=202001&ED_YM=202509&GRP_ID=null&CLS_ID=1000070&CLS_DATANO=500007&TITLE=매매가격지수 아파트
@@ -134,15 +129,15 @@ export default function DashboardDataAnalytics() {
     
       //지수
       if (statblid === 'A_2024_00016') { // 매매가격지수 주택종합
-        svcURL = "/api/rap/getChart_RONE_OPT" +'?STATBL_ID='+statblid +'&ST_YM='+202001+'&ED_YM='+202509+'&GRP_ID='+REG+'&CLS_ID=51000000&CLS_DATANO=500017&TITLE=매매가격지수 주택종합';
+        svcURL = `/api/rap/getChart_RONE_OPT?STATBL_ID=${statblid}&ST_YM=${START_YM}&ED_YM=${END_YM}&GRP_ID=${GRP_ID}&CLS_ID=51000000&CLS_DATANO=500017&TITLE=매매가격지수 주택종합`;
       } else if (statblid === 'A_2024_00045') { // 매매가격지수 아파트
-        svcURL = "/api/rap/getChart_RONE_OPT" +'?STATBL_ID='+statblid +'&ST_YM='+202001+'&ED_YM='+202509+'&GRP_ID='+REG+'&CLS_ID=1000070&CLS_DATANO=500007&TITLE=매매가격지수 아파트';
+        svcURL = `/api/rap/getChart_RONE_OPT?STATBL_ID=${statblid}&ST_YM=${START_YM}&ED_YM=${END_YM}&GRP_ID=${GRP_ID}&CLS_ID=1000070&CLS_DATANO=500007&TITLE=매매가격지수 아파트`;
       } else if (statblid === 'A_2024_00050') { // 전세가격지수 아파트
-        svcURL = "/api/rap/getChart_RONE_OPT" +'?STATBL_ID='+statblid +'&ST_YM='+202001+'&ED_YM='+202509+'&GRP_ID='+REG+'&CLS_ID=1000010&CLS_DATANO=500001&TITLE=전세가격지수 아파트';
+        svcURL = `/api/rap/getChart_RONE_OPT?STATBL_ID=${statblid}&ST_YM=${START_YM}&ED_YM=${END_YM}&GRP_ID=${GRP_ID}&CLS_ID=1000010&CLS_DATANO=500001&TITLE=전세가격지수 아파트`;
       
       //변동률
       } else if (statblid === 'A_2024_00903') { // 지역별 지가변동률
-        svcURL = "/api/rap/getChart_RONE_OPT" +'?STATBL_ID='+statblid +'&ST_YM='+202001+'&ED_YM='+202509+'&GRP_ID='+REG+'&CLS_ID=1000010&CLS_DATANO=500001&TITLE=지역별 지가변동률';
+        svcURL = `/api/rap/getChart_RONE_OPT?STATBL_ID=${statblid}&ST_YM=${START_YM}&ED_YM=${END_YM}&GRP_ID=${GRP_ID}&CLS_ID=1000010&CLS_DATANO=500001&TITLE=지역별 지가변동률`;
       
       //퍼센트
       } else if(statblid === "KTECH_RENT_01") { // 전세가율 - 아파트 (최근 1년)
@@ -173,7 +168,6 @@ export default function DashboardDataAnalytics() {
         svcURL = "/getKTECHAUCTIONList?OPT=OPT4";
       }
       
-
       // console.log('fetchChartData called with statblid:', statblid);
       console.log('API URL:', svcURL);
 
@@ -267,11 +261,11 @@ export default function DashboardDataAnalytics() {
     return mergedData;
   };
 
-  useEffect(() => {
-    // 초기 로딩 시에는 차트 데이터를 로드하지 않음
-    // 사용자가 드래그 앤 드롭을 통해 선택한 항목의 차트만 표시
-    console.log('Component mounted - waiting for user interaction to load chart data');
-  }, []);
+  useEffect(() => {   
+    // 페이지 진입 시 히스토리 이미지 리셋
+    setChartImageHistory([]);
+    console.log('Chart image history reset on page load');
+  }, [setChartImageHistory]);
 
   // 차트 레이어 제거 함수
   const removeChartLayer = (statblid, cardIndex) => {
@@ -556,16 +550,32 @@ export default function DashboardDataAnalytics() {
                 <ApexMixedChart 
                   key={JSON.stringify(checkedPolicies)}
                   chartData={chartData} 
-                  chartColor={cards.map(card => card.color)}
+                  chartColor={(() => {
+                    // chartLayers 순서에 맞춰 색상 배열 생성
+                    return chartLayers.map(layer => {
+                      const card = cards.find(card => card.statblid === layer.statblid);
+                      return card ? card.color : '#1976d2';
+                    });
+                  })()}
                   colorMapping={cards.reduce((map, card, index) => {
-                    map[card.statblid] = card.color;
+                    if (card.selected && card.statblid) {
+                      map[card.statblid] = card.color;
+                    }
                     return map;
                   }, {})}
                   chartTypeMapping={cards.reduce((map, card, index) => {
-                    map[card.statblid] = card.chartType;
+                    if (card.selected && card.statblid) {
+                      map[card.statblid] = card.chartType;
+                    }
                     return map;
                   }, {})}
-                  ctype={cards.map(card => card.ctype)}
+                  ctype={(() => {
+                    // chartLayers 순서에 맞춰 ctype 배열 생성
+                    return chartLayers.map(layer => {
+                      const card = cards.find(card => card.statblid === layer.statblid);
+                      return card ? card.ctype : 'dt-index';
+                    });
+                  })()}
                   ref={chartRef}
                   policyAnnotations={checkedPolicies}
                 />
@@ -599,11 +609,6 @@ export default function DashboardDataAnalytics() {
                   >
                     한국부동산원 AI 분석 플랫폼
                   </Typography>
-                  {/* <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                    <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.92)', fontWeight: 400, fontSize: 18, textAlign: 'center' }}>
-                      트리에서 항목을 드래그해서 카드에 드롭하면 해당 차트가 표시됩니다
-                    </Typography>
-                  </Box> */}
                 </Box>
               )}
 
@@ -652,11 +657,17 @@ export default function DashboardDataAnalytics() {
                       Array.isArray(chartData.data.datasets) &&
                       chartData.data.datasets.length > 0 
                     ) {
-                      // 강제 리렌더링용 dummy state
-                      setChartData(prev => ({ ...prev, _force: Math.random() }));
-                      await new Promise(res => setTimeout(res, 50)); // 리렌더링 대기
-                      let chartId = cards && cards[0] && cards[0].statblid ? cards[0].statblid : 'chart';
-                      const imgURI = await chartRef.current.exportToImage();
+                      // 리렌더링 없이 바로 이미지 추출 시도
+                      let chartId = chartLayers.length > 0 ? chartLayers[0].statblid : 'chart';
+                      let imgURI = await chartRef.current.exportToImage();
+                      
+                      // 첫 번째 시도가 실패하면 약간의 지연 후 재시도
+                      if (!imgURI) {
+                        console.log('첫 번째 이미지 추출 실패, 재시도 중...');
+                        await new Promise(res => setTimeout(res, 100));
+                        imgURI = await chartRef.current.exportToImage();
+                      }
+                      
                       if (imgURI) {
                         let uri = imgURI;
                         let ext = 'svg';
@@ -671,9 +682,9 @@ export default function DashboardDataAnalytics() {
                         setChartImageHistory(prev => {
                           const uuid = uuidv4();
                           const next = [{ uri, ext, date: new Date().toISOString(), chartId, uuid }, ...prev];
-                          //console.log('chartImageHistory updated:', next);
                           return next;
                         });
+                        console.log('차트 이미지 생성 완료:', chartId);
                       } else {
                         alert('이미지 생성에 실패했습니다.');
                       }

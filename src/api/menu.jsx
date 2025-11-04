@@ -85,7 +85,12 @@ export function useGetMenu() {
 
     if (updatedMenu && Array.isArray(updatedMenu.children) && updatedMenu.children.length > 0 && dynamicDataAnalyticsMenuItem) {
       // 최상위에서 'ai 데이터 분석'만 남기고 모두 삭제
-      const filteredGroups = updatedMenu.children.filter(group => (group.title || '').trim().toLowerCase() !== 'components');
+      const filteredGroups = updatedMenu.children.filter(group => {
+        const title = (group.title || '').trim().toLowerCase();
+        return title !== 'components' && 
+              title !== 'default' && 
+              title !== 'analytics';
+      });
       updatedMenu = {
         ...updatedMenu,
         children: filteredGroups.map((group) => {

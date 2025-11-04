@@ -31,8 +31,8 @@ import AiComponent from 'layout/DashboardLayout/AiComponent';
 import { useContext } from 'react';
 import { ChartImageHistoryContext } from 'layout/DashboardLayout/index';
 
-// Dynamic import for ApexCharts (SSR 방지)
-const ApexMixedChart = dynamic(() => import('sections/charts/apexchart/ApexMixedChart'), {
+// Dynamic import for ApexRebChart (SSR 방지)
+const ApexRebChart = dynamic(() => import('sections/charts/apexchart/ApexRebChart'), {
   ssr: false,
   loading: () => <CircularProgress />
 });
@@ -76,6 +76,13 @@ export default function InfoApartment() {
   const [selectedSido, setSelectedSido] = useState('서울특별시');
   const [selectedGungu, setSelectedGungu] = useState('송파구');
   const [selectedApt, setSelectedApt] = useState('선택하세요');
+
+  // 컴포넌트 마운트 시 히스토리 이미지 리셋
+  useEffect(() => {
+    // 페이지 진입 시 히스토리 이미지 리셋
+    setChartImageHistory([]);
+    console.log('Chart image history reset on info-apartment page load');
+  }, [setChartImageHistory]);
 
   // InfoApartment 함수 내에 추가
   const [sidoAnchor, setSidoAnchor] = useState(null);
@@ -263,19 +270,19 @@ export default function InfoApartment() {
           {/* row 1 - 아파트 정보 선택 (Mantis UI 스타일) */}
           <Box sx={{ width: '100%', mt: 3, mb: 2 }}>
             {/* 첨부 이미지 스타일: 시도/군구/아파트 선택 박스 */}
-            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', maxWidth: 900, mx: 'auto', mt: 2, mb: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mx: 'auto', mt: 2, mb: 1 }}>
               {/* 시도 */}
               <Box
                 sx={{
-                  px: 2.5, py: 1,
+                  px: 2, py: 0.5,
                   bgcolor: '#e0e0e0',
                   color: '#444',
                   fontWeight: 500,
-                  fontSize: 15,
+                  fontSize: 14,
                   borderTopLeftRadius: 1,
                   borderBottomLeftRadius: 1,
                   cursor: 'pointer',
-                  minWidth: 120,
+                  minWidth: 100,
                   textAlign: 'center',
                   borderRight: '2px solid #fff',
                   transition: 'background 0.2s'
@@ -287,13 +294,13 @@ export default function InfoApartment() {
               {/* 군구 */}
               <Box
                 sx={{
-                  px: 2.5, py: 1,
+                  px: 2, py: 0.5,
                   bgcolor: '#f5f5f5',
                   color: '#444',
                   fontWeight: 500,
-                  fontSize: 15,
+                  fontSize: 14,
                   cursor: 'pointer',
-                  minWidth: 120,
+                  minWidth: 100,
                   textAlign: 'center',
                   borderRight: '2px solid #fff',
                   transition: 'background 0.2s'
@@ -305,15 +312,15 @@ export default function InfoApartment() {
               {/* 아파트 */}
               <Box
                 sx={{
-                  px: 3, py: 1,
+                  px: 2, py: 0.5,
                   bgcolor: '#1976d2',
                   color: '#fff',
-                  fontWeight: 700,
-                  fontSize: 17,
+                  fontWeight: 600,
+                  fontSize: 14,
                   borderTopRightRadius: 1,
                   borderBottomRightRadius: 1,
                   cursor: 'pointer',
-                  minWidth: 180,
+                  flex: 1,
                   textAlign: 'left',
                   position: 'relative',
                   boxShadow: '0 2px 8px 0 rgba(33, 150, 243, 0.08)'
@@ -340,26 +347,26 @@ export default function InfoApartment() {
               </Menu>
             </Box>
             {/* 매매/전세/평형  매물호가/매물량/실거래 */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1, flexWrap: 'wrap', width: '100%', maxWidth: 900, mx: 'auto' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1, flexWrap: 'wrap', width: '100%', mx: 'auto' }}>
               {/* 매매/전세/평형 */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <ButtonGroup variant="contained" sx={{ boxShadow: 'none', height: 32 }}>
-                  <Button sx={{ bgcolor: '#222', color: '#fff', minWidth: 48, px: 2, fontSize: 15, '&:hover': { bgcolor: '#444' } }}>매매</Button>
-                  <Button sx={{ bgcolor: '#aaa', color: '#fff', minWidth: 48, px: 2, fontSize: 15, '&:hover': { bgcolor: '#888' } }}>전세</Button>
+                <ButtonGroup variant="contained" sx={{ boxShadow: 'none', height: 28 }}>
+                  <Button sx={{ bgcolor: '#222', color: '#fff', minWidth: 48, px: 2, py: 0.3, fontSize: 13, '&:hover': { bgcolor: '#444' } }}>매매</Button>
+                  <Button sx={{ bgcolor: '#aaa', color: '#fff', minWidth: 48, px: 2, py: 0.3, fontSize: 13, '&:hover': { bgcolor: '#888' } }}>전세</Button>
                 </ButtonGroup>
-                <ButtonGroup variant="outlined" sx={{ ml: 1, height: 32 }}>
-                  <Button sx={{ minWidth: 56, px: 1.5, fontSize: 15, borderColor: '#1976d2', color: '#1976d2' }}>59㎡</Button>
-                  <Button sx={{ minWidth: 56, px: 1.5, fontSize: 15, borderColor: '#1976d2', color: '#1976d2', bgcolor: '#e3f0ff', fontWeight: 700 }}>84㎡</Button>
-                  <Button sx={{ minWidth: 56, px: 1.5, fontSize: 15, borderColor: '#1976d2', color: '#1976d2' }}>110㎡</Button>
-                  <Button sx={{ minWidth: 56, px: 1.5, fontSize: 15, borderColor: '#1976d2', color: '#1976d2' }}>124㎡</Button>
+                <ButtonGroup variant="outlined" sx={{ ml: 1, height: 28 }}>
+                  <Button sx={{ minWidth: 56, px: 1.5, py: 0.3, fontSize: 13, borderColor: '#1976d2', color: '#1976d2' }}>59㎡</Button>
+                  <Button sx={{ minWidth: 56, px: 1.5, py: 0.3, fontSize: 13, borderColor: '#1976d2', color: '#1976d2', bgcolor: '#e3f0ff', fontWeight: 700 }}>84㎡</Button>
+                  <Button sx={{ minWidth: 56, px: 1.5, py: 0.3, fontSize: 13, borderColor: '#1976d2', color: '#1976d2' }}>110㎡</Button>
+                  <Button sx={{ minWidth: 56, px: 1.5, py: 0.3, fontSize: 13, borderColor: '#1976d2', color: '#1976d2' }}>124㎡</Button>
                 </ButtonGroup>
               </Box>
               {/* 매물호가/매물량/실거래 */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <ButtonGroup variant="outlined" sx={{ height: 32 }}>
-                  <Button sx={{ minWidth: 80, px: 1.5, fontSize: 15 }}>매물호가</Button>
-                  <Button sx={{ minWidth: 80, px: 1.5, fontSize: 15 }}>매물량</Button>
-                  <Button sx={{ minWidth: 80, px: 1.5, fontSize: 15 }}>실거래</Button>
+                <ButtonGroup variant="outlined" sx={{ height: 28 }}>
+                  <Button sx={{ minWidth: 80, px: 1.5, py: 0.3, fontSize: 13 }}>매물호가</Button>
+                  <Button sx={{ minWidth: 80, px: 1.5, py: 0.3, fontSize: 13 }}>매물량</Button>
+                  <Button sx={{ minWidth: 80, px: 1.5, py: 0.3, fontSize: 13 }}>실거래</Button>
                 </ButtonGroup>
               </Box>
             </Box>
@@ -372,13 +379,9 @@ export default function InfoApartment() {
             <Box sx={{ position: 'relative' }}>
               {/* fetchChartData 결과 전달 */}
               {chartData ? (
-                <ApexMixedChart 
+                <ApexRebChart
                   key={JSON.stringify(checkedPolicies)}
                   chartData={chartData} 
-                  chartColor='#1976d2'
-                  colorMapping='#1976d2'
-                  chartTypeMapping='bar'
-                  ctype={['dt-index']}
                   ref={chartRef}
                   policyAnnotations={checkedPolicies}
                 />

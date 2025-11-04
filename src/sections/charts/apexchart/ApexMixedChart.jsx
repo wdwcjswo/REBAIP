@@ -143,36 +143,28 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
   // 동적 차트 id (여러 인스턴스 대비)
   const [chartId] = useState('chart-' + Math.random().toString(36).substring(2, 9));
 
-  // yaxis min/max 값 상수로 관리
-  const YAXIS_PERCENT_MIN = 0;
-  const YAXIS_PERCENT_MAX = 3;
-  const YAXIS_INDEX_MIN = 90;
-  const YAXIS_INDEX_MAX = 120;
-
   // chartData에서 series, categories를 직접 계산 (useMemo)
   const series = useMemo(() => {
     if (chartData && chartData.data && chartData.data.datasets && Array.isArray(chartData.data.datasets)) {
-      const filteredCtypes = Array.isArray(ctype) ? ctype.filter(Boolean).slice(0, chartData.data.datasets.length) : [];
-      const allSame = filteredCtypes.length > 0 && filteredCtypes.every(ct => ct === filteredCtypes[0]);
-      const uniqueCtypes = allSame ? [filteredCtypes[0]] : [...new Set(filteredCtypes)];
       return chartData.data.datasets.map((dataset, index) => {
         let chartType;
         if (dataset.statblid && chartTypeMapping && chartTypeMapping[dataset.statblid]) {
           chartType = chartTypeMapping[dataset.statblid];
-        } else {
-          chartType = 'line';
+        } 
+        
+        // ctype 배열과 datasets 배열의 인덱스가 일치하도록 함
+        let currentCtype = 'dt-index'; // 기본값
+        if (Array.isArray(ctype) && ctype[index]) {
+          currentCtype = ctype[index];
         }
-        // 모두 같으면 yAxisIndex는 0, 아니면 uniqueCtypes 인덱스
-        let yAxisIndex = 0;
-        if (!allSame && Array.isArray(ctype) && ctype[index]) {
-          yAxisIndex = uniqueCtypes.indexOf(ctype[index]);
-        }
+        
         return {
           name: dataset.label || dataset.name || `데이터 ${index + 1}`,
           label: dataset.label || dataset.name || `데이터 ${index + 1}`,
           type: chartType,
           data: Array.isArray(dataset.data) ? dataset.data : [],
-          yAxisIndex,
+          yAxisIndex: index,
+          ctype: currentCtype,
           statblid: dataset.statblid
         };
       });
@@ -200,63 +192,83 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
       if (!color) color = '#1976d2';
       return color;
     });
-
+     
+ // Y축 설정 - 지수 관련은 같은 축 공유, 가격은 별도 축
     let yaxis = null;
-    if (ctype && ctype.length > 0 && series.length > 0) {
-      // 항상 series.length에 맞춰 yaxis, ctype, colors 동기화
-      const filtered = ctype.filter(Boolean).slice(0, series.length);
-      // 실제 남은 시리즈의 ctype이 모두 같으면 1개, 다르면 각각 yaxis 생성
-      const allSame = filtered.length > 0 && filtered.every(ct => ct === filtered[0]);
+    if (series.length > 0) {
       const yaxisColors = dynamicColors.slice(0, series.length);
-      if (filtered.length === 1 || allSame) {
-        // 1개만 남았거나 모두 같으면 yaxis 1개만 생성
-        const axisColor = yaxisColors[0] || '#1976d2';
-        yaxis = [
-          {
-            seriesName: filtered[0] || 'Y',
-            axisTicks: { show: true },
-            axisBorder: { show: true, color: axisColor },
+      
+      // 시리즈별로 yaxis 생성하되, 지수 관련은 첫 번째 Y축 공유
+      yaxis = series.map((s, idx) => {
+        const isIndex = (s.ctype === 'dt-index' );
+        const isPercent = (s.ctype === 'dt-percent');
+        
+        if (isIndex) {
+          // 가격 관련 시리즈는 각자의 이름 사용하되, Y축은 공유
+          const firstIndexIdx = series.findIndex(ser => ser.ctype === 'dt-index');
+          return {
+            seriesName: s.name, // 각 시리즈의 고유한 이름 사용
+            axisTicks: { show: idx === firstIndexIdx },
+            axisBorder: { show: idx === firstIndexIdx, color: yaxisColors[firstIndexIdx] },
             labels: {
-              style: { colors: axisColor },
-              formatter: val => Math.floor(val)
+              show: idx === firstIndexIdx,
+              style: { colors: yaxisColors[firstIndexIdx] },
+              formatter: val => {
+                if (val === 0) return '0';
+                return Math.floor(val).toLocaleString();
+              }
             },
             title: {
-              text: filtered[0] || 'Y',
-              style: { color: axisColor }
+              text: idx === firstIndexIdx ? '지수' : undefined,
+              style: { color: yaxisColors[firstIndexIdx] }
             },
             opposite: false,
-            tooltip: { enabled: true }
-          }
-        ];
-      } else {
-        // 남은 시리즈의 ctype이 다르면 각각 yaxis 생성 (항상 series.length만큼)
-        yaxis = Array.from({ length: series.length }).map((_, idx) => {
-          const ct = filtered[idx];
-          const axisColor = yaxisColors[idx % yaxisColors.length];
-          const isIndexRight = ct === 'dt-index';
-          const isPercentRight = ct === 'dt-percent' && idx > 0;
-          const base = {
-            seriesName: ct,
+            // 같은 min/max를 사용하여 스케일 동기화
+            min: undefined,
+            max: undefined
+          };
+        } else if (isPercent) {
+          // 매물량은 별도 Y축
+          return {
+            seriesName: s.name,
             axisTicks: { show: true },
-            axisBorder: { show: true, color: axisColor },
+            axisBorder: { show: true, color: yaxisColors[idx] },
             labels: {
-              style: { colors: axisColor },
-              formatter: val => Math.floor(val)
+              style: { colors: yaxisColors[idx] },
+              formatter: val => {
+                if (val === 0) return '0';
+                return Math.floor(val).toLocaleString();
+              }
             },
             title: {
-              text: ct,
-              style: { color: axisColor }
+              text: s.name,
+              style: { color: yaxisColors[idx] }
             },
-            opposite: idx > 0,
-            tooltip: { enabled: true }
+            opposite: true
           };
+        } else {
+          // 기타
           return {
-            ...base,
-            ...(isPercentRight ? { min: YAXIS_PERCENT_MIN, max: YAXIS_PERCENT_MAX } : {}),
-            ...(isIndexRight ? { min: YAXIS_INDEX_MIN, max: YAXIS_INDEX_MAX } : {})
+            seriesName: s.name,
+            axisTicks: { show: true },
+            axisBorder: { show: true, color: yaxisColors[idx] },
+            labels: {
+              style: { colors: yaxisColors[idx] },
+              formatter: val => {
+                if (val === 0) return '0';
+                return Math.floor(val).toLocaleString();
+              }
+            },
+            title: {
+              text: s.name,
+              style: { color: yaxisColors[idx] }
+            },
+            opposite: idx > 0
           };
-        });
-      }
+        }
+      });
+    } else {
+      console.log('⚠️ [ApexMixedChart] series.length가 0이어서 yaxis를 생성하지 않음');
     }
 
     let annotations = { xaxis: [], points: [] };
@@ -327,6 +339,80 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
       }).filter(Boolean);
     }
 
+    // 기본 ApexCharts 스타일 tooltip
+    const tooltipConfig = {
+      enabled: true,
+      shared: true,
+      intersect: false,
+      followCursor: false,
+      custom: function({ series, seriesIndex, dataPointIndex, w }) {
+        // 날짜 포맷팅
+        const category = categories[dataPointIndex];
+        let dateStr = '';
+        if (category) {
+          const catStr = String(category);
+          if (catStr.length === 8) {
+            const year = catStr.substring(0, 4);
+            const month = catStr.substring(4, 6);
+            dateStr = `${year}년 ${month}월`;
+          } else {
+            dateStr = catStr;
+          }
+        }
+        
+        // ApexCharts 기본 스타일과 동일하게 구성
+        let html = '<div class="apexcharts-tooltip-title" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">' + dateStr + '</div>';
+        
+        // 각 시리즈별로 값 표시
+        w.config.series.forEach((s, idx) => {
+          const seriesType = s.type || 'line';
+          const seriesName = s.name || '';
+          const seriesColor = w.config.colors[idx] || '#000';
+          const seriesDataRaw = s.data || [];
+          
+          // 실제 데이터 가져오기
+          let actualValue = series[idx] ? series[idx][dataPointIndex] : null;
+          const dataPoint = seriesDataRaw[dataPointIndex];
+          if (dataPoint && typeof dataPoint === 'object' && 'y' in dataPoint) {
+            actualValue = dataPoint.y;
+          }
+          
+          // 소숫점 2자리에서 반올림
+          if (actualValue !== null && actualValue !== undefined && !isNaN(actualValue)) {
+            actualValue = Math.round(actualValue * 10) / 10;
+          }
+          
+          let displayValue = '';
+          
+          // null/undefined 처리
+          if (actualValue === null || actualValue === undefined) {
+            displayValue = '없음';
+          }
+          // 0인 경우 처리
+          else if (actualValue === 0) {
+            displayValue = '0';
+          }
+          // 일반 값 처리
+          else {
+            displayValue = Number(actualValue).toLocaleString();
+          }
+          
+          // ApexCharts 기본 스타일 유지
+          html += '<div class="apexcharts-tooltip-series-group apexcharts-active" style="order: ' + (idx + 1) + '; display: flex;">';
+          html += '<span class="apexcharts-tooltip-marker" style="background-color: ' + seriesColor + ';"></span>';
+          html += '<div class="apexcharts-tooltip-text" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">';
+          html += '<div class="apexcharts-tooltip-y-group">';
+          html += '<span class="apexcharts-tooltip-text-y-label">' + seriesName + ': </span>';
+          html += '<span class="apexcharts-tooltip-text-y-value">' + displayValue + '</span>';
+          html += '</div>';
+          html += '</div>';
+          html += '</div>';
+        });
+        
+        return html;
+      }
+    };
+
     return {
       ...mixedChartOptions,
       colors: dynamicColors,
@@ -340,6 +426,7 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
       markers: {
         colors: dynamicColors
       },
+      tooltip: tooltipConfig,
       xaxis: {
         type: 'category',
         categories: categories,

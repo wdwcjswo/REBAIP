@@ -77,7 +77,7 @@ const PopperStyled = styled(Popper)(({ theme }) => ({
   }
 }));
 
-export default function NavCollapse({ menu, level, parentId, setSelectedItems, selectedItems, setSelectedLevel, selectedLevel }) {
+export default function NavCollapse({ menu, level, parentId, setSelectedItems, selectedItems, setSelectedLevel, selectedLevel, parentOpen = true }) {
   const { menuMaster } = useGetMenuMaster();
   const drawerOpen = menuMaster.isDashboardDrawerOpened;
 
@@ -85,10 +85,27 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
 
   const { mode, menuOrientation } = useConfig();
   const router = useRouter();
+  const pathname = usePathname();
 
-  // 기본적으로 열려있을 메뉴 ID들
+
+  // 최상위 메뉴만 defaultOpenMenus로 판단, 하위는 부모가 열려있을 때만 자동 오픈
+  // 단, 현재 경로가 특정 페이지일 때는 해당 메뉴의 하위만 자동 오픈
   const defaultOpenMenus = ['data-analytics', 'info-apartment'];
-  const shouldBeOpen = defaultOpenMenus.includes(menu.id);
+  
+  let shouldBeOpen = false;
+  if (level === 1 && defaultOpenMenus.includes(menu.id) && parentOpen) {
+    shouldBeOpen = true;
+  } else if (level === 2 && parentOpen) {
+    // 2레벨 메뉴는 사용자가 직접 클릭한 경우에만 오픈되도록 변경
+    // pathname에 따라 자동 오픈을 제한
+    if (pathname?.includes('/data-analytics')) {
+      // 데이터 분석 페이지에서는 통계데이터 하위 메뉴만 자동 오픈
+      shouldBeOpen = true;
+    } else {
+      // 다른 페이지에서는 기존 로직 유지 (사용자 클릭에 따라)
+      shouldBeOpen = false;
+    }
+  }
 
   const [open, setOpen] = useState(shouldBeOpen);
   const [selected, setSelected] = useState(shouldBeOpen ? menu.id : null);
@@ -170,19 +187,31 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
     }
   }, [selectedItems, level, selected, miniMenuOpened, drawerOpen, selectedLevel]);
 
-  const pathname = usePathname();
-
   // menu collapse for sub-levels
   useMenuCollapse(menu, pathname, miniMenuOpened, setSelected, setOpen, setAnchorEl);
+
+  // useMenuCollapse 훅 실행 후 아파트 정보 페이지에서는 2레벨 메뉴 강제 닫기
+  useEffect(() => {
+    if (level === 2 && pathname?.includes('/info-apartment')) {
+      setOpen(false);
+      setSelected(null);
+    }
+  }, [pathname, level]);
 
   useEffect(() => {
     if (menu.url === pathname) {
       handlerActiveItem(menu.id);
       setSelected(menu.id);
       setAnchorEl(null);
-      setOpen(true);
+      
+      // 아파트 정보 페이지에서는 2레벨 메뉴 자동 오픈 방지
+      if (level === 2 && pathname?.includes('/info-apartment')) {
+        setOpen(false);
+      } else {
+        setOpen(true);
+      }
     }
-  }, [pathname, menu]);
+  }, [pathname, menu, level]);
 
   const navCollapse = menu.children?.map((item) => {
     switch (item.type) {
@@ -197,6 +226,7 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
             menu={item}
             level={level + 1}
             parentId={parentId}
+            parentOpen={open}
           />
         );
       case 'item':
