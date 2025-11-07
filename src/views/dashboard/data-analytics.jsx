@@ -418,7 +418,7 @@ export default function DashboardDataAnalytics() {
                     const year = SLIDER_START_YEAR + Math.floor(i/12);
                   const month = (i%12)+1;
                   if(month === 1 || i === monthCount-1) {
-                    marks.push({ value: i, label: `${year}.${String(month).padStart(2,'0')}` });
+                    marks.push({ value: i, label: `${year}-${String(month).padStart(2,'0')}` });
                   }
                 }
                 return marks;
@@ -758,22 +758,33 @@ export default function DashboardDataAnalytics() {
                           </tr>
                         </thead>
                         <tbody>
-                          {policyData.map((row, idx) => (
-                            <tr key={row.date + row.title}>
-                              <td style={{ padding: '6px', border: '1px solid #ddd' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={!!checkedPolicies.find((p) => p.date === row.date && p.title === row.title)}
-                                  onChange={() => handlePolicyCheck(idx)}
-                                />
-                              </td>
-                              <td style={{ padding: '6px', border: '1px solid #ddd' }}>{row.date}</td>
-                              <td style={{ padding: '6px', border: '1px solid #ddd' }}>
-                                {row.title}<br/>
-                                <small style={{ color: '#666' }}>{row.desc}</small>
-                              </td>
-                            </tr>
-                          ))}
+                          {policyData.map((row, idx) => {
+                            // 날짜 포맷팅 함수 (YYYYMMDD → YYYY-MM-DD)
+                            const formatDate = (dateStr) => {
+                              if (!dateStr || dateStr.length !== 8) return dateStr;
+                              const year = dateStr.substring(0, 4);
+                              const month = dateStr.substring(4, 6);
+                              const day = dateStr.substring(6, 8);
+                              return `${year}-${month}-${day}`;
+                            };
+                            
+                            return (
+                              <tr key={row.date + row.title}>
+                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={!!checkedPolicies.find((p) => p.date === row.date && p.title === row.title)}
+                                    onChange={() => handlePolicyCheck(idx)}
+                                  />
+                                </td>
+                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(row.date)}</td>
+                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                                  {row.title}<br/>
+                                  <small style={{ color: '#666' }}>{row.desc}</small>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </Box>

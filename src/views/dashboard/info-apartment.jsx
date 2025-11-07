@@ -42,6 +42,7 @@ const ApexRebChart = dynamic(() => import('sections/charts/apexchart/ApexRebChar
 
 export default function InfoApartment() {
 
+
   const [error, setError] = useState(null);
   // Context에서 chartImageHistory, setChartImageHistory 가져오기
   const { chartImageHistory, setChartImageHistory } = useContext(ChartImageHistoryContext);
@@ -76,12 +77,17 @@ export default function InfoApartment() {
   const [selectedSido, setSelectedSido] = useState('서울특별시');
   const [selectedGungu, setSelectedGungu] = useState('송파구');
   const [selectedApt, setSelectedApt] = useState('선택하세요');
+  
+  // 매매/전세 및 평형 선택 상태
+  const [selectedSaleType, setSelectedSaleType] = useState('매매'); // '매매' 또는 '전세'
+  const [selectedArea, setSelectedArea] = useState(84); // 59, 84, 110, 124
+  const [selectedMind, setSelectedMind] = useState(false); // 심리분석 선택 여부
 
   // 컴포넌트 마운트 시 히스토리 이미지 리셋
   useEffect(() => {
     // 페이지 진입 시 히스토리 이미지 리셋
     setChartImageHistory([]);
-    console.log('Chart image history reset on info-apartment page load');
+   // console.log('Chart image history reset on info-apartment page load');
   }, [setChartImageHistory]);
 
   // InfoApartment 함수 내에 추가
@@ -101,19 +107,130 @@ export default function InfoApartment() {
     setSelectedGungu(newGungu);
     setSelectedApt(aptOptions[newGungu][0]);
   };
+  // 아파트 변경 핸들러
   const handleAptChange = async (e) => {
     const aptCode = e.target.value;
     setSelectedApt(aptCode);
-    const data = await fetchChartData(aptCode);
+    const data = await fetchChartData(aptCode, selectedSaleType, selectedArea, selectedMind);
     if (data) setChartData(data);
   };
   
+  // 매매/전세 변경 핸들러
+  const handleSaleTypeChange = async (saleType) => {
+    setSelectedSaleType(saleType);
+    if (selectedApt && selectedApt !== '선택하세요') {
+      const data = await fetchChartData(selectedApt, saleType, selectedArea, selectedMind);
+      if (data) setChartData(data);
+    }
+  };
+  
+  // 평형 변경 핸들러
+  const handleAreaChange = async (area) => {
+    setSelectedArea(area);
+    if (selectedApt && selectedApt !== '선택하세요') {
+      const data = await fetchChartData(selectedApt, selectedSaleType, area, selectedMind);
+      if (data) setChartData(data);
+    }
+  };
+  
+  // 심리분석 버튼 클릭 핸들러
+  const handleMindAnalysis = async () => {
+    // 심리분석이 현재 꺼져있으면 켜고, 켜져있으면 끄기
+    const willEnableMind = !selectedMind;
 
+    // ApexRebChart 형식에 맞는 데이터 구조
+    const dataList = {
+      data: {
+        labels: [
+          '20240127', '20241006', '20241007', '20241008', '20241009', '20241010',
+          '20241011', '20241012', '20241013', '20241014', '20241015', '20241016',
+          '20241017', '20241018', '20241019', '20241020', '20241021', '20241022',
+          '20241023', '20241024', '20241025', '20241026', '20241027', '20241028',
+          '20241029', '20241030', '20241031', '20241101', '20241102', '20241103',
+          '20241104', '20241105', '20241106', '20241107', '20241108', '20241109',
+          '20241110', '20241111'
+        ],
+        datasets: [{
+          name: '잠실엘스 심리분석',
+          label: '잠실엘스 심리분석',
+          data: [
+            { x: '20240127', y: [128000, 135000, 125000, 132000] },
+            { x: '20241006', y: [132000, 138000, 130000, 136000] },
+            { x: '20241007', y: [136000, 140000, 134000, 138000] },
+            { x: '20241008', y: [138000, 142000, 136000, 140000] },
+            { x: '20241009', y: [140000, 143000, 138000, 141000] },
+            { x: '20241010', y: [141000, 144000, 139000, 142000] },
+            { x: '20241011', y: [142000, 145000, 140000, 143000] },
+            { x: '20241012', y: [143000, 146000, 141000, 144000] },
+            { x: '20241013', y: [144000, 147000, 142000, 145000] },
+            { x: '20241014', y: [145000, 148000, 143000, 146000] },
+            { x: '20241015', y: [146000, 149000, 144000, 147000] },
+            { x: '20241016', y: [147000, 150000, 145000, 148000] },
+            { x: '20241017', y: [148000, 151000, 146000, 149000] },
+            { x: '20241018', y: [149000, 152000, 147000, 150000] },
+            { x: '20241019', y: [150000, 153000, 148000, 151000] },
+            { x: '20241020', y: [151000, 154000, 149000, 152000] },
+            { x: '20241021', y: [152000, 155000, 150000, 153000] },
+            { x: '20241022', y: [153000, 156000, 151000, 154000] },
+            { x: '20241023', y: [154000, 157000, 152000, 155000] },
+            { x: '20241024', y: [155000, 158000, 153000, 156000] },
+            { x: '20241025', y: [156000, 159000, 154000, 157000] },
+            { x: '20241026', y: [157000, 160000, 155000, 158000] },
+            { x: '20241027', y: [158000, 161000, 156000, 159000] },
+            { x: '20241028', y: [159000, 162000, 157000, 160000] },
+            { x: '20241029', y: [160000, 163000, 158000, 161000] },
+            { x: '20241030', y: [161000, 164000, 159000, 162000] },
+            { x: '20241031', y: [162000, 165000, 160000, 163000] },
+            { x: '20241101', y: [163000, 166000, 161000, 164000] },
+            { x: '20241102', y: [164000, 167000, 162000, 165000] },
+            { x: '20241103', y: [165000, 168000, 163000, 166000] },
+            { x: '20241104', y: [166000, 169000, 164000, 167000] },
+            { x: '20241105', y: [167000, 170000, 165000, 168000] },
+            { x: '20241106', y: [168000, 171000, 166000, 169000] },
+            { x: '20241107', y: [169000, 172000, 167000, 170000] },
+            { x: '20241108', y: [170000, 173000, 168000, 171000] },
+            { x: '20241109', y: [171000, 174000, 169000, 172000] },
+            { x: '20241110', y: [172000, 175000, 170000, 173000] },
+            { x: '20241111', y: [173000, 176000, 171000, 174000] }
+          ]
+        }]
+      }
+    }; 
+
+    if (willEnableMind) {
+      // 심리분석을 켤 때: 매물호가, 매물량, 실거래를 모두 끄고 심리분석만 켬
+      setVisibleSeries({ 
+        매물호가: false, 
+        매물량: false, 
+        실거래: false,
+        심리분석: true
+      });
+      setSelectedMind(true);
+      // 심리분석 차트 데이터 가져오기
+      ///const data = await fetchChartData(selectedApt, selectedSaleType, selectedArea, true);
+      ///하드코딩 데이터 - 아파트 선택 여부와 관계없이 설정
+      setChartData(dataList);
+    } else {
+      // 심리분석을 끌 때: 매물호가, 매물량, 실거래를 모두 켜고 심리분석 끔
+      setVisibleSeries({ 
+        매물호가: true, 
+        매물량: true, 
+        실거래: true,
+        심리분석: false
+      });
+      setSelectedMind(false);
+      // 일반 차트 데이터 가져오기
+      if (selectedApt && selectedApt !== '선택하세요') {
+        const data = await fetchChartData(selectedApt, selectedSaleType, selectedArea, false);
+        if (data) setChartData(data);
+      }
+    }
+  };
 
   //  const server = "http://172.16.10.56:8087/RAP";
   const server = "http://127.0.0.1:8087/RAP";
 
-  const fetchChartData = async (aptCode) => {
+  const fetchChartData = async (aptCode, saleType = '매매', area = 84, sMindAnalysis = false) => {
     try {
       setError(null);
       if (!aptCode) return;
@@ -123,17 +240,26 @@ export default function InfoApartment() {
       //SPRICE :매물호가
       //SCOUNT :매물량
       //SRTMS :실거래
-      //SALE :매매/전세
+      //SALE :매매/전세 (true: 매매, false: 전세)
       //SMIND :심리분석
-      //ST_YM=202001&ED_YM=202508&APT_CODE=20107304&AREA=84&SPRICE=false&SCOUNT=false&SRTMS=false&SALE=false&TITLE=잠실엘스
-      //ST_YM=202301&ED_YM=202508&APT_CODE=20107304&AREA=84&SPRICE=true&SCOUNT=true&SRTMS=true&SALE=true&TITLE=잠실엘스
+      //AREA :평형값 (59, 84, 110, 124 등)
       //ST_YM=202001&ED_YM=202508&APT_CODE=20107304&AREA=84&SPRICE=true&SCOUNT=true&SRTMS=true&SALE=true&TITLE=잠실엘스
 
-      let svcURL = '';
+      // 매매/전세를 boolean으로 변환 (매매: true, 전세: false)
+      const saleFlag = saleType === '매매' ? 'true' : 'false';
 
-      //
-      //svcURL = "/api/rap/getChart_APT" +'?ST_YM='+stym+'&ED_YM='+edym+'&APT_CODE=20107304&AREA=84&SPRICE=false&SCOUNT=false&SRTMS=false&SALE=false&TITLE=잠실엘스';
-      svcURL = '/api/rap/getChart_APT'+'?ST_YM='+stym+'&ED_YM='+edym+'&APT_CODE=20107304&AREA=84&SPRICE=true&SCOUNT=true&SRTMS=true&SALE=true&TITLE=잠실엘스';
+      let svcURL = '';
+      //심리분석 캔들차트
+      if (sMindAnalysis) {
+        //svcURL = `/api/rap/getChart_APT?ST_YM=${stym}&ED_YM=${edym}&APT_CODE=20107304&AREA=84&TRADETYPECODE=A1`;
+        //svcURL = `/api/rap/getChart_APT?ST_YM=${stym}&ED_YM=${edym}&APT_CODE=20107304&AREA=${area}&SPRICE=true&SCOUNT=true&SRTMS=true&SALE=${saleFlag}&TITLE=잠실엘스`;
+        //하드코딩
+        //svcURL = `/api/rap/getChart_APT?ST_YM=${stym}&ED_YM=${edym}&APT_CODE=20107304&AREA=84&TRADETYPECODE=A1`;
+        svcURL = `/api/rap/getChart_RONE_OPT?STATBL_ID=A_2024_00016&ST_YM=202001&ED_YM=202509&GRP_ID=null&CLS_ID=51000000&CLS_DATANO=500017&TITLE=매매가격지수 주택종합`;
+      } else {
+        svcURL = `/api/rap/getChart_APT?ST_YM=${stym}&ED_YM=${edym}&APT_CODE=20107304&AREA=84&SPRICE=true&SCOUNT=true&SRTMS=true&SALE=true&TITLE=잠실엘스`;
+      }
+      console.log('🔗 API 호출 URL:', svcURL);
 
       const response = await fetch(svcURL, {
         method: 'GET',
@@ -142,6 +268,7 @@ export default function InfoApartment() {
       if (!response.ok) throw new Error(`API 호출 실패 (${response.status}): ${response.statusText}`);
       const data = await response.json();
       console.log('Chart data received:', data);
+      
       return data;
     } catch (err) {
       setError(`연결 오류: ${err.message}. 서버가 실행 중인지 확인해주세요.`);
@@ -190,6 +317,14 @@ export default function InfoApartment() {
   // 체크된 정책자료 상태 관리
   const [checkedPolicies, setCheckedPolicies] = useState([]); // [{date, title, desc}]
 
+  // 차트 시리즈 토글 상태 관리 (매물호가, 매물량, 실거래, 심리분석)
+  const [visibleSeries, setVisibleSeries] = useState({
+    매물호가: true,
+    매물량: true,
+    실거래: true,
+    심리분석: false
+  });
+
   // 체크박스 변경 핸들러
   const handlePolicyCheck = (idx) => {
     setCheckedPolicies((prev) => {
@@ -200,6 +335,29 @@ export default function InfoApartment() {
         return [...prev, policyData[idx]];
       }
     });
+  };
+
+  // 시리즈 토글 핸들러
+  const handleSeriesToggle = async (seriesName) => {
+    // 매물호가, 매물량, 실거래 중 하나라도 클릭되면 심리분석은 자동으로 꺼짐
+    if (['매물호가', '매물량', '실거래'].includes(seriesName)) {
+      const wasMindActive = visibleSeries.심리분석;
+      
+      setVisibleSeries((prev) => ({
+        ...prev,
+        [seriesName]: !prev[seriesName],
+        심리분석: false
+      }));
+      
+      // 심리분석이 활성화되어 있었다면, 일반 차트 데이터를 다시 로드
+      if (wasMindActive) {
+        setSelectedMind(false);
+        if (selectedApt && selectedApt !== '선택하세요') {
+          const data = await fetchChartData(selectedApt, selectedSaleType, selectedArea, false);
+          if (data) setChartData(data);
+        }
+      }
+    }
   };
 
   return (
@@ -247,7 +405,7 @@ export default function InfoApartment() {
                     const year = SLIDER_START_YEAR + Math.floor(i/12);
                   const month = (i%12)+1;
                   if(month === 1 || i === monthCount-1) {
-                    marks.push({ value: i, label: `${year}.${String(month).padStart(2,'0')}` });
+                    marks.push({ value: i, label: `${year}-${String(month).padStart(2,'0')}` });
                   }
                 }
                 return marks;
@@ -346,28 +504,183 @@ export default function InfoApartment() {
                 ))}
               </Menu>
             </Box>
-            {/* 매매/전세/평형  매물호가/매물량/실거래 */}
+            {/* 버튼들 */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1, flexWrap: 'wrap', width: '100%', mx: 'auto' }}>
               {/* 매매/전세/평형 */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <ButtonGroup variant="contained" sx={{ boxShadow: 'none', height: 28 }}>
-                  <Button sx={{ bgcolor: '#222', color: '#fff', minWidth: 48, px: 2, py: 0.3, fontSize: 13, '&:hover': { bgcolor: '#444' } }}>매매</Button>
-                  <Button sx={{ bgcolor: '#aaa', color: '#fff', minWidth: 48, px: 2, py: 0.3, fontSize: 13, '&:hover': { bgcolor: '#888' } }}>전세</Button>
+                  <Button 
+                    sx={{ 
+                      bgcolor: selectedSaleType === '매매' ? '#222' : '#aaa', 
+                      color: '#fff', 
+                      minWidth: 48, 
+                      px: 2, 
+                      py: 0.3, 
+                      fontSize: 13, 
+                      '&:hover': { bgcolor: selectedSaleType === '매매' ? '#444' : '#888' } 
+                    }}
+                    onClick={() => handleSaleTypeChange('매매')}
+                  >
+                    매매
+                  </Button>
+                  <Button 
+                    sx={{ 
+                      bgcolor: selectedSaleType === '전세' ? '#222' : '#aaa', 
+                      color: '#fff', 
+                      minWidth: 48, 
+                      px: 2, 
+                      py: 0.3, 
+                      fontSize: 13, 
+                      '&:hover': { bgcolor: selectedSaleType === '전세' ? '#444' : '#888' } 
+                    }}
+                    onClick={() => handleSaleTypeChange('전세')}
+                  >
+                    전세
+                  </Button>
                 </ButtonGroup>
                 <ButtonGroup variant="outlined" sx={{ ml: 1, height: 28 }}>
-                  <Button sx={{ minWidth: 56, px: 1.5, py: 0.3, fontSize: 13, borderColor: '#1976d2', color: '#1976d2' }}>59㎡</Button>
-                  <Button sx={{ minWidth: 56, px: 1.5, py: 0.3, fontSize: 13, borderColor: '#1976d2', color: '#1976d2', bgcolor: '#e3f0ff', fontWeight: 700 }}>84㎡</Button>
-                  <Button sx={{ minWidth: 56, px: 1.5, py: 0.3, fontSize: 13, borderColor: '#1976d2', color: '#1976d2' }}>110㎡</Button>
-                  <Button sx={{ minWidth: 56, px: 1.5, py: 0.3, fontSize: 13, borderColor: '#1976d2', color: '#1976d2' }}>124㎡</Button>
+                  <Button 
+                    sx={{ 
+                      minWidth: 56, 
+                      px: 1.5, 
+                      py: 0.3, 
+                      fontSize: 13, 
+                      borderColor: '#1976d2', 
+                      color: '#1976d2',
+                      bgcolor: selectedArea === 59 ? '#e3f0ff' : 'transparent',
+                      fontWeight: selectedArea === 59 ? 700 : 400
+                    }}
+                    onClick={() => handleAreaChange(59)}
+                  >
+                    59㎡
+                  </Button>
+                  <Button 
+                    sx={{ 
+                      minWidth: 56, 
+                      px: 1.5, 
+                      py: 0.3, 
+                      fontSize: 13, 
+                      borderColor: '#1976d2', 
+                      color: '#1976d2',
+                      bgcolor: selectedArea === 84 ? '#e3f0ff' : 'transparent',
+                      fontWeight: selectedArea === 84 ? 700 : 400
+                    }}
+                    onClick={() => handleAreaChange(84)}
+                  >
+                    84㎡
+                  </Button>
+                  <Button 
+                    sx={{ 
+                      minWidth: 56, 
+                      px: 1.5, 
+                      py: 0.3, 
+                      fontSize: 13, 
+                      borderColor: '#1976d2', 
+                      color: '#1976d2',
+                      bgcolor: selectedArea === 110 ? '#e3f0ff' : 'transparent',
+                      fontWeight: selectedArea === 110 ? 700 : 400
+                    }}
+                    onClick={() => handleAreaChange(110)}
+                  >
+                    110㎡
+                  </Button>
+                  <Button 
+                    sx={{ 
+                      minWidth: 56, 
+                      px: 1.5, 
+                      py: 0.3, 
+                      fontSize: 13, 
+                      borderColor: '#1976d2', 
+                      color: '#1976d2',
+                      bgcolor: selectedArea === 124 ? '#e3f0ff' : 'transparent',
+                      fontWeight: selectedArea === 124 ? 700 : 400
+                    }}
+                    onClick={() => handleAreaChange(124)}
+                  >
+                    124㎡
+                  </Button>
                 </ButtonGroup>
               </Box>
               {/* 매물호가/매물량/실거래 */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <ButtonGroup variant="outlined" sx={{ height: 28 }}>
-                  <Button sx={{ minWidth: 80, px: 1.5, py: 0.3, fontSize: 13 }}>매물호가</Button>
-                  <Button sx={{ minWidth: 80, px: 1.5, py: 0.3, fontSize: 13 }}>매물량</Button>
-                  <Button sx={{ minWidth: 80, px: 1.5, py: 0.3, fontSize: 13 }}>실거래</Button>
+                  <Button 
+                    sx={{ 
+                      minWidth: 80, 
+                      px: 1.5, 
+                      py: 0.3, 
+                      fontSize: 13,
+                      bgcolor: visibleSeries.매물호가 ? '#1976d2' : 'transparent',
+                      color: visibleSeries.매물호가 ? '#fff' : '#1976d2',
+                      borderColor: '#1976d2',
+                      '&:hover': {
+                        bgcolor: visibleSeries.매물호가 ? '#1565c0' : 'rgba(25, 118, 210, 0.04)',
+                        borderColor: '#1976d2'
+                      }
+                    }}
+                    onClick={() => handleSeriesToggle('매물호가')}
+                  >
+                    매물호가
+                  </Button>
+                  <Button 
+                    sx={{ 
+                      minWidth: 80, 
+                      px: 1.5, 
+                      py: 0.3, 
+                      fontSize: 13,
+                      bgcolor: visibleSeries.매물량 ? '#1976d2' : 'transparent',
+                      color: visibleSeries.매물량 ? '#fff' : '#1976d2',
+                      borderColor: '#1976d2',
+                      '&:hover': {
+                        bgcolor: visibleSeries.매물량 ? '#1565c0' : 'rgba(25, 118, 210, 0.04)',
+                        borderColor: '#1976d2'
+                      }
+                    }}
+                    onClick={() => handleSeriesToggle('매물량')}
+                  >
+                    매물량
+                  </Button>
+                  <Button 
+                    sx={{ 
+                      minWidth: 80, 
+                      px: 1.5, 
+                      py: 0.3, 
+                      fontSize: 13,
+                      bgcolor: visibleSeries.실거래 ? '#1976d2' : 'transparent',
+                      color: visibleSeries.실거래 ? '#fff' : '#1976d2',
+                      borderColor: '#1976d2',
+                      '&:hover': {
+                        bgcolor: visibleSeries.실거래 ? '#1565c0' : 'rgba(25, 118, 210, 0.04)',
+                        borderColor: '#1976d2'
+                      }
+                    }}
+                    onClick={() => handleSeriesToggle('실거래')}
+                  >
+                    실거래
+                  </Button>
                 </ButtonGroup>
+                <Button
+                  variant={visibleSeries.심리분석 ? "contained" : "outlined"}
+                  sx={{
+                    ml: 1.5,
+                    height: 28,
+                    bgcolor: visibleSeries.심리분석 ? '#df8c10ff' : '#fff',
+                    color: visibleSeries.심리분석 ? '#fff' : '#df8c10ff',
+                      borderColor: '#df8c10ff',
+                      fontWeight: 700,
+                      fontSize: 13,
+                      px: 2.5,
+                      boxShadow: 'none',
+                      borderRadius: 1,
+                      '&:hover': { 
+                        bgcolor: visibleSeries.심리분석 ? '#fcaa30ff' : 'rgba(223, 140, 16, 0.04)',
+                        borderColor: '#df8c10ff'
+                      }
+                    }}
+                    onClick={handleMindAnalysis}
+                  >
+                    심리분석
+                  </Button>
               </Box>
             </Box>
           </Box>
@@ -380,10 +693,11 @@ export default function InfoApartment() {
               {/* fetchChartData 결과 전달 */}
               {chartData ? (
                 <ApexRebChart
-                  key={JSON.stringify(checkedPolicies)}
+                  key={JSON.stringify(checkedPolicies) + JSON.stringify(visibleSeries)}
                   chartData={chartData} 
                   ref={chartRef}
                   policyAnnotations={checkedPolicies}
+                  visibleSeries={visibleSeries}
                 />
               ) : (
                 <Box
@@ -431,6 +745,13 @@ export default function InfoApartment() {
                     // 차트 초기화 기능
                     setChartLayers([]);
                     setChartData(null);
+                    setSelectedMind(false); // 심리분석 비활성화
+                    setVisibleSeries({
+                      매물호가: true,
+                      매물량: true,
+                      실거래: true,
+                      심리분석: false
+                    });
                     console.log('차트 초기화 완료');
                   }}
                   style={{
@@ -554,22 +875,33 @@ export default function InfoApartment() {
                           </tr>
                         </thead>
                         <tbody>
-                          {policyData.map((row, idx) => (
-                            <tr key={row.date + row.title}>
-                              <td style={{ padding: '6px', border: '1px solid #ddd' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={!!checkedPolicies.find((p) => p.date === row.date && p.title === row.title)}
-                                  onChange={() => handlePolicyCheck(idx)}
-                                />
-                              </td>
-                              <td style={{ padding: '6px', border: '1px solid #ddd' }}>{row.date}</td>
-                              <td style={{ padding: '6px', border: '1px solid #ddd' }}>
-                                {row.title}<br/>
-                                <small style={{ color: '#666' }}>{row.desc}</small>
-                              </td>
-                            </tr>
-                          ))}
+                          {policyData.map((row, idx) => {
+                            // 날짜 포맷팅 함수 (YYYYMMDD → YYYY-MM-DD)
+                            const formatDate = (dateStr) => {
+                              if (!dateStr || dateStr.length !== 8) return dateStr;
+                              const year = dateStr.substring(0, 4);
+                              const month = dateStr.substring(4, 6);
+                              const day = dateStr.substring(6, 8);
+                              return `${year}-${month}-${day}`;
+                            };
+                            
+                            return (
+                              <tr key={row.date + row.title}>
+                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={!!checkedPolicies.find((p) => p.date === row.date && p.title === row.title)}
+                                    onChange={() => handlePolicyCheck(idx)}
+                                  />
+                                </td>
+                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(row.date)}</td>
+                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                                  {row.title}<br/>
+                                  <small style={{ color: '#666' }}>{row.desc}</small>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </Box>

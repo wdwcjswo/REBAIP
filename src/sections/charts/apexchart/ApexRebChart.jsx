@@ -13,6 +13,7 @@ if (typeof window !== 'undefined' && !window.ApexCharts) {
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
 
 // third-party
 import ReactApexChart from 'react-apexcharts';
@@ -174,7 +175,7 @@ const mixedChartOptions = {
 
 // ==============================|| APEXCHART - REB ||============================== //
 
-const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotations = []}, ref) {
+const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotations = [], visibleSeries = { 매물호가: true, 매물량: true, 실거래: true, 심리분석: false } }, ref) {
   const theme = useTheme();
   const { mode } = useConfig();
 
@@ -193,29 +194,23 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
     const labelLower = label.toLowerCase();
     
     // 가격 범위 데이터 (최저가/최고가) -> rangeArea
-    // 데이터가 [min, max] 형태이거나 라벨에 범위 관련 키워드가 있는 경우
-    if (labelLower.includes('최저가') || labelLower.includes('최고가') || 
-        labelLower.includes('min') || labelLower.includes('max')) {
+    if (labelLower.includes('최저가') || labelLower.includes('최고가')) {
       return 'rangeArea';
     }
     
     // 매물량/거래량 데이터 -> column (bar)
-    if (labelLower.includes('매물량') || labelLower.includes('거래량') || 
-        labelLower.includes('count') || labelLower.includes('물량') ) {
+    if (labelLower.includes('매물량') || labelLower.includes('거래량') ) {
       return 'column';
     }
     
     // 실거래가 데이터 -> scatter
-    if (labelLower.includes('실거래가') || labelLower.includes('거래가') ||
-        labelLower.includes('실제') || labelLower.includes('계약') ) {
+    if (labelLower.includes('실거래가') || labelLower.includes('거래가')) {
       return 'scatter';
     }
     
-    // 시세/지수 관련 -> line (기본)
-    if (labelLower.includes('시세') || labelLower.includes('지수') ||
-        labelLower.includes('index') || labelLower.includes('price') ||
-        labelLower.includes('가격')) {
-      return 'line';
+    // 심리분석 데이터 -> candlestick
+    if (labelLower.includes('심리분석')) {
+      return 'candlestick';
     }
     
     // 기본값은 line
@@ -224,207 +219,198 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
 
   // chartData에서 series, categories를 직접 계산 (useMemo)
   const series = useMemo(() => {
-    if (chartData && chartData.data && chartData.data.datasets && Array.isArray(chartData.data.datasets)) {      
-      // categories 길이 가져오기
-      const categoriesLength = chartData?.data?.labels?.length || 0;
+    //console.log('🔍 [ApexRebChart] chartData 받음:', chartData);
+    
+    if (!chartData?.data?.datasets || !Array.isArray(chartData.data.datasets)) {
+      console.log('⚠️ [ApexRebChart] No datasets found');
+      return [];
+    }
+
+    const allLabels = chartData.data.labels || [];
+    const generatedSeries = [];
+    
+    // 1. 데이터셋 분류
+    const classifyDataset = (ds) => {
+      const label = (ds.label || ds.name || '').toLowerCase();
       
-      // 최저가/최고가 데이터셋 찾기
-      const minPriceDataset = chartData.data.datasets.find(ds => {
-        const label = (ds.label || ds.name || '').toLowerCase();
-        return label.includes('최저가') || label.includes('min');
-      });
-      
-      const maxPriceDataset = chartData.data.datasets.find(ds => {
-        const label = (ds.label || ds.name || '').toLowerCase();
-        return label.includes('최고가') || label.includes('max');
-      });
-      
-      // 최저가/최고가를 제외한 나머지 데이터셋
-      const otherDatasets = chartData.data.datasets.filter(ds => {
-        const label = (ds.label || ds.name || '').toLowerCase();
-        return !label.includes('최저가') && !label.includes('최고가') && 
-               !label.includes('min') && !label.includes('max');
-      });
-      
-      const generatedSeries = [];
-      
-      // 아파트명 추출 (minPriceDataset.label에서 "최저가" 제외)
-      let apartmentName = '';
-      if (minPriceDataset) {
-        const minLabel = minPriceDataset.label || minPriceDataset.name || '';
-        // "최저가", "min" 등을 제거하여 아파트명만 추출
-        apartmentName = minLabel
-          .replace(/최저가/gi, '')
-          .replace(/최고가/gi, '')
-          .replace(/\bmin\b/gi, '')
-          .replace(/\bmax\b/gi, '')
-          .trim();
+      if (label.includes('심리분석') || label.includes('candlestick')) {
+        return 'candlestick';
       }
+      if (label.includes('최저가') || label.includes('min')) {
+        return 'minPrice';
+      }
+      if (label.includes('최고가') || label.includes('max')) {
+        return 'maxPrice';
+      }
+      return 'other';
+    };
+
+    // 데이터셋 분류
+    const datasets = {
+      candlestick: null,
+      minPrice: null,
+      maxPrice: null,
+      others: []
+    };
+
+    chartData.data.datasets.forEach(ds => {
+      const type = classifyDataset(ds);
+      if (type === 'candlestick') {
+        datasets.candlestick = ds;
+      } else if (type === 'minPrice') {
+        datasets.minPrice = ds;
+      } else if (type === 'maxPrice') {
+        datasets.maxPrice = ds;
+      } else {
+        datasets.others.push(ds);
+      }
+    });
+
+    // 2. 캔들스틱 데이터셋 처리
+    if (datasets.candlestick) {
+      const candlestickData = Array.isArray(datasets.candlestick.data) ? datasets.candlestick.data : [];
+      
+      generatedSeries.push({
+        name: datasets.candlestick.label || datasets.candlestick.name || '심리분석',
+        label: datasets.candlestick.label || datasets.candlestick.name || '심리분석',
+        type: 'candlestick',
+        data: candlestickData // {x: date, y: [o, h, l, c]} 형태 그대로 전달
+      });
+    }
+
+    // 3. 최저가/최고가 RangeArea 데이터셋 처리
+    if (datasets.minPrice && datasets.maxPrice) {
+      
+      // 아파트명 추출
+      const minLabel = datasets.minPrice.label || datasets.minPrice.name || '';
+      const apartmentName = minLabel.replace(/최저가|최고가/gi, '').trim();
       const apartmentPrefix = apartmentName ? `${apartmentName} ` : '';
       
-      // 최저가와 최고가가 모두 있으면 rangeArea로 합치기
-      if (minPriceDataset && maxPriceDataset) {
-        console.log('📊 [ApexRebChart] 최저가/최고가 데이터 병합');
+      const minData = Array.isArray(datasets.minPrice.data) ? datasets.minPrice.data : [];
+      const maxData = Array.isArray(datasets.maxPrice.data) ? datasets.maxPrice.data : [];
+      
+      // 객체 형태인지 확인
+      const isObjectData = minData.length > 0 && typeof minData[0] === 'object' && minData[0] !== null && 'x' in minData[0];
+      
+      const rangeData = [];
+      
+      if (isObjectData) {
+        // 객체 형태: {x: date, y: value}
+        const minMap = new Map(minData.map(item => [String(item.x), item.y]));
+        const maxMap = new Map(maxData.map(item => [String(item.x), item.y]));
         
-        const allLabels = chartData.data.labels || [];
-        const minData = Array.isArray(minPriceDataset.data) ? minPriceDataset.data : [];
-        const maxData = Array.isArray(maxPriceDataset.data) ? maxPriceDataset.data : [];
-        
-        // 객체 형태인지 확인
-        const isObjectData = minData.length > 0 && typeof minData[0] === 'object' && minData[0] !== null && 'x' in minData[0];
-        
-        const rangeData = [];
-        
-        if (isObjectData) {
-          // 객체 형태: {x: date, y: value}
-          const minMap = new Map();
-          const maxMap = new Map();
+        allLabels.forEach(category => {
+          const categoryStr = String(category);
+          const minVal = minMap.get(categoryStr);
+          const maxVal = maxMap.get(categoryStr);
           
-          minData.forEach(item => {
-            if (item && item.x) minMap.set(String(item.x), item.y);
-          });
+          // 유효성 검증
+          const validMin = (minVal !== null && minVal !== undefined && !isNaN(minVal)) ? Number(minVal) : null;
+          const validMax = (maxVal !== null && maxVal !== undefined && !isNaN(maxVal)) ? Number(maxVal) : null;
           
-          maxData.forEach(item => {
-            if (item && item.x) maxMap.set(String(item.x), item.y);
+          rangeData.push({
+            x: categoryStr,
+            y: (validMin !== null && validMax !== null) ? [validMin, validMax] : null
           });
-          
-          allLabels.forEach(category => {
-            const categoryStr = String(category);
-            let minVal = minMap.get(categoryStr);
-            let maxVal = maxMap.get(categoryStr);
-            
-            // null, undefined, NaN 체크 및 기본값 설정
-            minVal = (minVal !== null && minVal !== undefined && !isNaN(minVal)) ? Number(minVal) : null;
-            maxVal = (maxVal !== null && maxVal !== undefined && !isNaN(maxVal)) ? Number(maxVal) : null;
-            
-            // 둘 다 유효한 값이 있으면 [min, max], 없으면 null
-            if (minVal !== null && maxVal !== null) {
-              rangeData.push({
-                x: categoryStr,
-                y: [minVal, maxVal]  // [min, max] 형태
-              });
-            } else {
-              rangeData.push({
-                x: categoryStr,
-                y: null  // 데이터 없음
-              });
-            }
-          });
-        } else {
-          // 배열 형태
-          allLabels.forEach((category, i) => {
-            let minVal = i < minData.length ? minData[i] : null;
-            let maxVal = i < maxData.length ? maxData[i] : null;
-            
-            // null, undefined, NaN 체크 및 기본값 설정
-            minVal = (minVal !== null && minVal !== undefined && !isNaN(minVal)) ? Number(minVal) : null;
-            maxVal = (maxVal !== null && maxVal !== undefined && !isNaN(maxVal)) ? Number(maxVal) : null;
-            
-            // 둘 다 유효한 값이 있으면 [min, max], 없으면 null
-            if (minVal !== null && maxVal !== null) {
-              rangeData.push([minVal, maxVal]);  // [min, max] 형태
-            } else {
-              rangeData.push(null);  // 데이터 없음
-            }
-          });
-        }
-        
-        generatedSeries.push({
-          name: `${apartmentPrefix}호가`,
-          label: `${apartmentPrefix}호가`,
-          type: 'rangeArea',
-          data: rangeData
         });
-        
+      } else {
+        // 배열 형태
+        allLabels.forEach((category, i) => {
+          const minVal = i < minData.length ? minData[i] : null;
+          const maxVal = i < maxData.length ? maxData[i] : null;
+          
+          // 유효성 검증
+          const validMin = (minVal !== null && minVal !== undefined && !isNaN(minVal)) ? Number(minVal) : null;
+          const validMax = (maxVal !== null && maxVal !== undefined && !isNaN(maxVal)) ? Number(maxVal) : null;
+          
+          rangeData.push((validMin !== null && validMax !== null) ? [validMin, validMax] : null);
+        });
       }
       
-      // 나머지 데이터셋 처리
-      otherDatasets.forEach((dataset, index) => {
-        let chartType;
-        
-        const label = dataset.label || dataset.name || '';
-        const originalData = Array.isArray(dataset.data) ? dataset.data : [];
-        chartType = determineChartType(label, originalData);
-        
-        // categories의 모든 날짜에 대해 데이터 매칭
-        const allLabels = chartData.data.labels || [];
-        const normalizedData = [];
-        
-        // 원본 데이터가 객체 형태({x, y})인지 확인
-        const isObjectData = originalData.length > 0 && typeof originalData[0] === 'object' && originalData[0] !== null && 'x' in originalData[0];
-        
-        if (isObjectData) {
-          // 데이터가 {x: date, y: value} 형태인 경우
-          
-          // 원본 데이터를 맵으로 변환 (빠른 조회)
-          const dataMap = new Map();
-          originalData.forEach(item => {
-            if (item && item.x) {
-              const value = item.y;
-              // 유효한 숫자 값만 저장
-              if (value !== null && value !== undefined && !isNaN(value)) {
-                dataMap.set(String(item.x), Number(value));
-              }
-            }
-          });
-          
-          // 모든 categories에 대해 데이터 매칭
-          allLabels.forEach(category => {
-            const categoryStr = String(category);
-            if (dataMap.has(categoryStr)) {
-              normalizedData.push({ x: categoryStr, y: dataMap.get(categoryStr) });
-            } else {
-              normalizedData.push({ x: categoryStr, y: null }); // 없으면 null (0이 아님)
-            }
-          });
-        } else {
-          // 데이터가 단순 배열인 경우 - categories와 인덱스가 일치한다고 가정
-          
-          if (originalData.length === allLabels.length) {
-            // 길이가 같으면 유효성 검사 후 사용
-            normalizedData.push(...originalData.map(val => {
-              if (val !== null && val !== undefined && !isNaN(val)) {
-                return Number(val);
-              }
-              return null;
-            }));
-          } else if (originalData.length < allLabels.length) {
-            // 원본 데이터가 짧으면 뒤에 null 추가
-            normalizedData.push(...originalData.map(val => {
-              if (val !== null && val !== undefined && !isNaN(val)) {
-                return Number(val);
-              }
-              return null;
-            }));
-            const remaining = allLabels.length - originalData.length;
-            for (let i = 0; i < remaining; i++) {
-              normalizedData.push(null);
-            }
-          } else {
-            // 원본 데이터가 길면 자름
-            normalizedData.push(...originalData.slice(0, allLabels.length).map(val => {
-              if (val !== null && val !== undefined && !isNaN(val)) {
-                return Number(val);
-              }
-              return null;
-            }));
-          }
-        }
-           
-        generatedSeries.push({
-          name: dataset.label || dataset.name || `데이터 ${index + 1}`,
-          label: dataset.label || dataset.name || `데이터 ${index + 1}`,
-          type: chartType,
-          data: normalizedData
-        });
+      generatedSeries.push({
+        name: `${apartmentPrefix}호가`,
+        label: `${apartmentPrefix}호가`,
+        type: 'rangeArea',
+        data: rangeData
       });
-      
-      return generatedSeries;
     }
+
+    // 4. 기타 데이터셋 처리 (매물량, 실거래 등)
+    datasets.others.forEach((dataset, index) => {
+      
+      const label = dataset.label || dataset.name || '';
+      const originalData = Array.isArray(dataset.data) ? dataset.data : [];
+      const chartType = determineChartType(label, originalData);
+      
+      // 원본 데이터가 객체 형태({x, y})인지 확인
+      const isObjectData = originalData.length > 0 && typeof originalData[0] === 'object' && originalData[0] !== null && 'x' in originalData[0];
+      
+      const normalizedData = [];
+      
+      if (isObjectData) {
+        // 데이터가 {x: date, y: value} 형태
+        const dataMap = new Map();
+        originalData.forEach(item => {
+          if (item?.x && item.y !== null && item.y !== undefined && !isNaN(item.y)) {
+            dataMap.set(String(item.x), Number(item.y));
+          }
+        });
+        
+        allLabels.forEach(category => {
+          const categoryStr = String(category);
+          normalizedData.push({
+            x: categoryStr,
+            y: dataMap.get(categoryStr) || null
+          });
+        });
+      } else {
+        // 데이터가 단순 배열
+        allLabels.forEach((category, i) => {
+          const val = i < originalData.length ? originalData[i] : null;
+          normalizedData.push((val !== null && val !== undefined && !isNaN(val)) ? Number(val) : null);
+        });
+      }
+      
+      generatedSeries.push({
+        name: dataset.label || dataset.name || `데이터 ${index + 1}`,
+        label: dataset.label || dataset.name || `데이터 ${index + 1}`,
+        type: chartType,
+        data: normalizedData
+      });
+    });
+
+    // 5. visibleSeries에 따라 시리즈 필터링
+    const filteredSeries = generatedSeries.filter(s => {
+      const nameLower = (s.name || '').toLowerCase();
+      
+      // 매물호가 관련
+      if (nameLower.includes('매물호가') || nameLower.includes('호가') || 
+          nameLower.includes('최저가') || nameLower.includes('최고가')) {
+        return visibleSeries.매물호가;
+      }
+      
+      // 매물량 관련
+      if (nameLower.includes('매물량') || nameLower.includes('물량')) {
+        return visibleSeries.매물량;
+      }
+      
+      // 실거래 관련
+      if (nameLower.includes('실거래') || nameLower.includes('거래가')) {
+        return visibleSeries.실거래;
+      }
+      
+      // 심리분석 관련
+      if (nameLower.includes('심리분석') || nameLower.includes('candlestick')) {
+        return visibleSeries.심리분석;
+      }
+
+      // 기타는 항상 표시
+      return true;
+    });
     
-    console.log('⚠️ [ApexRebChart] No datasets found');
-    return [];
-  }, [chartData]);
+    console.log('✅ [ApexRebChart] 생성된 시리즈:', filteredSeries.length);
+    return filteredSeries;
+  }, [chartData, visibleSeries]);
 
   const categories = useMemo(() => {   
     // labels는 chartData.data.labels
@@ -438,16 +424,97 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
 
   // options를 useMemo로 계산하여 바로 Chart에 넘김
   const options = useMemo(() => {
-    // 시리즈별 색상은 항상 series 순서대로 강제 지정 (빨강, 초록, 파랑, 노랑 순서)
-    const defaultColors = ['#ef5350', '#66bb6a', '#42a5f5', '#ffeb3b']; // 빨강, 초록, 파랑, 노랑
-    const dynamicColors = series.map((seriesItem, idx) => {
-      return defaultColors[idx % defaultColors.length];
-    });
+    // 시리즈별 색상을 이름 기반으로 고정
+    const getSeriesColor = (seriesName) => {
+      const nameLower = (seriesName || '').toLowerCase();
+      
+      // 매물호가 (최저가/최고가 포함) - 빨간색
+      if (nameLower.includes('매물호가') || nameLower.includes('호가') || 
+          nameLower.includes('최저가') || nameLower.includes('최고가')) {
+        return '#ef5350'; // 빨간색
+      }
+      
+      // 실거래 - 초록색
+      if (nameLower.includes('실거래') || nameLower.includes('거래가')) {
+        return '#66bb6a'; // 초록색
+      }
+      
+      // 매물량 - 파란색
+      if (nameLower.includes('매물량') || nameLower.includes('물량')) {
+        return '#42a5f5'; // 파란색
+      }
+      // 심리분석 - 보라색
+      if (nameLower.includes('심리분석')) {
+        return '#d405f0ff'; // 보라색
+      }
+      // 기타 - 노란색
+      return '#bdf005ff';
+    };
+    
+    const dynamicColors = series.map(s => getSeriesColor(s.name));
 
     // Y축 설정 - 가격 관련은 같은 축 공유, 매물량은 별도 축
     let yaxis = null;
     if (series.length > 0) {
       const yaxisColors = dynamicColors.slice(0, series.length);
+
+      // isPrice인 시리즈들의 전체 데이터 범위 계산
+      let priceMin = Infinity;
+      let priceMax = -Infinity;
+      series.forEach(s => {
+        if ((s.type === 'rangeArea' || s.type === 'scatter') && Array.isArray(s.data)) {
+          s.data.forEach(val => {
+            const numVal = (typeof val === 'object' && val !== null && 'y' in val) ? val.y : val;
+            if (numVal !== null && numVal !== undefined && !isNaN(numVal)) {
+              priceMin = Math.min(priceMin, numVal);
+              priceMax = Math.max(priceMax, numVal);
+            }
+          });
+        }
+      });
+      
+      // 유효한 범위가 없으면 undefined로 설정
+      if (priceMin === Infinity || priceMax === -Infinity) {
+        priceMin = undefined;
+        priceMax = undefined;
+      } else {
+        // 약간의 여백 추가 (10%)
+        const range = priceMax - priceMin;
+        const paddedMin = priceMin - range * 0.1;
+        const paddedMax = priceMax + range * 0.1;
+        
+        // 원하는 눈금 개수 (예: 6개)
+        const desiredTicks = 6;
+        
+        // 현재 범위를 눈금 개수로 나눈 간격
+        const rawInterval = (paddedMax - paddedMin) / (desiredTicks - 1);
+        
+        // 데이터 범위에 따라 적절한 단위 선택
+        let unitSize = 1000000;
+        if (paddedMax <= 100000000) {
+          // 1억 이하: 천만원(10,000,000) 단위
+          unitSize = 10000000;
+        } else if (paddedMax <= 500000000) {
+          // 5억 이하: 5천만원(50,000,000) 단위
+          unitSize = 50000000;
+        } else if (paddedMax <= 1000000000) {
+          // 10억 이하: 1억(100,000,000) 단위
+          unitSize = 100000000;
+        } else if (paddedMax <= 5000000000) {
+          // 50억 이하: 5억(500,000,000) 단위
+          unitSize = 500000000;
+        } else if (paddedMax <= 10000000000) {
+          // 100억 이하: 10억(1000,000,000) 단위
+          unitSize = 1000000000;
+        } 
+        
+        // 간격을 선택된 단위의 배수로 올림
+        const tickInterval = Math.ceil(rawInterval / unitSize) * unitSize;
+        
+        // 새로운 min/max 계산 (선택된 단위 배수 간격 기준)
+        priceMin = Math.floor(paddedMin / tickInterval) * tickInterval;
+        priceMax = priceMin + (tickInterval * (desiredTicks - 1));
+      }
       
       // 시리즈별로 yaxis 생성하되, 가격 관련은 첫 번째 Y축 공유
       yaxis = series.map((s, idx) => {
@@ -474,9 +541,9 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
               style: { color: yaxisColors[firstPriceIdx] }
             },
             opposite: false,
-            // 같은 min/max를 사용하여 스케일 동기화
-            min: undefined,
-            max: undefined
+           // 모든 isPrice 시리즈에 동일한 min/max 적용하여 스케일 동기화
+            min: priceMin,
+            max: priceMax
           };
         } else if (isVolume) {
           // 매물량은 별도 Y축
@@ -492,7 +559,7 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
               }
             },
             title: {
-              text: s.name,
+              text: '매물량 (건)',
               style: { color: yaxisColors[idx] }
             },
             opposite: true
@@ -522,19 +589,12 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
       console.log('⚠️ [ApexRebChart] series.length가 0이어서 yaxis를 생성하지 않음');
     }
 
-    let annotations = { xaxis: [], points: [] };
+    let annotations = { xaxis: [] };
     if (Array.isArray(policyAnnotations) && policyAnnotations.length > 0 && categories && categories.length > 0) {
-      function normalizeDate(date) {
-        if (!date) return '';
-        // 8자리 날짜 그대로 반환 (YYYYMMDD)
-        if (date.length === 8) return date;
-        return date;
-      }
       annotations.xaxis = policyAnnotations.map((policy, idx) => {
-        const normDate = normalizeDate(policy.date);
+        const normDate = policy.date;
         const catIdx = categories.findIndex(cat => {
-          // categories의 날짜를 8자리로 변환하여 비교
-          const catStr = String(cat).replace(/[^0-9]/g, '');
+          const catStr = String(cat).replace(/[^0-9]/g, '').slice(0,8);
           return catStr === normDate;
         });
         if (catIdx === -1) return null;
@@ -544,33 +604,6 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
           strokeDashArray: 6,
           opacity: 1,
           width: 2,
-          label: { show: false }
-        };
-      }).filter(Boolean);
-      annotations.points = policyAnnotations.map((policy, idx) => {
-        const normDate = normalizeDate(policy.date);
-        const catIdx = categories.findIndex(cat => {
-          // categories의 날짜를 8자리로 변환하여 비교
-          const catStr = String(cat).replace(/[^0-9]/g, '');
-          return catStr === normDate;
-        });
-        if (catIdx === -1) return null;
-        let yVal = null;
-        if (series && series.length > 0 && Array.isArray(series[0].data)) {
-          const d = series[0].data[catIdx];
-          yVal = (typeof d === 'object' && d !== null && 'y' in d) ? d.y : d;
-        }
-        if (yVal === null || isNaN(yVal)) return null;
-        return {
-          x: categories[catIdx],
-          y: yVal,
-          marker: {
-            size: 0,
-            fillColor: '#888',
-            strokeColor: '#888',
-            shape: 'rect',
-            radius: 2
-          },
           label: {
             borderColor: '#888',
             style: {
@@ -586,11 +619,12 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
             orientation: 'horizontal',
             text: policy.title,
             position: 'top',
-            offsetY: -12,
+            offsetY: 20,
             offsetX: 0
           }
         };
       }).filter(Boolean);
+     
     }
 
     // 차트 타입별 plotOptions 및 마커 설정
@@ -683,7 +717,7 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
             const year = catStr.substring(0, 4);
             const month = catStr.substring(4, 6);
             const day = catStr.substring(6, 8);
-            dateStr = `${year}년 ${month}월 ${day}일`;
+            dateStr = `${year}-${month}-${day}`;
           } else {
             dateStr = catStr;
           }
@@ -894,11 +928,32 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
           type="line"
           height={400}
         />
+      ) : categories && Array.isArray(categories) && categories.length > 0 ? (
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: 400,
+          color: 'text.secondary',
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          border: '1px dashed',
+          borderColor: 'divider'
+        }}>
+          <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+            표시할 데이터가 없습니다
+          </Typography>
+          <Typography variant="body2" color="text.disabled">
+            상단의 버튼을 클릭하여 데이터를 표시하세요
+          </Typography>
+        </Box>
       ) : (
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center', 
+          height: 400,
           color: 'text.secondary'
         }}>
           <CircularProgress />

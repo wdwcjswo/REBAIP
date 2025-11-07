@@ -198,13 +198,43 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
     if (series.length > 0) {
       const yaxisColors = dynamicColors.slice(0, series.length);
       
+      // isIndex인 시리즈들의 전체 데이터 범위 계산
+      let indexMin = Infinity;
+      let indexMax = -Infinity;
+      series.forEach(s => {
+        if (s.ctype === 'dt-index' && Array.isArray(s.data)) {
+          s.data.forEach(val => {
+            const numVal = (typeof val === 'object' && val !== null && 'y' in val) ? val.y : val;
+            if (numVal !== null && numVal !== undefined && !isNaN(numVal)) {
+              indexMin = Math.min(indexMin, numVal);
+              indexMax = Math.max(indexMax, numVal);
+            }
+          });
+        }
+      });
+      
+      // 유효한 범위가 없으면 undefined로 설정
+      if (indexMin === Infinity || indexMax === -Infinity) {
+        indexMin = undefined;
+        indexMax = undefined;
+      } else {
+        // 약간의 여백 추가 (5%)
+        const range = indexMax - indexMin;
+        indexMin = indexMin - range * 0.05;
+        indexMax = indexMax + range * 0.05;
+        
+        // 10단위로 반올림
+        indexMin = Math.floor(indexMin / 10) * 10;
+        indexMax = Math.ceil(indexMax / 10) * 10;
+      }
+      
       // 시리즈별로 yaxis 생성하되, 지수 관련은 첫 번째 Y축 공유
       yaxis = series.map((s, idx) => {
         const isIndex = (s.ctype === 'dt-index' );
         const isPercent = (s.ctype === 'dt-percent');
         
         if (isIndex) {
-          // 가격 관련 시리즈는 각자의 이름 사용하되, Y축은 공유
+          // 지수 관련 시리즈는 각자의 이름 사용하되, Y축은 공유
           const firstIndexIdx = series.findIndex(ser => ser.ctype === 'dt-index');
           return {
             seriesName: s.name, // 각 시리즈의 고유한 이름 사용
@@ -223,12 +253,12 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
               style: { color: yaxisColors[firstIndexIdx] }
             },
             opposite: false,
-            // 같은 min/max를 사용하여 스케일 동기화
-            min: undefined,
-            max: undefined
+            // 모든 isIndex 시리즈에 동일한 min/max 적용하여 스케일 동기화
+            min: indexMin,
+            max: indexMax
           };
         } else if (isPercent) {
-          // 매물량은 별도 Y축
+          // 변동률은 별도 Y축
           return {
             seriesName: s.name,
             axisTicks: { show: true },
@@ -241,7 +271,7 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
               }
             },
             title: {
-              text: s.name,
+              text: '변동률',
               style: { color: yaxisColors[idx] }
             },
             opposite: true
@@ -291,7 +321,7 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
           strokeDashArray: 6,
           opacity: 1,
           width: 2,
-          label: { show: false }
+          label: { show: false } // 점선만 표시, label은 숨김
         };
       }).filter(Boolean);
       annotations.points = policyAnnotations.map((policy, idx) => {
@@ -351,10 +381,10 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
         let dateStr = '';
         if (category) {
           const catStr = String(category);
-          if (catStr.length === 8) {
+          if (catStr.length === 6) {
             const year = catStr.substring(0, 4);
             const month = catStr.substring(4, 6);
-            dateStr = `${year}년 ${month}월`;
+            dateStr = `${year}-${month}`;
           } else {
             dateStr = catStr;
           }
