@@ -5,30 +5,25 @@ import { v4 as uuidv4 } from 'uuid';
 import dynamic from 'next/dynamic';
 
 // material-ui
-
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
 import Slider from '@mui/material/Slider';
-import Rating from '@mui/material/Rating';
-import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
-
-// react
-import { useState, useEffect } from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 
+// react
+import { useState, useEffect, useContext } from 'react';
+//import dayjs from "dayjs";
+
 // project imports
 import AiComponent from 'layout/DashboardLayout/AiComponent';
-import { useContext } from 'react';
 import { ChartImageHistoryContext } from 'layout/DashboardLayout/index';
 
 // Dynamic import for ApexRebChart (SSR 방지)
@@ -46,7 +41,8 @@ export default function InfoApartment() {
   const [error, setError] = useState(null);
   // Context에서 chartImageHistory, setChartImageHistory 가져오기
   const { chartImageHistory, setChartImageHistory } = useContext(ChartImageHistoryContext);
-  const [chartData, setChartData] = useState(null); // 초기에는 null로 설정
+  const [chartData, setChartData] = useState(null); // 현재 표시 데이터
+  const [chartDataOrigin, setChartDataOrigin] = useState(null); // 원본 전체 데이터
   const [chartLayers, setChartLayers] = useState([]); // 차트 레이어들을 누적 저장
 
   // Ref for ApexMixedChart
@@ -55,7 +51,7 @@ export default function InfoApartment() {
   // 조회 년도 범위 상태 (최근 10년, 올해 기준)
   const SLIDER_END_YEAR = new Date().getFullYear();
   const SLIDER_START_YEAR = SLIDER_END_YEAR - 9;
-  const monthCount = (SLIDER_END_YEAR - SLIDER_START_YEAR) * 12 + 12; 
+  const monthCount = (SLIDER_END_YEAR - SLIDER_START_YEAR) * 12 + 12;
   const [yearRange, setYearRange] = useState([0, monthCount - 1]);
 
 
@@ -112,7 +108,10 @@ export default function InfoApartment() {
     const aptCode = e.target.value;
     setSelectedApt(aptCode);
     const data = await fetchChartData(aptCode, selectedSaleType, selectedArea, selectedMind);
-    if (data) setChartData(data);
+    if (data) {
+      setChartDataOrigin(data); // 원본 저장
+      setChartData(data);       // 현재 표시 데이터
+    }
   };
   
   // 매매/전세 변경 핸들러
@@ -120,7 +119,10 @@ export default function InfoApartment() {
     setSelectedSaleType(saleType);
     if (selectedApt && selectedApt !== '선택하세요') {
       const data = await fetchChartData(selectedApt, saleType, selectedArea, selectedMind);
-      if (data) setChartData(data);
+      if (data) {
+        setChartDataOrigin(data); // 원본 저장
+        setChartData(data);       // 현재 표시 데이터
+      }
     }
   };
   
@@ -129,7 +131,10 @@ export default function InfoApartment() {
     setSelectedArea(area);
     if (selectedApt && selectedApt !== '선택하세요') {
       const data = await fetchChartData(selectedApt, selectedSaleType, area, selectedMind);
-      if (data) setChartData(data);
+      if (data) {
+        setChartDataOrigin(data); // 원본 저장
+        setChartData(data);       // 현재 표시 데이터
+      }
     }
   };
   
@@ -137,61 +142,71 @@ export default function InfoApartment() {
   const handleMindAnalysis = async () => {
     // 심리분석이 현재 꺼져있으면 켜고, 켜져있으면 끄기
     const willEnableMind = !selectedMind;
+    
+    // yyyymmdd → yyyy-mm-dd 변환 함수
+    function toDateString(yyyymmdd) {
+      if (!yyyymmdd) return '';
+      const str = String(yyyymmdd);
+      if (str.length !== 8) return str;
+      const year = str.substring(0, 4);
+      const month = str.substring(4, 6);
+      const day = str.substring(6, 8);
+      return `${year}-${month}-${day}`;
+    }
 
-    // ApexRebChart 형식에 맞는 데이터 구조
     const dataList = {
       data: {
         labels: [
-          '20240127', '20241006', '20241007', '20241008', '20241009', '20241010',
-          '20241011', '20241012', '20241013', '20241014', '20241015', '20241016',
-          '20241017', '20241018', '20241019', '20241020', '20241021', '20241022',
-          '20241023', '20241024', '20241025', '20241026', '20241027', '20241028',
-          '20241029', '20241030', '20241031', '20241101', '20241102', '20241103',
-          '20241104', '20241105', '20241106', '20241107', '20241108', '20241109',
-          '20241110', '20241111'
+          toDateString('20240127'), toDateString('20241006'), toDateString('20241007'), toDateString('20241008'), toDateString('20241009'), toDateString('20241010'),
+          toDateString('20241011'), toDateString('20241012'), toDateString('20241013'), toDateString('20241014'), toDateString('20241015'), toDateString('20241016'),
+          toDateString('20241017'), toDateString('20241018'), toDateString('20241019'), toDateString('20241020'), toDateString('20241021'), toDateString('20241022'),
+          toDateString('20241023'), toDateString('20241024'), toDateString('20241025'), toDateString('20241026'), toDateString('20241027'), toDateString('20241028'),
+          toDateString('20241029'), toDateString('20241030'), toDateString('20241031'), toDateString('20241101'), toDateString('20241102'), toDateString('20241103'),
+          toDateString('20241104'), toDateString('20241105'), toDateString('20241106'), toDateString('20241107'), toDateString('20241108'), toDateString('20241109'),
+          toDateString('20241110'), toDateString('20241111')
         ],
         datasets: [{
           name: '잠실엘스 심리분석',
           label: '잠실엘스 심리분석',
           data: [
-            { x: '20240127', y: [128000, 135000, 125000, 132000] },
-            { x: '20241006', y: [132000, 138000, 130000, 136000] },
-            { x: '20241007', y: [136000, 140000, 134000, 138000] },
-            { x: '20241008', y: [138000, 142000, 136000, 140000] },
-            { x: '20241009', y: [140000, 143000, 138000, 141000] },
-            { x: '20241010', y: [141000, 144000, 139000, 142000] },
-            { x: '20241011', y: [142000, 145000, 140000, 143000] },
-            { x: '20241012', y: [143000, 146000, 141000, 144000] },
-            { x: '20241013', y: [144000, 147000, 142000, 145000] },
-            { x: '20241014', y: [145000, 148000, 143000, 146000] },
-            { x: '20241015', y: [146000, 149000, 144000, 147000] },
-            { x: '20241016', y: [147000, 150000, 145000, 148000] },
-            { x: '20241017', y: [148000, 151000, 146000, 149000] },
-            { x: '20241018', y: [149000, 152000, 147000, 150000] },
-            { x: '20241019', y: [150000, 153000, 148000, 151000] },
-            { x: '20241020', y: [151000, 154000, 149000, 152000] },
-            { x: '20241021', y: [152000, 155000, 150000, 153000] },
-            { x: '20241022', y: [153000, 156000, 151000, 154000] },
-            { x: '20241023', y: [154000, 157000, 152000, 155000] },
-            { x: '20241024', y: [155000, 158000, 153000, 156000] },
-            { x: '20241025', y: [156000, 159000, 154000, 157000] },
-            { x: '20241026', y: [157000, 160000, 155000, 158000] },
-            { x: '20241027', y: [158000, 161000, 156000, 159000] },
-            { x: '20241028', y: [159000, 162000, 157000, 160000] },
-            { x: '20241029', y: [160000, 163000, 158000, 161000] },
-            { x: '20241030', y: [161000, 164000, 159000, 162000] },
-            { x: '20241031', y: [162000, 165000, 160000, 163000] },
-            { x: '20241101', y: [163000, 166000, 161000, 164000] },
-            { x: '20241102', y: [164000, 167000, 162000, 165000] },
-            { x: '20241103', y: [165000, 168000, 163000, 166000] },
-            { x: '20241104', y: [166000, 169000, 164000, 167000] },
-            { x: '20241105', y: [167000, 170000, 165000, 168000] },
-            { x: '20241106', y: [168000, 171000, 166000, 169000] },
-            { x: '20241107', y: [169000, 172000, 167000, 170000] },
-            { x: '20241108', y: [170000, 173000, 168000, 171000] },
-            { x: '20241109', y: [171000, 174000, 169000, 172000] },
-            { x: '20241110', y: [172000, 175000, 170000, 173000] },
-            { x: '20241111', y: [173000, 176000, 171000, 174000] }
+            { x: toDateString('20240127'), y: [128000, 135000, 125000, 132000] },
+            { x: toDateString('20241006'), y: [132000, 138000, 130000, 136000] },
+            { x: toDateString('20241007'), y: [136000, 140000, 134000, 138000] },
+            { x: toDateString('20241008'), y: [138000, 142000, 136000, 140000] },
+            { x: toDateString('20241009'), y: [140000, 143000, 138000, 141000] },
+            { x: toDateString('20241010'), y: [141000, 144000, 139000, 142000] },
+            { x: toDateString('20241011'), y: [142000, 145000, 140000, 143000] },
+            { x: toDateString('20241012'), y: [143000, 146000, 141000, 144000] },
+            { x: toDateString('20241013'), y: [144000, 147000, 142000, 145000] },
+            { x: toDateString('20241014'), y: [145000, 148000, 143000, 146000] },
+            { x: toDateString('20241015'), y: [146000, 149000, 144000, 147000] },
+            { x: toDateString('20241016'), y: [147000, 150000, 145000, 148000] },
+            { x: toDateString('20241017'), y: [148000, 151000, 146000, 149000] },
+            { x: toDateString('20241018'), y: [149000, 152000, 147000, 150000] },
+            { x: toDateString('20241019'), y: [150000, 153000, 148000, 151000] },
+            { x: toDateString('20241020'), y: [151000, 154000, 149000, 152000] },
+            { x: toDateString('20241021'), y: [152000, 155000, 150000, 153000] },
+            { x: toDateString('20241022'), y: [153000, 156000, 151000, 154000] },
+            { x: toDateString('20241023'), y: [154000, 157000, 152000, 155000] },
+            { x: toDateString('20241024'), y: [155000, 158000, 153000, 156000] },
+            { x: toDateString('20241025'), y: [156000, 159000, 154000, 157000] },
+            { x: toDateString('20241026'), y: [157000, 160000, 155000, 158000] },
+            { x: toDateString('20241027'), y: [158000, 161000, 156000, 159000] },
+            { x: toDateString('20241028'), y: [159000, 162000, 157000, 160000] },
+            { x: toDateString('20241029'), y: [160000, 163000, 158000, 161000] },
+            { x: toDateString('20241030'), y: [161000, 164000, 159000, 162000] },
+            { x: toDateString('20241031'), y: [162000, 165000, 160000, 163000] },
+            { x: toDateString('20241101'), y: [163000, 166000, 161000, 164000] },
+            { x: toDateString('20241102'), y: [164000, 167000, 162000, 165000] },
+            { x: toDateString('20241103'), y: [165000, 168000, 163000, 166000] },
+            { x: toDateString('20241104'), y: [166000, 169000, 164000, 167000] },
+            { x: toDateString('20241105'), y: [167000, 170000, 165000, 168000] },
+            { x: toDateString('20241106'), y: [168000, 171000, 166000, 169000] },
+            { x: toDateString('20241107'), y: [169000, 172000, 167000, 170000] },
+            { x: toDateString('20241108'), y: [170000, 173000, 168000, 171000] },
+            { x: toDateString('20241109'), y: [171000, 174000, 169000, 172000] },
+            { x: toDateString('20241110'), y: [172000, 175000, 170000, 173000] },
+            { x: toDateString('20241111'), y: [173000, 176000, 171000, 174000] }
           ]
         }]
       }
@@ -209,7 +224,10 @@ export default function InfoApartment() {
       // 심리분석 차트 데이터 가져오기
       ///const data = await fetchChartData(selectedApt, selectedSaleType, selectedArea, true);
       ///하드코딩 데이터 - 아파트 선택 여부와 관계없이 설정
-      setChartData(dataList);
+      if (dataList) {
+        setChartDataOrigin(dataList); // 원본 저장
+        setChartData(dataList);       // 현재 표시 데이터
+      }
     } else {
       // 심리분석을 끌 때: 매물호가, 매물량, 실거래를 모두 켜고 심리분석 끔
       setVisibleSeries({ 
@@ -222,7 +240,10 @@ export default function InfoApartment() {
       // 일반 차트 데이터 가져오기
       if (selectedApt && selectedApt !== '선택하세요') {
         const data = await fetchChartData(selectedApt, selectedSaleType, selectedArea, false);
-        if (data) setChartData(data);
+        if (data) {
+          setChartDataOrigin(data); // 원본 저장
+          setChartData(data);       // 현재 표시 데이터
+        }
       }
     }
   };
@@ -266,10 +287,66 @@ export default function InfoApartment() {
         headers: { 'Accept': 'application/json' }
       });
       if (!response.ok) throw new Error(`API 호출 실패 (${response.status}): ${response.statusText}`);
-      const data = await response.json();
-      console.log('Chart data received:', data);
+      const rawData = await response.json();
+      console.log('Chart rawData received:', rawData);
       
-      return data;
+      // yyyymmdd 문자열을 yyyy-mm-dd로 변환하는 헬퍼 함수
+      const toDateString = (yyyymmdd) => {
+        if (!yyyymmdd) return '';
+        const str = String(yyyymmdd);
+        if (str.length !== 8) return str;
+        const year = str.substring(0, 4);
+        const month = str.substring(4, 6);
+        const day = str.substring(6, 8);
+        return `${year}-${month}-${day}`;
+      };
+
+      // 시작날짜와 마지막날짜 기준으로 연속된 날짜 배열 생성 (yyyy-mm-dd 형식)
+      const generateDateRange = (labels) => {
+        if (!labels || labels.length === 0) return [];
+        // 첫 번째와 마지막 유효한 날짜 찾기
+        const validDates = labels.map(l => toDateString(l)).filter(d => d);
+        if (validDates.length === 0) return [];
+        const startDate = new Date(validDates[0]);
+        const endDate = new Date(validDates[validDates.length - 1]);
+        const dateArray = [];
+        let current = new Date(startDate);
+        while (current <= endDate) {
+          const yyyy = current.getFullYear();
+          const mm = String(current.getMonth() + 1).padStart(2, '0');
+          const dd = String(current.getDate()).padStart(2, '0');
+          dateArray.push(`${yyyy}-${mm}-${dd}`);
+          current.setDate(current.getDate() + 1);
+        }
+        return dateArray;
+      };
+
+      // API 응답 데이터의 labels를 yyyy-mm-dd 문자열로 변환
+      if (rawData?.data?.labels && Array.isArray(rawData.data.labels)) {
+        rawData.data.labels = generateDateRange(rawData.data.labels);
+      }
+
+      // API 응답 데이터의 datasets 내 data의 x값도 yyyy-mm-dd 문자열로 변환
+      if (rawData?.data?.datasets && Array.isArray(rawData.data.datasets)) {
+        rawData.data.datasets = rawData.data.datasets.map(dataset => {
+          if (Array.isArray(dataset.data)) {
+            dataset.data = dataset.data.map(item => {
+              if (item && typeof item === 'object' && 'x' in item) {
+                return {
+                  ...item,
+                  x: toDateString(item.x)
+                };
+              }
+              return item;
+            });
+          }
+          return dataset;
+        });
+      }
+
+      //console.log('Chart data after conversion:', rawData);
+      
+      return rawData;
     } catch (err) {
       setError(`연결 오류: ${err.message}. 서버가 실행 중인지 확인해주세요.`);
       return null;
@@ -303,8 +380,8 @@ export default function InfoApartment() {
       desc: '3단계 스트레스 DSR 시행'
     },
     {
-      date: '20250520',
-      title: '(25.05.20) 전세시기 비례 지원',
+      date: '20241021',
+      title: '(24.10.21) 전세시기 비례 지원',
       desc: '전세시기대체 지원 및 주기업집에 관한 특별법 일부개정'
     },
     {
@@ -317,14 +394,6 @@ export default function InfoApartment() {
   // 체크된 정책자료 상태 관리
   const [checkedPolicies, setCheckedPolicies] = useState([]); // [{date, title, desc}]
 
-  // 차트 시리즈 토글 상태 관리 (매물호가, 매물량, 실거래, 심리분석)
-  const [visibleSeries, setVisibleSeries] = useState({
-    매물호가: true,
-    매물량: true,
-    실거래: true,
-    심리분석: false
-  });
-
   // 체크박스 변경 핸들러
   const handlePolicyCheck = (idx) => {
     setCheckedPolicies((prev) => {
@@ -336,6 +405,14 @@ export default function InfoApartment() {
       }
     });
   };
+
+  // 차트 시리즈 토글 상태 관리 (매물호가, 매물량, 실거래, 심리분석)
+  const [visibleSeries, setVisibleSeries] = useState({
+    매물호가: true,
+    매물량: true,
+    실거래: true,
+    심리분석: false
+  });
 
   // 시리즈 토글 핸들러
   const handleSeriesToggle = async (seriesName) => {
@@ -359,6 +436,53 @@ export default function InfoApartment() {
       }
     }
   };
+
+  // 조회년도 범위에 따라 차트 데이터 필터링
+  // 범위에 해당하는 labels만 추출 (월 인덱스를 yyyy-mm-dd로 변환해서 비교)
+  useEffect(() => {
+    if (
+      chartDataOrigin &&
+      chartDataOrigin.data &&
+      Array.isArray(chartDataOrigin.data.labels) &&
+      chartDataOrigin.data.labels.length > 0
+    ) {
+      // 슬라이더 인덱스를 실제 yyyy-mm-dd로 변환
+      const getDateStr = idx => {
+        const year = SLIDER_START_YEAR + Math.floor(idx / 12);
+        const month = (idx % 12) + 1;
+        return `${year}-${String(month).padStart(2, '0')}-01`;
+      };
+      const startDate = getDateStr(yearRange[0]);
+      const endDate = getDateStr(yearRange[1]);
+
+      // chartDataOrigin labels에서 범위에 해당하는 날짜만 추출
+      const filteredLabels = chartDataOrigin.data.labels.filter(label => {
+        return label >= startDate && label <= endDate;
+      });
+
+
+      // 각 시리즈의 data도 해당 날짜만 남김
+      const filteredDatasets = chartDataOrigin.data.datasets.map(dataset => {
+        if (Array.isArray(dataset.data)) {
+          return {
+            ...dataset,
+            data: dataset.data.filter(item => filteredLabels.includes(item.x))
+          };
+        }
+        return dataset;
+      });
+
+      setChartData(prev => ({
+        ...chartDataOrigin,
+        data: {
+          ...chartDataOrigin.data,
+          labels: filteredLabels,
+          datasets: filteredDatasets
+        }
+      }));
+    }
+    // eslint-disable-next-line
+  }, [yearRange, chartDataOrigin]);
 
   return (
     <Box sx={{ display: 'flex', height: '90vh', width: '100%' }}>
@@ -405,7 +529,7 @@ export default function InfoApartment() {
                     const year = SLIDER_START_YEAR + Math.floor(i/12);
                   const month = (i%12)+1;
                   if(month === 1 || i === monthCount-1) {
-                    marks.push({ value: i, label: `${year}-${String(month).padStart(2,'0')}` });
+                    marks.push({ value: i, label: `${year}-${String(month).padStart(2,'0')}-01` });
                   }
                 }
                 return marks;
@@ -413,12 +537,12 @@ export default function InfoApartment() {
               getAriaValueText={v => {
                 const year = SLIDER_START_YEAR + Math.floor(v/12);
                 const month = (v%12)+1;
-                return `${year}년${String(month).padStart(2,'0')}월`;
+                return `${year}-${String(month).padStart(2,'0')}`;
               }}
               valueLabelFormat={v => {
                 const year = SLIDER_START_YEAR + Math.floor(v/12);
                 const month = (v%12)+1;
-                return `${year}년${String(month).padStart(2,'0')}월`;
+                return `${year}-${String(month).padStart(2,'0')}`;
               }}
             />
             

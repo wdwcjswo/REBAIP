@@ -39,15 +39,9 @@ export default function DashboardDataAnalytics() {
     { selected: false, color: '#2e7d32' },
     { selected: false, color: '#d32f2f' }
   ]);
-  const [chartData, setChartData] = useState(null); // 초기에는 null로 설정
+  const [chartData, setChartData] = useState(null); 
   const [chartLayers, setChartLayers] = useState([]); // 차트 레이어들을 누적 저장
 
-  // 지역 옵션 배열 정의
-  const regionOptions = [
-    '전국', '수도권', '지방권', '6대광역시', '5대광역시', '9개도', '8개도',
-    '서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종',
-    '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
-  ];
   // 카드별 고정 색상 배열 (차트 색상용)
   const fixedColors = ['#1976d2', '#2e7d32', '#d32f2f'];
   
@@ -56,9 +50,8 @@ export default function DashboardDataAnalytics() {
   // 조회 년도 범위 상태 (최근 10년, 올해 기준)
   const SLIDER_END_YEAR = new Date().getFullYear();
   const SLIDER_START_YEAR = SLIDER_END_YEAR - 9;
-  const monthCount = (SLIDER_END_YEAR - SLIDER_START_YEAR) * 12 + 12; 
+  const monthCount = (SLIDER_END_YEAR - SLIDER_START_YEAR) * 12 + 12;
   const [yearRange, setYearRange] = useState([0, monthCount - 1]);
-  // (fixed misplaced code fragment)
 
   // 카드 리셋 핸들러
   const handleResetCard = (cardIndex) => {
@@ -70,11 +63,21 @@ export default function DashboardDataAnalytics() {
     console.log(`카드 ${cardIndex + 1} 리셋됨`);
   };
 
-  // 카드별 지역 변경 핸들러
-  const handleCardRegionChange = (cardIndex, newRegion) => {
+  // 카드별 옵션1 변경 핸들러
+  const handleCardOption1Change = (cardIndex, newOption1) => {
+    console.log(`카드 ${cardIndex} - 선택된 옵션1:`, newOption1);
     setCards(prevCards =>
       prevCards.map((card, idx) =>
-        idx === cardIndex ? { ...card, region: newRegion } : card
+        idx === cardIndex ? { ...card, option1: newOption1 } : card
+      )
+    );
+  };
+  // 카드별 옵션2 변경 핸들러
+  const handleCardOption2Change = (cardIndex, newOption2) => {
+    console.log(`카드 ${cardIndex} - 선택된 옵션2:`, newOption2);
+    setCards(prevCards =>
+      prevCards.map((card, idx) =>
+        idx === cardIndex ? { ...card, option2: newOption2 } : card
       )
     );
   };
@@ -84,17 +87,70 @@ export default function DashboardDataAnalytics() {
   const getCardChartData = (statblid, cardIndex) => {
     const layer = chartLayers.find(layer => layer.statblid === statblid);
     if (layer && layer.data && layer.data.datasets && layer.data.datasets.length > 0) {
-      const fullData = layer.data.datasets[0].data || [];
+      const labels = layer.data.labels || [];
       // yearRange: [startIdx, endIdx] (월 단위 인덱스)
-      let start = Math.max(0, yearRange[0]);
-      let end = Math.min(fullData.length, yearRange[1] + 1); // end는 exclusive
-      // start가 end보다 크거나 같으면 빈 배열 반환 (날짜 범위가 0 이하로 줄어든 경우)
-      if (start >= end) return [];
-      return fullData.slice(start, end);
+      const SLIDER_START_YEAR = new Date().getFullYear() - 9;
+      const getDateStr = idx => {
+        const year = SLIDER_START_YEAR + Math.floor(idx / 12);
+        const month = (idx % 12) + 1;
+        return `${year}-${String(month).padStart(2, '0')}`;
+      };
+      const startDate = getDateStr(yearRange[0]);
+      const endDate = getDateStr(yearRange[1]);
+      // labels에서 범위에 해당하는 날짜만 추출
+      const filteredLabels = labels.filter(label => label >= startDate && label <= endDate);
+
+      // 해당 범위의 데이터만 반환
+      const fullData = layer.data.datasets[0].data || [];
+      return fullData.filter(item => filteredLabels.includes(item.x));
     }
     return [];
   };
   
+  // 카드별 옵션1/옵션2 하드코딩 함수
+  function getCardOptions(statblid) {
+    if (statblid === 'A_2024_00045') {
+      // 매매가격지수 아파트: 지역 + 평형
+      return {
+        option1Options: [
+          '전국', '수도권', '지방권', '6대광역시', '5대광역시', '9개도', '8개도',
+          '서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종',
+          '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
+        ],
+        option2Options: [
+          '전체', '60㎡ 이하', '60㎡ 초과 85㎡ 이하', '85㎡ 초과'
+        ]
+      };
+    } else if (statblid === 'A_2024_00903') {
+      // 지역별 지가변동률: 평형만
+      return {
+        option1Options: [],
+        option2Options: [
+          '전체', '60㎡ 이하', '60㎡ 초과 85㎡ 이하', '85㎡ 초과'
+        ]
+      };
+    } else if (statblid === 'T236933129926065') {
+      // 발주자공종별%20건설수주액(경상)
+      return {
+        option1Options: [
+          '수주총액', '공공부문', '민간부문', '국내외국기관'
+        ],
+        option2Options: [
+          '계', '건축', '토목', '건축>주택'
+        ]
+      };
+    } else {
+      // 기타: 지역만
+      return {
+        option1Options: [
+          '전국', '수도권', '지방권', '6대광역시', '5대광역시', '9개도', '8개도',
+          '서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종',
+          '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
+        ],
+        option2Options: []
+      };
+    }
+  }
 
   //  const server = "http://172.16.10.56:8087/RAP";
   const server = "http://127.0.0.1:8087/RAP";
@@ -119,11 +175,34 @@ export default function DashboardDataAnalytics() {
       const START_YM = 202001;
       const END_YM = 202509;
       const GRP_ID = null;
+
+      // 카드의 옵션값 가져오기
+      const card = cards[cardIndex];
+      // 옵션2(평형) 값에 따라 CLS_DATANO 결정 (예시: CLS_DATANO 값 하드코딩)
+      let CLS_DATANO = '50002'; // 기본값
+      if (statblid === 'A_2024_00045') {
+        // 매매가격지수 아파트
+        if (card?.option2 === '전체') CLS_DATANO = '500007';
+        else if (card?.option2 === '60㎡ 이하') CLS_DATANO = '500008';
+        else if (card?.option2 === '60㎡ 초과 85㎡ 이하') CLS_DATANO = '500009';
+        else if (card?.option2 === '85㎡ 초과') CLS_DATANO = '500010';
+      } else if (statblid === 'A_2024_00016') {
+        // 매매가격지수 주택종합
+        CLS_DATANO = '500017';
+      } else if (statblid === 'A_2024_00903') {
+        // 지역별 지가변동률
+        CLS_DATANO = '500001';
+      } else if (statblid === 'T236933129926065') {
+        // 발주자공종별 건설수주액(경상)
+        CLS_DATANO = card?.option2 === '건축>주택' ? '50003' : '50002';
+      }
   
       //STATBL_ID=A_2024_00016&ST_YM=202001&ED_YM=202509&GRP_ID=null&CLS_ID=51000000&CLS_DATANO=500017&TITLE=매매가격지수 주택종합
       //STATBL_ID=A_2024_00045&ST_YM=202001&ED_YM=202509&GRP_ID=null&CLS_ID=1000070&CLS_DATANO=500007&TITLE=매매가격지수 아파트
       //STATBL_ID=A_2024_00050&ST_YM=202001&ED_YM=202509&GRP_ID=null&CLS_ID=1000010&CLS_DATANO=500001&TITLE=전세가격지수 아파트
       //STATBL_ID=A_2024_00903&ST_YM=202001&ED_YM=202509&GRP_ID=null&CLS_ID=1000010&CLS_DATANO=500001&TITLE=지역별 지가변동률
+      //STATBL_ID=T236933129926065&ST_YM=202001&ED_YM=2035&GRP_ID=30008142&CLS_ID=30009164&CLS_DATANO=50002&TITLE=발주자공종별%20건설수주액(경상)
+      //STATBL_ID=T236933129926065&ST_YM=202001&ED_YM=2035&GRP_ID=30008142&CLS_ID=30009164&CLS_DATANO=50002&TITLE=발주자공종별
 
       let svcURL = '';
     
@@ -153,7 +232,9 @@ export default function DashboardDataAnalytics() {
       } else if(statblid === "KTECH_SURETY_01") { // 보증사고현황 - 사고건수
         svcURL = "/getKTECHSURETYList?OPT=OPT1";
       
-      //금액  
+      //금액  STATBL_ID=T236933129926065&ST_YM=202001&ED_YM=2035&GRP_ID=30008142&CLS_ID=30009164&CLS_DATANO=50002&TITLE=발주자공종별
+      } else if(statblid === "T236933129926065") { // 발주자공종별%20건설수주액(경상)
+        svcURL = `/api/rap/getChart_RONE_OPT?STATBL_ID=${statblid}&ST_YM=202001&ED_YM=2035&GRP_ID=30008142&CLS_ID=30009164&CLS_DATANO=${CLS_DATANO}&TITLE=발주자공종별`;
       } else if(statblid === "KTECH_SURETY_02") { // 보증사고현황 - 사고금액
         svcURL = "/getKTECHSURETYList?OPT=OPT2";
       } else if(statblid === "KTECH_SURETY_03") { // 보증사고현황 - 사고율
@@ -187,9 +268,43 @@ export default function DashboardDataAnalytics() {
         throw new Error(`API 호출 실패 (${response.status}): ${response.statusText}`);
       }
 
-      const data = await response.json();
-      console.log('Chart data received:', data);
-      
+      const rawData = await response.json();
+      //console.log('Chart data received:', rawData);
+
+      // yyyymm 문자열을 yyyy-mm로 변환하는 헬퍼 함수
+      const toDateString = (yyyymm) => {
+        if (!yyyymm) return '';
+        const str = String(yyyymm);
+        if (str.length !== 6) return str;
+        const year = str.substring(0, 4);
+        const month = str.substring(4, 6);
+        return `${year}-${month}`;
+      };
+
+      // API 응답 데이터의 datasets 내 data의 x값도 yyyy-mm 문자열로 변환
+      if (rawData?.data?.datasets && Array.isArray(rawData.data.datasets)) {
+        rawData.data.datasets = rawData.data.datasets.map(dataset => {
+          if (Array.isArray(dataset.data)) {
+            dataset.data = dataset.data.map(item => {
+              if (item && typeof item === 'object' && 'x' in item) {
+                return {
+                  ...item,
+                  x: toDateString(item.x)
+                };
+              }
+              return item;
+            });
+          }
+          return dataset;
+        });
+      }
+      // API 응답 데이터의 labels를 yyyy-mm 문자열로 변환
+      if (rawData?.data?.labels && Array.isArray(rawData.data.labels)) {
+        rawData.data.labels = rawData.data.labels.map(toDateString);
+      }
+
+      console.log('Chart data after conversion:', rawData);
+
       // 새로운 레이어 추가
       setChartLayers(prevLayers => {
         const existingIndex = prevLayers.findIndex(layer => layer.statblid === statblid);
@@ -199,17 +314,17 @@ export default function DashboardDataAnalytics() {
           // 같은 statblid가 있으면 교체
           newLayers = [...prevLayers];
           newLayers[existingIndex] = { 
-            ...data, 
+            ...rawData, 
             statblid: statblid
           };
-          console.log('Updated existing layer for statblid:', statblid);
+          //console.log('Updated existing layer for statblid:', statblid);
         } else {
           // 새로운 레이어 추가
           newLayers = [...prevLayers, { 
-            ...data, 
+            ...rawData, 
             statblid: statblid
           }];
-          console.log('Added new layer for statblid:', statblid);
+          //console.log('Added new layer for statblid:', statblid);
         }
         
         // 메인 차트 데이터 병합
@@ -293,11 +408,9 @@ export default function DashboardDataAnalytics() {
             ? { 
                 ...card, 
                 title: ['OPT1', 'OPT2', 'OPT3'][cardIndex], 
-                figures: '0', 
                 statblid: ['OPT1', 'OPT2', 'OPT3'][cardIndex],
                 chartType: 'line',
-                ctype: 'dt-index',
-                region: '전국' 
+                ctype: 'dt-index'
               }
             : card
         )
@@ -306,7 +419,7 @@ export default function DashboardDataAnalytics() {
     }
   };
 
-  // 카드 드롭 처리 - 제목(cname), 수치(figures), 조회타입(ctype) 반영
+  // 카드 드롭 처리 - 제목(cname), 조회타입(ctype) 반영
   const handleDropOnCard = (cardIndex, event) => {
     event.preventDefault();
     let payload = event.dataTransfer.getData('application/json') || event.dataTransfer.getData('text/plain');
@@ -314,7 +427,9 @@ export default function DashboardDataAnalytics() {
     try {
       const obj = JSON.parse(payload);
       const color = fixedColors[cardIndex];
-      setCards(prev => prev.map((c, i) => i === cardIndex ? { ...obj, color, selected: true } : c));
+      const ctype = obj.ctype || 'dt-index';
+
+      setCards(prev => prev.map((c, i) => i === cardIndex ? { ...obj, color, selected: true, ctype } : c));
       if (obj.statblid) fetchChartData(obj.statblid, cardIndex);
     } catch (err) {
       // 드롭 실패 시 무시
@@ -347,8 +462,8 @@ export default function DashboardDataAnalytics() {
       desc: '3단계 스트레스 DSR 시행'
     },
     {
-      date: '20250520',
-      title: '(25.05.20) 전세시기 비례 지원',
+      date: '20241021',
+      title: '(24.10.21) 전세시기 비례 지원',
       desc: '전세시기대체 지원 및 주기업집에 관한 특별법 일부개정'
     },
     {
@@ -373,6 +488,46 @@ export default function DashboardDataAnalytics() {
     });
   };
 
+  // 조회년도 범위 변경 시, chartLayers의 각 레이어 원본에서 필터링
+  useEffect(() => {
+    if (chartLayers && chartLayers.length > 0) {
+      const getDateStr = idx => {
+        const year = SLIDER_START_YEAR + Math.floor(idx / 12);
+        const month = (idx % 12) + 1;
+        return `${year}-${String(month).padStart(2, '0')}`;
+      };
+      const startDate = getDateStr(yearRange[0]);
+      const endDate = getDateStr(yearRange[1]);
+
+      // 각 레이어별로 필터링
+      const filteredLayers = chartLayers.map(layer => {
+        const filteredLabels = layer.data.labels.filter(label => label >= startDate && label <= endDate);
+        const filteredDatasets = layer.data.datasets.map(dataset => {
+          if (Array.isArray(dataset.data)) {
+            return {
+              ...dataset,
+              data: dataset.data.filter(item => filteredLabels.includes(item.x))
+            };
+          }
+          return dataset;
+        });
+        return {
+          ...layer,
+          data: {
+            ...layer.data,
+            labels: filteredLabels,
+            datasets: filteredDatasets
+          }
+        };
+      });
+
+      // 병합해서 chartData로 사용
+      const mergedChartData = mergeChartLayers(filteredLayers);
+      setChartData(mergedChartData);
+    }
+    // eslint-disable-next-line
+  }, [yearRange, chartLayers]);
+  
   return (
     <Box sx={{ display: 'flex', height: '90vh', width: '100%' }}>
       <Box sx={{ flex: 1, overflow: 'auto', height: '90vh' }}>
@@ -426,12 +581,12 @@ export default function DashboardDataAnalytics() {
               getAriaValueText={v => {
                 const year = SLIDER_START_YEAR + Math.floor(v/12);
                 const month = (v%12)+1;
-                return `${year}년${String(month).padStart(2,'0')}월`;
+                return `${year}-${String(month).padStart(2,'0')}`;
               }}
               valueLabelFormat={v => {
                 const year = SLIDER_START_YEAR + Math.floor(v/12);
                 const month = (v%12)+1;
-                return `${year}년${String(month).padStart(2,'0')}월`;
+                return `${year}-${String(month).padStart(2,'0')}`;
               }}
             />
             
@@ -505,35 +660,42 @@ export default function DashboardDataAnalytics() {
                       );
                     })()
                   ) : (
-                    <AnalyticsDataCard
-                      key={cards[idx]?.statblid || idx}
-                      title={cards[idx]?.cname}
-                      figures={cards[idx]?.figures}
-                      statblid={cards[idx]?.statblid}
-                      isActiveInChart={!!cards[idx]?.statblid}
-                      onRemoveFromChart={() => removeChartLayer(cards[idx]?.statblid, idx)}
-                      onResetCard={handleResetCard}
-                      region={cards[idx]?.region}
-                      onRegionChange={(newRegion) => handleCardRegionChange(idx, newRegion)}
-                      regionOptions={regionOptions}
-                      chartData={getCardChartData(cards[idx]?.statblid, idx)}
-                      cardIndex={idx}
-                      chartColor={cards[idx]?.color}
-                      chartType={cards[idx]?.chartType}
-                      ctype={cards[idx]?.ctype}
-                      sx={{
-                        flex: 1,
-                        minHeight: 200,
-                        height: '100%',
-                        minWidth: 220,
-                        maxWidth: 360,
-                        width: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        margin: 0
-                      }}
-                    >
-                    </AnalyticsDataCard>
+                    (() => {
+                      const statblid = cards[idx]?.statblid;
+                      const { option1Options, option2Options } = getCardOptions(statblid);
+                      return (
+                        <AnalyticsDataCard
+                          key={statblid || idx}
+                          title={cards[idx]?.cname}
+                          statblid={statblid}
+                          isActiveInChart={!!statblid}
+                          onRemoveFromChart={() => removeChartLayer(statblid, idx)}
+                          onResetCard={handleResetCard}
+                          option1={cards[idx]?.region}
+                          onOption1Change={(newOption1) => handleCardOption1Change(idx, newOption1)}
+                          option1Options={option1Options}
+                          option2={cards[idx]?.area}
+                          onOption2Change={(newOption2) => handleCardOption2Change(idx, newOption2)}
+                          option2Options={option2Options}
+                          chartData={getCardChartData(statblid, idx)}
+                          cardIndex={idx}
+                          chartColor={cards[idx]?.color}
+                          chartType={cards[idx]?.chartType}
+                          ctype={cards[idx]?.ctype}
+                          sx={{
+                            flex: 1,
+                            minHeight: 200,
+                            height: '100%',
+                            minWidth: 220,
+                            maxWidth: 360,
+                            width: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            margin: 0
+                          }}
+                        />
+                      );
+                    })()
                   )}
                 </Grid>
               ))}
@@ -557,6 +719,12 @@ export default function DashboardDataAnalytics() {
                       return card ? card.color : '#1976d2';
                     });
                   })()}
+                  ctype={cards.reduce((map, card, index) => {
+                    if (card.selected && card.statblid) {
+                      map[card.statblid] = card.ctype;
+                    }
+                    return map;
+                  }, {})}
                   colorMapping={cards.reduce((map, card, index) => {
                     if (card.selected && card.statblid) {
                       map[card.statblid] = card.color;
@@ -569,13 +737,6 @@ export default function DashboardDataAnalytics() {
                     }
                     return map;
                   }, {})}
-                  ctype={(() => {
-                    // chartLayers 순서에 맞춰 ctype 배열 생성
-                    return chartLayers.map(layer => {
-                      const card = cards.find(card => card.statblid === layer.statblid);
-                      return card ? card.ctype : 'dt-index';
-                    });
-                  })()}
                   ref={chartRef}
                   policyAnnotations={checkedPolicies}
                 />
@@ -629,7 +790,7 @@ export default function DashboardDataAnalytics() {
                     // 차트 초기화 기능
                     setChartLayers([]);
                     setChartData(null);
-                    console.log('차트 초기화 및 모든 카드 리셋 완료');
+                    //console.log('차트 초기화 및 모든 카드 리셋 완료');
                   }}
                   style={{
                     padding: '6px 16px', // 패딩 줄임

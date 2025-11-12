@@ -38,23 +38,55 @@ const iconSX = { fontSize: '0.75rem', color: 'inherit', marginLeft: 0, marginRig
 export default function AnalyticsDataCard({ 
   color = 'primary', 
   title, 
-  figures, 
   statblid, 
   isActiveInChart = false,
   onRemoveFromChart,
-  onResetCard, // 카드 리셋 콜백 추가
-  region = '전국',
-  onRegionChange,
-  regionOptions = [],
-  chartData = [], // 차트 데이터 추가
-  cardIndex = 0, // 카드 순서 추가 (0: 파랑, 1: 초록, 2: 빨강)
-  chartColor = null, // 직접 차트 색상 지정 (우선순위)
-  chartType = null, // 직접 차트 타입 지정 (우선순위)
-  ctype = null // ctype 추가
+  onResetCard,
+  option1: option1Prop = '', // 첫번째 옵션
+  onOption1Change,
+  option1Options = [],
+  option2: option2Prop = '', // 두번째 옵션
+  onOption2Change,
+  option2Options = [],
+  chartData = [],
+  cardIndex = 0,
+  chartColor = null,
+  chartType = null,
+  ctype = null
 }) {
   // 클라이언트 사이드에서만 차트 렌더링
   const [isClient, setIsClient] = useState(false);
   const [chartReady, setChartReady] = useState(false);
+
+    // 드롭다운의 디폴트 값 처리
+  const [option1, setOption1] = useState(option1Prop || (option1Options.length > 0 ? option1Options[0] : ''));
+  const [option2, setOption2] = useState(option2Prop || (option2Options.length > 0 ? option2Options[0] : ''));
+
+  useEffect(() => {
+    // option1Options가 바뀌면 첫번째 값으로 초기화
+    if (option1Options.length > 0 && !option1Options.includes(option1)) {
+      setOption1(option1Options[0]);
+      if (onOption1Change) onOption1Change(option1Options[0]);
+    }
+  }, [option1Options]);
+
+  useEffect(() => {
+    // option2Options가 바뀌면 첫번째 값으로 초기화
+    if (option2Options.length > 0 && !option2Options.includes(option2)) {
+      setOption2(option2Options[0]);
+      if (onOption2Change) onOption2Change(option2Options[0]);
+    }
+  }, [option2Options]);
+
+  // 드롭다운 값 변경 핸들러
+  const handleOption1Change = (e) => {
+    setOption1(e.target.value);
+    if (onOption1Change) onOption1Change(e.target.value);
+  };
+  const handleOption2Change = (e) => {
+    setOption2(e.target.value);
+    if (onOption2Change) onOption2Change(e.target.value);
+  };
 
   useEffect(() => {
     setIsClient(true);
@@ -188,7 +220,7 @@ export default function AnalyticsDataCard({
             <IconButton 
               size="small" 
               onClick={() => {
-                // 카드 데이터 리셋 (제목, figures 초기화)
+                // 카드 데이터 리셋 (제목, 그래프 초기화)
                 if (onResetCard) {
                   onResetCard(cardIndex);
                 }
@@ -246,25 +278,43 @@ export default function AnalyticsDataCard({
               </Box>
             )}
           </Box>
-          {/* 지역 선택 드롭다운 */}
-          {regionOptions.length > 0 && (
-            <Box sx={{ mt: 1 }}>
-              <FormControl size="small" sx={{ minWidth: 120, width: '100%' }}>
-                {/* <InputLabel id={`region-label-${statblid}`}>지역</InputLabel> */}
-                <Select
-                  labelId={`region-label-${statblid}`}
-                  value={region}
-                  // label="지역"
-                  onChange={(e) => onRegionChange && onRegionChange(e.target.value)}
-                  sx={{ backgroundColor: 'background.paper' }}
-                >
-                  {regionOptions.map((regionOption) => (
-                    <MenuItem key={regionOption} value={regionOption}>
-                      {regionOption}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+          {/* 옵션1, 옵션2 선택 드롭다운 */}
+          {(option1Options.length > 0 || option2Options.length > 0) && (
+            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+              {/* 옵션1 드롭다운 */}
+              {option1Options.length > 0 && (
+                <FormControl size="small" sx={{flex: 1, minWidth: 80, width: '50%'}}> {/* width: option2Options.length > 0 ? '50%'  : '50%', marginLeft: option2Options.length > 0 ? 0 : '50%' */}
+                  <Select
+                    labelId={`option1-label-${statblid}`}
+                    value={option1}
+                    onChange={handleOption1Change}
+                    sx={{ backgroundColor: 'background.paper' }}
+                  >
+                    {option1Options.map((opt) => (
+                      <MenuItem key={opt} value={opt}>
+                        {opt}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+              {/* 옵션2 드롭다운 */}
+              {option2Options.length > 0 && (
+                <FormControl size="small" sx={{flex: 1, minWidth: 80, width: '50%'}}>
+                  <Select
+                    labelId={`option2-label-${statblid}`}
+                    value={option2}
+                    onChange={handleOption2Change}
+                    sx={{ backgroundColor: 'background.paper' }}
+                  >
+                    {option2Options.map((opt) => (
+                      <MenuItem key={opt} value={opt}>
+                        {opt}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
             </Box>
           )}
         </Stack>
@@ -276,14 +326,16 @@ export default function AnalyticsDataCard({
 AnalyticsDataCard.propTypes = {
   color: PropTypes.string,
   title: PropTypes.string,
-  figures: PropTypes.string,
   statblid: PropTypes.string,
   isActiveInChart: PropTypes.bool,
   onRemoveFromChart: PropTypes.func,
-  onResetCard: PropTypes.func, // 카드 리셋 콜백 추가
-  region: PropTypes.string,
-  onRegionChange: PropTypes.func,
-  regionOptions: PropTypes.array,
+  onResetCard: PropTypes.func,
+  option1: PropTypes.string,
+  onOption1Change: PropTypes.func,
+  option1Options: PropTypes.array,
+  option2: PropTypes.string,
+  onOption2Change: PropTypes.func,
+  option2Options: PropTypes.array,
   chartData: PropTypes.array,
   cardIndex: PropTypes.number,
   chartColor: PropTypes.string,

@@ -1,6 +1,5 @@
 'use client';
 
-
 import { useState, forwardRef, useRef, useImperativeHandle, useMemo } from 'react';
 
 // ApexCharts exec를 위해 window에 강제로 attach
@@ -131,7 +130,7 @@ const mixedChartOptions = {
 
 // ==============================|| APEXCHART - MIXED ||============================== //
 
-const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColors = [], colorMapping = {}, chartTypeMapping = {}, policyAnnotations = [], ctype = [] }, ref) {
+const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColors = [], ctype = {}, colorMapping = {}, chartTypeMapping = {}, policyAnnotations = [] }, ref) {
   const theme = useTheme();
   const { mode } = useConfig();
 
@@ -152,12 +151,12 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
           chartType = chartTypeMapping[dataset.statblid];
         } 
         
-        // ctype 배열과 datasets 배열의 인덱스가 일치하도록 함
-        let currentCtype = 'dt-index'; // 기본값
-        if (Array.isArray(ctype) && ctype[index]) {
-          currentCtype = ctype[index];
-        }
-        
+        // ctype을 객체로 받아 statblid로 접근
+        let currentCtype = ctype && typeof ctype === 'object' && !Array.isArray(ctype)
+          ? ctype[dataset.statblid]
+          : undefined;
+        //console.log(`[ApexMixedChart] series[${index}] currentCtype:`, currentCtype);
+      
         return {
           name: dataset.label || dataset.name || `데이터 ${index + 1}`,
           label: dataset.label || dataset.name || `데이터 ${index + 1}`,
@@ -188,15 +187,31 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
     const dynamicColors = series.map((seriesItem, idx) => {
       let color = colorMapping?.[seriesItem.statblid];
       if (!color) color = chartColors[idx];
-      if (!color) color = chartColors[0];
       if (!color) color = '#1976d2';
       return color;
     });
      
- // Y축 설정 - 지수 관련은 같은 축 공유, 가격은 별도 축
+    // Y축 설정 - 지수 관련은 같은 축 공유, 가격은 별도 축
     let yaxis = null;
     if (series.length > 0) {
       const yaxisColors = dynamicColors.slice(0, series.length);
+      
+      // ctype이 제일 많이 있는 것 계산 
+      const ctypeCount = {};
+      series.forEach(s => {
+        if (s.ctype) {
+          ctypeCount[s.ctype] = (ctypeCount[s.ctype] || 0) + 1;
+        }
+      });
+      let maxCtype = null;
+      let maxCount = 0;
+      Object.entries(ctypeCount).forEach(([key, count]) => {
+        if (count > maxCount) {
+          maxCtype = key;
+          maxCount = count;
+        }
+      });
+      console.log('[ApexMixedChart] 가장 많은 ctype:', maxCtype, 'count:', maxCount);
       
       // isIndex인 시리즈들의 전체 데이터 범위 계산
       let indexMin = Infinity;
@@ -230,12 +245,13 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
       
       // 시리즈별로 yaxis 생성하되, 지수 관련은 첫 번째 Y축 공유
       yaxis = series.map((s, idx) => {
-        const isIndex = (s.ctype === 'dt-index' );
+        const isIndex = (s.ctype === 'dt-index');
         const isPercent = (s.ctype === 'dt-percent');
         
         if (isIndex) {
-          // 지수 관련 시리즈는 각자의 이름 사용하되, Y축은 공유
+          // 지수, 금액 시리즈 Y축 공유
           const firstIndexIdx = series.findIndex(ser => ser.ctype === 'dt-index');
+          
           return {
             seriesName: s.name, // 각 시리즈의 고유한 이름 사용
             axisTicks: { show: idx === firstIndexIdx },
@@ -252,8 +268,8 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
               text: idx === firstIndexIdx ? '지수' : undefined,
               style: { color: yaxisColors[firstIndexIdx] }
             },
-            opposite: false,
-            // 모든 isIndex 시리즈에 동일한 min/max 적용하여 스케일 동기화
+            opposite: false, // Y축을 차트의 왼쪽에 표시
+            // 같은 시리즈에 동일한 min/max 적용하여 스케일 동기화
             min: indexMin,
             max: indexMax
           };
@@ -274,7 +290,7 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
               text: '변동률',
               style: { color: yaxisColors[idx] }
             },
-            opposite: true
+            opposite: true  // Y축을 차트의 오른쪽에 표시
           };
         } else {
           // 기타
@@ -300,16 +316,22 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
     } else {
       console.log('⚠️ [ApexMixedChart] series.length가 0이어서 yaxis를 생성하지 않음');
     }
+    // yyyymmdd → yyyymm 변환 함수
+    function toDateString(yyyymmdd) {
+      if (!yyyymmdd) return '';
+      const str = String(yyyymmdd);
+      if (str.length !== 8) return str;
+      const year = str.substring(0, 4);
+      const month = str.substring(4, 6);
+      return `${year}${month}`;
+    }
 
     let annotations = { xaxis: [], points: [] };
     if (Array.isArray(policyAnnotations) && policyAnnotations.length > 0 && categories && categories.length > 0) {
-      function normalizeDate(date) {
-        if (!date) return '';
-        if (date.length === 8) return date.slice(0,6);
-        return date;
-      }
+
       annotations.xaxis = policyAnnotations.map((policy, idx) => {
-        const normDate = normalizeDate(policy.date);
+        // 정책 날짜를 yyyymm 로 변환
+        const normDate = toDateString(policy.date);
         const catIdx = categories.findIndex(cat => {
           const catStr = String(cat).replace(/[^0-9]/g, '').slice(0,6);
           return catStr === normDate;
@@ -325,7 +347,7 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
         };
       }).filter(Boolean);
       annotations.points = policyAnnotations.map((policy, idx) => {
-        const normDate = normalizeDate(policy.date);
+        const normDate = toDateString(policy.date);
         const catIdx = categories.findIndex(cat => {
           const catStr = String(cat).replace(/[^0-9]/g, '').slice(0,6);
           return catStr === normDate;
@@ -467,6 +489,13 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
           show: true,
           style: {
             colors: [primary, primary, primary, primary, primary, primary, primary, primary]
+          },
+          formatter: function(value) {
+            // value가 yyyy-mm-dd 또는 yyyy-mm 형태일 때 yyyy-mm만 추출
+            if (typeof value === 'string' && value.length === 6) {
+              return value.slice(0, 4) + '-' + value.slice(4, 6);
+            }
+            return value;
           }
         }
       },

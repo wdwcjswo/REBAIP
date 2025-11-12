@@ -296,20 +296,23 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
       
       if (isObjectData) {
         // 객체 형태: {x: date, y: value}
-        const minMap = new Map(minData.map(item => [String(item.x), item.y]));
-        const maxMap = new Map(maxData.map(item => [String(item.x), item.y]));
+        // x값이 timestamp인지 확인 (allLabels가 timestamp면 데이터도 timestamp로 매칭)
+        const isTimestamp = typeof allLabels[0] === 'number';
+        
+        const minMap = new Map(minData.map(item => [isTimestamp ? item.x : String(item.x), item.y]));
+        const maxMap = new Map(maxData.map(item => [isTimestamp ? item.x : String(item.x), item.y]));
         
         allLabels.forEach(category => {
-          const categoryStr = String(category);
-          const minVal = minMap.get(categoryStr);
-          const maxVal = maxMap.get(categoryStr);
+          const categoryKey = isTimestamp ? category : String(category);
+          const minVal = minMap.get(categoryKey);
+          const maxVal = maxMap.get(categoryKey);
           
           // 유효성 검증
           const validMin = (minVal !== null && minVal !== undefined && !isNaN(minVal)) ? Number(minVal) : null;
           const validMax = (maxVal !== null && maxVal !== undefined && !isNaN(maxVal)) ? Number(maxVal) : null;
           
           rangeData.push({
-            x: categoryStr,
+            x: category, // timestamp 또는 문자열 그대로 사용
             y: (validMin !== null && validMax !== null) ? [validMin, validMax] : null
           });
         });
@@ -323,7 +326,10 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
           const validMin = (minVal !== null && minVal !== undefined && !isNaN(minVal)) ? Number(minVal) : null;
           const validMax = (maxVal !== null && maxVal !== undefined && !isNaN(maxVal)) ? Number(maxVal) : null;
           
-          rangeData.push((validMin !== null && validMax !== null) ? [validMin, validMax] : null);
+          rangeData.push({
+            x: category, // timestamp 또는 문자열 그대로 사용
+            y: (validMin !== null && validMax !== null) ? [validMin, validMax] : null
+          });
         });
       }
       
@@ -337,46 +343,53 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
 
     // 4. 기타 데이터셋 처리 (매물량, 실거래 등)
     datasets.others.forEach((dataset, index) => {
-      
       const label = dataset.label || dataset.name || '';
       const originalData = Array.isArray(dataset.data) ? dataset.data : [];
       const chartType = determineChartType(label, originalData);
-      
-      // 원본 데이터가 객체 형태({x, y})인지 확인
-      const isObjectData = originalData.length > 0 && typeof originalData[0] === 'object' && originalData[0] !== null && 'x' in originalData[0];
-      
-      const normalizedData = [];
-      
-      if (isObjectData) {
-        // 데이터가 {x: date, y: value} 형태
-        const dataMap = new Map();
-        originalData.forEach(item => {
-          if (item?.x && item.y !== null && item.y !== undefined && !isNaN(item.y)) {
-            dataMap.set(String(item.x), Number(item.y));
-          }
-        });
-        
-        allLabels.forEach(category => {
-          const categoryStr = String(category);
-          normalizedData.push({
-            x: categoryStr,
-            y: dataMap.get(categoryStr) || null
-          });
+      if (chartType === 'scatter') {
+        // 실거래가(혹은 scatter)는 중복 x값 허용: 원본 배열 그대로 사용
+        generatedSeries.push({
+          name: dataset.label || dataset.name || `데이터 ${index + 1}`,
+          label: dataset.label || dataset.name || `데이터 ${index + 1}`,
+          type: chartType,
+          data: originalData.filter(item => item?.x && item.y !== null && item.y !== undefined && !isNaN(item.y))
         });
       } else {
-        // 데이터가 단순 배열
-        allLabels.forEach((category, i) => {
-          const val = i < originalData.length ? originalData[i] : null;
-          normalizedData.push((val !== null && val !== undefined && !isNaN(val)) ? Number(val) : null);
+        // 기존 방식 유지
+        const isObjectData = originalData.length > 0 && typeof originalData[0] === 'object' && originalData[0] !== null && 'x' in originalData[0];
+        const normalizedData = [];
+        if (isObjectData) {
+          const isTimestamp = typeof allLabels[0] === 'number';
+          const dataMap = new Map();
+          originalData.forEach(item => {
+            if (item?.x && item.y !== null && item.y !== undefined && !isNaN(item.y)) {
+              const key = isTimestamp ? item.x : String(item.x);
+              dataMap.set(key, Number(item.y));
+            }
+          });
+          allLabels.forEach(category => {
+            const categoryKey = isTimestamp ? category : String(category);
+            normalizedData.push({
+              x: category, // timestamp 또는 문자열 그대로 사용
+              y: dataMap.get(categoryKey) || null
+            });
+          });
+        } else {
+          allLabels.forEach((category, i) => {
+            const val = i < originalData.length ? originalData[i] : null;
+            normalizedData.push({
+              x: category, // timestamp 또는 문자열 그대로 사용
+              y: (val !== null && val !== undefined && !isNaN(val)) ? Number(val) : null
+            });
+          });
+        }
+        generatedSeries.push({
+          name: dataset.label || dataset.name || `데이터 ${index + 1}`,
+          label: dataset.label || dataset.name || `데이터 ${index + 1}`,
+          type: chartType,
+          data: normalizedData
         });
       }
-      
-      generatedSeries.push({
-        name: dataset.label || dataset.name || `데이터 ${index + 1}`,
-        label: dataset.label || dataset.name || `데이터 ${index + 1}`,
-        type: chartType,
-        data: normalizedData
-      });
     });
 
     // 5. visibleSeries에 따라 시리즈 필터링
@@ -408,7 +421,7 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
       return true;
     });
     
-    console.log('✅ [ApexRebChart] 생성된 시리즈:', filteredSeries.length);
+    //console.log('✅ [ApexRebChart] 생성된 시리즈:', filteredSeries.length);
     return filteredSeries;
   }, [chartData, visibleSeries]);
 
@@ -585,21 +598,31 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
           };
         }
       });
-    } else {
-      console.log('⚠️ [ApexRebChart] series.length가 0이어서 yaxis를 생성하지 않음');
+    } 
+
+    // yyyymmdd → yyyy-mm-dd 변환 함수
+    function toDateString(yyyymmdd) {
+      if (!yyyymmdd) return '';
+      const str = String(yyyymmdd);
+      if (str.length !== 8) return str;
+      const year = str.substring(0, 4);
+      const month = str.substring(4, 6);
+      const day = str.substring(6, 8);
+      return `${year}-${month}-${day}`;
     }
 
     let annotations = { xaxis: [] };
     if (Array.isArray(policyAnnotations) && policyAnnotations.length > 0 && categories && categories.length > 0) {
       annotations.xaxis = policyAnnotations.map((policy, idx) => {
-        const normDate = policy.date;
-        const catIdx = categories.findIndex(cat => {
-          const catStr = String(cat).replace(/[^0-9]/g, '').slice(0,8);
-          return catStr === normDate;
-        });
+        // 정책 날짜를 yyyy-mm-dd로 변환
+        const normDate = toDateString(policy.date);
+
+        // categories에서 매칭
+        const catIdx = categories.findIndex(cat => String(cat) === normDate); 
+
         if (catIdx === -1) return null;
         return {
-          x: categories[catIdx],
+          x: Date.parse(categories[catIdx]),
           borderColor: '#0e0d0dff',
           strokeDashArray: 6,
           opacity: 1,
@@ -707,84 +730,152 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
       shared: true,
       intersect: false,
       followCursor: false,
+      offsetY: -50, // 툴팁을 위로 50px 이동
+      x: {
+        format: 'yyyy-MM-dd'
+      },
       custom: function({ series, seriesIndex, dataPointIndex, w }) {
-        // 날짜 포맷팅
-        const category = categories[dataPointIndex];
-        let dateStr = '';
-        if (category) {
-          const catStr = String(category);
-          if (catStr.length === 8) {
-            const year = catStr.substring(0, 4);
-            const month = catStr.substring(4, 6);
-            const day = catStr.substring(6, 8);
-            dateStr = `${year}-${month}-${day}`;
+        let dateValue = null;
+        
+        // 현재 시리즈가 scatter인지 확인하고, scatter면 실제 데이터의 x값 사용 
+        //scatter 시리즈는 중복 x값을 허용하기 때문에 categories 배열의 인덱스와 실제 데이터의 위치가 다를 수 있음
+        if (w && w.config && w.config.series) {
+          const currentSeries = w.config.series[seriesIndex];
+          if (currentSeries && currentSeries.type === 'scatter') {
+            const seriesDataRaw = currentSeries.data || [];
+            if (seriesDataRaw[dataPointIndex] && typeof seriesDataRaw[dataPointIndex].x !== 'undefined') {
+              dateValue = seriesDataRaw[dataPointIndex].x;
+            }
           } else {
-            dateStr = catStr;
+            dateValue = categories[dataPointIndex];
           }
         }
         
-        // ApexCharts 기본 스타일과 동일하게 구성
-        let html = '<div class="apexcharts-tooltip-title" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">' + dateStr + '</div>';
-        
-        // 각 시리즈별로 값 표시
-        w.config.series.forEach((s, idx) => {
+        // 타입별 html 생성 함수
+        function renderCandlestick(s, idx, seriesColor, seriesName, seriesDataRaw) {
+          const dataPoint = seriesDataRaw[dataPointIndex];
+          if (dataPoint && Array.isArray(dataPoint.y) && dataPoint.y.length === 4) {
+            const [open, high, low, close] = dataPoint.y;
+            return `
+              <div class="apexcharts-tooltip-series-group apexcharts-active" style="order: ${idx + 1}; display: flex;">
+                <span class="apexcharts-tooltip-marker" style="background-color: ${seriesColor};"></span>
+                <div class="apexcharts-tooltip-text" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
+                  <div class="apexcharts-tooltip-y-group">
+                    <span class="apexcharts-tooltip-text-y-label">${seriesName}</span><br>
+                    <span class="apexcharts-tooltip-text-y-label">시가: </span><span class="apexcharts-tooltip-text-y-value">${open !== null && open !== undefined ? Number(open).toLocaleString() : '-'}</span><br>
+                    <span class="apexcharts-tooltip-text-y-label">고가: </span><span class="apexcharts-tooltip-text-y-value">${high !== null && high !== undefined ? Number(high).toLocaleString() : '-'}</span><br>
+                    <span class="apexcharts-tooltip-text-y-label">저가: </span><span class="apexcharts-tooltip-text-y-value">${low !== null && low !== undefined ? Number(low).toLocaleString() : '-'}</span><br>
+                    <span class="apexcharts-tooltip-text-y-label">종가: </span><span class="apexcharts-tooltip-text-y-value">${close !== null && close !== undefined ? Number(close).toLocaleString() : '-'}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+          return '';
+        }
+
+        function renderScatter(s, idx, seriesColor, seriesName, seriesDataRaw) {
+          // dateValue를 기준으로 동일 날짜 데이터 찾기
+          let sameDateItems = [];
+          if (dateValue !== null && typeof dateValue !== 'undefined') {
+            sameDateItems = seriesDataRaw.filter(item => {
+              if (!item || typeof item.x === 'undefined') return false;
+              // 날짜 타입이 다를 수 있으니 문자열로 변환해서 비교
+              return String(item.x) === String(dateValue);
+            });
+          }
+
+          let innerHtml = '';
+          if (sameDateItems.length === 0) {
+            innerHtml = `<span class="apexcharts-tooltip-text-y-label">${seriesName}: </span><span class="apexcharts-tooltip-text-y-value">없음</span>`;
+          } else if (sameDateItems.length === 1) {
+            innerHtml = `<span class="apexcharts-tooltip-text-y-label">${seriesName}: </span><span class="apexcharts-tooltip-text-y-value">${Number(sameDateItems[0].y).toLocaleString()}</span>`;
+          } else if (sameDateItems.length === 2) {
+            innerHtml = `<span class="apexcharts-tooltip-text-y-label">${seriesName}: </span>` +
+              sameDateItems.map(item => `<span class=\"apexcharts-tooltip-text-y-value\" style=\"margin-right: 8px;\">${Number(item.y).toLocaleString()}</span>`).join('');
+          } else {
+            innerHtml = `<span class="apexcharts-tooltip-text-y-label" style="margin-bottom: 4px; display: block;">${seriesName}: </span>`;
+            const itemsPerRow = 3;
+            for (let i = 0; i < sameDateItems.length; i += itemsPerRow) {
+              const rowItems = sameDateItems.slice(i, i + itemsPerRow);
+              innerHtml += '<div style="margin-bottom: 2px;">' +
+                rowItems.map(item => `<span class=\"apexcharts-tooltip-text-y-value\" style=\"margin-right: 8px;\">${Number(item.y).toLocaleString()}</span>`).join('') +
+                '</div>';
+            }
+          }
+          return `
+            <div class="apexcharts-tooltip-series-group apexcharts-active" style="order: ${idx + 1}; display: flex;">
+              <span class="apexcharts-tooltip-marker" style="background-color: ${seriesColor};"></span>
+              <div class="apexcharts-tooltip-text" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; max-width: 350px;">
+                <div class="apexcharts-tooltip-y-group">${innerHtml}</div>
+              </div>
+            </div>
+          `;
+        }
+
+        function renderRangeArea(s, idx, seriesColor, seriesName, seriesDataRaw) {
+          const dataPoint = seriesDataRaw[dataPointIndex];
+          let displayValue = '없음';
+          if (dataPoint && Array.isArray(dataPoint.y) && dataPoint.y.length === 2) {
+            const [min, max] = dataPoint.y;
+            if (min !== null && min !== undefined && max !== null && max !== undefined) {
+              displayValue = `${Number(min).toLocaleString()} ~ ${Number(max).toLocaleString()}`;
+            }
+          }
+          return `
+            <div class="apexcharts-tooltip-series-group apexcharts-active" style="order: ${idx + 1}; display: flex;">
+              <span class="apexcharts-tooltip-marker" style="background-color: ${seriesColor};"></span>
+              <div class="apexcharts-tooltip-text" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
+                <div class="apexcharts-tooltip-y-group">
+                  <span class="apexcharts-tooltip-text-y-label">${seriesName}: </span>
+                  <span class="apexcharts-tooltip-text-y-value">${displayValue}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        function renderDefault(s, idx, seriesColor, seriesName, seriesDataRaw) {
+          const dataPoint = seriesDataRaw[dataPointIndex];
+          let displayValue = '없음';
+          if (dataPoint && typeof dataPoint.y !== 'undefined' && dataPoint.y !== null) {
+            if (dataPoint.y === 0) {
+              displayValue = '0';
+            } else {
+              displayValue = Number(dataPoint.y).toLocaleString();
+            }
+          }
+          return `
+            <div class="apexcharts-tooltip-series-group apexcharts-active" style="order: ${idx + 1}; display: flex;">
+              <span class="apexcharts-tooltip-marker" style="background-color: ${seriesColor};"></span>
+              <div class="apexcharts-tooltip-text" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
+                <div class="apexcharts-tooltip-y-group">
+                  <span class="apexcharts-tooltip-text-y-label">${seriesName}: </span>
+                  <span class="apexcharts-tooltip-text-y-value">${displayValue}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        // 시리즈별로 타입에 따라 html 생성
+        const seriesHtmlArr = w.config.series.map((s, idx) => {
           const seriesType = s.type || 'line';
           const seriesName = s.name || '';
           const seriesColor = w.config.colors[idx] || '#000';
           const seriesDataRaw = s.data || [];
-          
-          // 실제 데이터 가져오기
-          let actualValue = series[idx] ? series[idx][dataPointIndex] : null;
-          const dataPoint = seriesDataRaw[dataPointIndex];
-          if (dataPoint && typeof dataPoint === 'object' && 'y' in dataPoint) {
-            actualValue = dataPoint.y;
+          if (seriesType === 'candlestick') {
+            return renderCandlestick(s, idx, seriesColor, seriesName, seriesDataRaw);
+          } else if (seriesType === 'scatter') {
+            return renderScatter(s, idx, seriesColor, seriesName, seriesDataRaw);
+          } else if (seriesType === 'rangeArea') {
+            return renderRangeArea(s, idx, seriesColor, seriesName, seriesDataRaw);
+          } else {
+            return renderDefault(s, idx, seriesColor, seriesName, seriesDataRaw);
           }
-          
-          let displayValue = '';
-          
-          // null/undefined 처리
-          if (actualValue === null || actualValue === undefined) {
-            displayValue = '없음';
-          }
-          // rangeArea인 경우 [min, max] 형태 처리
-          else if (seriesType === 'rangeArea') {
-            if (Array.isArray(actualValue) && actualValue.length === 2) {
-              const [min, max] = actualValue;
-              if (min === null || max === null || min === undefined || max === undefined) {
-                displayValue = '없음';
-              } else {
-                displayValue = `${Number(min).toLocaleString()} ~ ${Number(max).toLocaleString()}`;
-              }
-            } else {
-              displayValue = '없음';
-            }
-          }
-          // 0인 경우 처리
-          else if (actualValue === 0) {
-            if (seriesType === 'scatter' && seriesName.includes('실거래가')) {
-              displayValue = '없음';
-            } else {
-              displayValue = '0';
-            }
-          }
-          // 일반 값 처리
-          else {
-            displayValue = Number(actualValue).toLocaleString();
-          }
-          
-          // ApexCharts 기본 스타일 유지
-          html += '<div class="apexcharts-tooltip-series-group apexcharts-active" style="order: ' + (idx + 1) + '; display: flex;">';
-          html += '<span class="apexcharts-tooltip-marker" style="background-color: ' + seriesColor + ';"></span>';
-          html += '<div class="apexcharts-tooltip-text" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">';
-          html += '<div class="apexcharts-tooltip-y-group">';
-          html += '<span class="apexcharts-tooltip-text-y-label">' + seriesName + ': </span>';
-          html += '<span class="apexcharts-tooltip-text-y-value">' + displayValue + '</span>';
-          html += '</div>';
-          html += '</div>';
-          html += '</div>';
         });
-        
-        return html;
+
+        return `<div class="apexcharts-tooltip-title" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">${dateValue}</div>` + seriesHtmlArr.join('');
       }
     };
 
@@ -815,18 +906,35 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
       plotOptions,
       tooltip: tooltipConfig,
       xaxis: {
-        type: 'category',
-        categories: categories,
-        tickAmount: 20,
-        min: 0,
-        max: categories.length > 0 ? categories.length - 1 : undefined,
+        type: 'datetime',
+        tickAmount: 20, // X축에 표시할 눈금 개수 
+        tickPlacement: 'on',
         labels: {
           show: true,
-          rotate: -45, // 라벨 회전으로 가독성 향상
+          rotate: -45,
           rotateAlways: false,
+          hideOverlappingLabels: false,
+          trim: false,
+          showDuplicates: true,
+          datetimeUTC: false,
           style: {
             colors: [primary, primary, primary, primary, primary, primary, primary, primary]
+          },
+          formatter: function(value) {
+            // value는 timestamp 또는 yyyy-MM-dd 문자열
+            let dateObj = typeof value === 'string' ? new Date(value) : new Date(Number(value));
+            if (isNaN(dateObj.getTime())) return value;
+            const yyyy = dateObj.getFullYear();
+            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const dd = String(dateObj.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
           }
+        },
+        axisTicks: {
+          show: true
+        },
+        axisBorder: {
+          show: true
         }
       },
       yaxis,
@@ -881,12 +989,12 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
         try {
           const dataURI = await window.ApexCharts.exec(chartId, 'dataURI');
           if (dataURI?.imgURI) {
-            console.log(`[exportToImage] SUCCESS at retry ${retry}`);
+            //console.log(`[exportToImage] SUCCESS at retry ${retry}`);
             return dataURI.imgURI;
           }
           // 재시도 (최대 10회)
           if (retry < 10) {
-            console.log(`[exportToImage] imgURI undefined, retrying... (${retry + 1})`);
+            //console.log(`[exportToImage] imgURI undefined, retrying... (${retry + 1})`);
             await new Promise(res => setTimeout(res, 200));
             return await ref.current.exportToImage(retry + 1);
           }
@@ -896,12 +1004,12 @@ const ApexRebChart = forwardRef(function ApexRebChart({ chartData, policyAnnotat
         }
       } else {
         if (retry < 10) {
-          console.log(`[exportToImage] window.ApexCharts not ready, retrying... (${retry + 1})`);
+          //console.log(`[exportToImage] window.ApexCharts not ready, retrying... (${retry + 1})`);
           await new Promise(res => setTimeout(res, 200));
           return await ref.current.exportToImage(retry + 1);
         }
       }
-      console.log('[exportToImage] FAILED after max retries');
+      //console.log('[exportToImage] FAILED after max retries');
       return null;
     }
   }), [chartId, series, categories]);

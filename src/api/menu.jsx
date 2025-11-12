@@ -3,15 +3,13 @@ import useSWR, { mutate } from 'swr';
 import { useMemo, useState, useEffect } from 'react';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 
 // assets
+import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
 import DashboardOutlined from '@ant-design/icons/DashboardOutlined';
 import GoldOutlined from '@ant-design/icons/GoldOutlined';
-import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
-
 
 // Project-imports
 import { fetcher } from 'utils/axios';
@@ -215,7 +213,6 @@ export const fetchMenuData = async () => {
     return data;
 
   } catch (err) {
-    console.error('API 호출 오류:', err);
     throw new Error(`연결 오류: ${err.message}`);
   }
 };
@@ -227,13 +224,13 @@ export const onDragStart = (event, item) => {
 
     const dragData = {
       id: item.id || 'unknown',
-      cname: item.cContents || item.title || 'Untitled',
-      cContents: item.cContents || item.title || 'Untitled',
-      statblid: item.cCode || item.statblid || 'unknown',
-      url: item.url || '',
+      cname: item.cname || 'Untitled',
+      cContents: item.cContents || 'Untitled',
+      ctype: item.ctype || 'unknown',
+      statblid: item.statblid || 'unknown',
       newdate: item.newdate || '000000',
       figures: item.figures || '0',
-      ctype: item.ctype || ''
+      url: item.url || ''
     };
 
     event.dataTransfer.setData('application/json', JSON.stringify(dragData));
@@ -274,9 +271,11 @@ export const convertToTreeItems = (items, parentId = '', level = 0) => {
           const dragItem = {
             ...rest,
             id: item.id || itemId,
-            cname: item.cname || item.title || 'Untitled',
-            cContents: item.cContents || item.cname || item.title || 'Untitled',
-            statblid: item.statblid || item.cCode || 'unknown',
+            cname: item.cname  || 'Untitled',
+            cContents: item.cContents || 'Untitled',
+            ctype: item.ctype || 'unknown',
+            statblid: item.statblid  || 'unknown',
+            newdate: item.newdate || '000000',
             figures: item.figures || '0', // 실제 figures 또는 기본값 '0'
             url: item.url || ''
           };
@@ -321,24 +320,6 @@ export const convertToTreeItems = (items, parentId = '', level = 0) => {
             </Box>
           )}
         </Box>
-
-        {/* 데이터 개수 표시 (리프 노드에만) */}
-        {isLeafNode && item.figures && (
-          <Box 
-            component="span" 
-            sx={{ 
-              fontSize: '10px', 
-              color: 'text.secondary',
-              backgroundColor: 'grey.100',
-              padding: '1px 4px',
-              borderRadius: '8px',
-              minWidth: '20px',
-              textAlign: 'center'
-            }}
-          >
-            {item.figures}
-          </Box>
-        )}
       </Box>
     );
 
@@ -367,7 +348,6 @@ export const convertApiDataToMenuItem = (apiData) => {
           id: itemId,
           title: item.cContents || item.cname || 'Untitled',
           type: 'collapse',
-          // icon: '' // 필요시 빈 값, 아니면 아예 제거
           children: processChildren(item.children, itemId),
           breadcrumbs: false
         };
@@ -383,7 +363,7 @@ export const convertApiDataToMenuItem = (apiData) => {
           draggable: true,
           statblid: item.statblid || item.cCode || '',
           figures: item.figures || '0',
-          newdate: item.newdate || '202301',
+          newdate: item.newdate || '000000',
           ctype: item.ctype || ''
         };
       }
