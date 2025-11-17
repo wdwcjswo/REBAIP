@@ -42,11 +42,6 @@ const prefetchRoutes = () => {
   // These will be prefetched when the landing page loads
   import('views/auth/login');
   import('views/auth/register');
-  import('views/apps/e-commerce/products');
-  import('views/apps/invoice/dashboard');
-  import('views/apps/kanban');
-  import('views/apps/calendar');
-  import('views/apps/chat');
 };
 
 // ==============================|| LANDING PAGE ||============================== //

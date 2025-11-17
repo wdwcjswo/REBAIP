@@ -26,7 +26,6 @@ import HorizontalBar from './Drawer/HorizontalBar';
 import Loader from 'components/Loader';
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
 
-import AddCustomer from 'sections/apps/customer/AddCustomer';
 import AuthGuard from 'utils/route-guard/AuthGuard';
 import { useState } from 'react';
 import AiComponent from './AiComponent';
@@ -166,7 +165,6 @@ export default function DashboardLayout({ children }) {
             <AiComponent width={rightPanelWidth}/>
           </Box>
         </Box>
-        <AddCustomer />
       </ChartImageHistoryContext.Provider>
     </AuthGuard>
   );

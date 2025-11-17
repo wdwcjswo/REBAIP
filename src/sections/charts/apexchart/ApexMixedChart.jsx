@@ -183,12 +183,79 @@ const ApexMixedChart = forwardRef(function ApexMixedChart({ chartData, chartColo
 
   // options를 useMemo로 계산하여 바로 Chart에 넘김
   const options = useMemo(() => {
-    // 시리즈별 색상은 항상 series 순서대로 강제 지정 (yAxisIndex와 무관)
+    // 시리즈별 색상 - 같은 statblid인 경우 명도를 조절하여 구분
+    const statblidGroups = {};
+    series.forEach((seriesItem, idx) => {
+      const sid = seriesItem.statblid || 'unknown';
+      if (!statblidGroups[sid]) statblidGroups[sid] = [];
+      statblidGroups[sid].push(idx);
+    });
+    
+    // RGB to HSL 변환 함수
+    const hexToHSL = (hex) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      if (!result) return { h: 0, s: 0, l: 50 };
+      
+      let r = parseInt(result[1], 16) / 255;
+      let g = parseInt(result[2], 16) / 255;
+      let b = parseInt(result[3], 16) / 255;
+      
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+      
+      if (max === min) {
+        h = s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+          case g: h = ((b - r) / d + 2) / 6; break;
+          case b: h = ((r - g) / d + 4) / 6; break;
+        }
+      }
+      
+      return { h: h * 360, s: s * 100, l: l * 100 };
+    };
+    
+    // HSL to RGB 변환 함수
+    const hslToHex = (h, s, l) => {
+      s /= 100;
+      l /= 100;
+      
+      const k = n => (n + h / 30) % 12;
+      const a = s * Math.min(l, 1 - l);
+      const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+      
+      const r = Math.round(255 * f(0));
+      const g = Math.round(255 * f(8));
+      const b = Math.round(255 * f(4));
+      
+      return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`;
+    };
+    
     const dynamicColors = series.map((seriesItem, idx) => {
-      let color = colorMapping?.[seriesItem.statblid];
-      if (!color) color = chartColors[idx];
-      if (!color) color = '#1976d2';
-      return color;
+      let baseColor = colorMapping?.[seriesItem.statblid];
+      if (!baseColor) baseColor = chartColors[idx];
+      if (!baseColor) baseColor = '#1976d2';
+      
+      // 같은 statblid 그룹 내에서 몇 번째인지 확인
+      const sid = seriesItem.statblid || 'unknown';
+      const groupIndices = statblidGroups[sid];
+      const positionInGroup = groupIndices.indexOf(idx);
+      const groupSize = groupIndices.length;
+      
+      // 그룹 내에 여러 시리즈가 있으면 명도를 조절
+      if (groupSize > 1) {
+        const hsl = hexToHSL(baseColor);
+        // 명도를 20%~80% 범위에서 균등 분배
+        const lightnessStep = 60 / (groupSize - 1);
+        const newLightness = 20 + (positionInGroup * lightnessStep);
+        return hslToHex(hsl.h, hsl.s, newLightness);
+      }
+      
+      return baseColor;
     });
      
     // Y축 설정 - 지수 관련은 같은 축 공유, 가격은 별도 축

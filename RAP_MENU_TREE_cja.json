@@ -395,6 +395,42 @@
     "cContents": "국내인구이동통계",
     "href": "#"
   },
+   {
+    "children": [
+      {
+        "children": [],
+        "cContents": "지역별 신규 분양세대수",
+        "href": "#",
+        "statblid": "T244633134461863",
+        "newdate": "202506",
+        "count": "105",
+        "ctype": "dt-hCount",
+        "cname": "지역별 신규 분양세대수"
+      },
+      {
+        "children": [],
+        "cContents": "지역별 규모별 ㎡당 분양가격지수",
+        "href": "#",
+        "statblid": "T247863134443498",
+        "newdate": "202506",
+        "count": "530",
+        "ctype": "dt-price",
+        "cname": "지역별 규모별 ㎡당 분양가격지수"
+      },
+      {
+        "children": [],
+        "cContents": "지역별 규모별 ㎡당 평균 분양가격",
+        "href": "#",
+        "statblid": "T249233134451237",
+        "newdate": "202506",
+        "count": "530",
+        "ctype": "dt-price",
+        "cname": "지역별 규모별 ㎡당 평균 분양가격"
+      }
+    ],
+    "cContents": "민간아파트분양시장동향",
+    "href": "#"
+  },
   {
     "children": [
       {

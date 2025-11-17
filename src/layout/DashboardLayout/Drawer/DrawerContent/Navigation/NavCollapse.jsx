@@ -190,9 +190,9 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
   // menu collapse for sub-levels
   useMenuCollapse(menu, pathname, miniMenuOpened, setSelected, setOpen, setAnchorEl);
 
-  // useMenuCollapse 훅 실행 후 아파트 정보 페이지에서는 2레벨 메뉴 강제 닫기
+  // useMenuCollapse 훅 실행 후 아파트 정보 페이지와 지도 페이지에서는 2레벨 메뉴 강제 닫기
   useEffect(() => {
-    if (level === 2 && pathname?.includes('/info-apartment')) {
+    if (level === 2 && (pathname?.includes('/info-apartment') || pathname?.includes('/map'))) {
       setOpen(false);
       setSelected(null);
     }
@@ -204,8 +204,8 @@ export default function NavCollapse({ menu, level, parentId, setSelectedItems, s
       setSelected(menu.id);
       setAnchorEl(null);
       
-      // 아파트 정보 페이지에서는 2레벨 메뉴 자동 오픈 방지
-      if (level === 2 && pathname?.includes('/info-apartment')) {
+      // 아파트 정보 페이지와 지도 페이지에서는 2레벨 메뉴 자동 오픈 방지
+      if (level === 2 && (pathname?.includes('/info-apartment') || pathname?.includes('/map'))) {
         setOpen(false);
       } else {
         setOpen(true);

@@ -1,10 +1,8 @@
 // project imports
 
-import formsTables from './forms-tables';
-import samplePage from './sample-page';
 import rebMap from './rebMap';
-import other from './other';
-import pages from './pages';
+// import other from './other';
+// import pages from './pages';
 
 // ==============================|| MENU ITEMS ||============================== //
 

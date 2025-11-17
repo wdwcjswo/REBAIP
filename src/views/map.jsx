@@ -1,138 +1,83 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 // material-ui
-import { useTheme } from '@mui/material/styles';
-import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
 
 // project imports
 import MainCard from 'components/MainCard';
-import MapContainerStyled from 'components/third-party/map/MapContainerStyled';
 
-import ClustersMap from 'sections/maps/clusters-map';
-import ChangeTheme from 'sections/maps/change-theme';
-import DraggableMarker from 'sections/maps/draggable-marker';
-import GeoJSONAnimation from 'sections/maps/GeoJSONAnimation';
-import Heatmap from 'sections/maps/heatmap';
-import HighlightByFilter from 'sections/maps/HighlightByFilter';
-import InteractionMap from 'sections/maps/interaction-map';
-import MarkersPopups from 'sections/maps/MarkersPopups';
-import SideBySide from 'sections/maps/side-by-side';
-import ViewportAnimation from 'sections/maps/viewport-animation';
-
-import { ThemeMode } from 'config';
-import { cities, countries } from 'data/location';
-
-const MAPBOX_THEMES = {
-  light: 'mapbox://styles/mapbox/light-v10',
-  dark: 'mapbox://styles/mapbox/dark-v10',
-  streets: 'mapbox://styles/mapbox/streets-v11',
-  outdoors: 'mapbox://styles/mapbox/outdoors-v11',
-  satellite: 'mapbox://styles/mapbox/satellite-v9',
-  satelliteStreets: 'mapbox://styles/mapbox/satellite-streets-v11'
-};
-
-const mapConfiguration = {
-  mapboxAccessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
-  minZoom: 1
-};
-
-// ==============================|| MAP ||============================== //
+// ==============================|| NAVER MAP ||============================== //
 
 export default function Map() {
-  const theme = useTheme();
+  const mapRef = useRef(null);
+
+  useEffect(() => {
+    // 인증 실패 처리 함수 등록
+    window.navermap_authFailure = function () {
+      console.error('Naver Map API 인증 실패: Client ID를 확인하세요.');
+      if (mapRef.current) {
+        mapRef.current.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">지도 API 인증에 실패했습니다. Client ID를 확인하세요.</div>';
+      }
+    };
+
+    // 스크립트가 이미 로드되어 있는지 확인
+    if (document.getElementById('naver-map-script')) {
+      initMap();
+      return;
+    }
+
+    // Naver Map API 스크립트 동적 로드
+    const script = document.createElement('script');
+    script.id = 'naver-map-script';
+    script.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=stss67kbrv';
+    script.async = true;
+    script.onload = () => {
+      initMap();
+    };
+    script.onerror = () => {
+      console.error('Naver Map API 스크립트 로드 실패');
+      if (mapRef.current) {
+        mapRef.current.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">지도 스크립트 로드에 실패했습니다.</div>';
+      }
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      // cleanup 시 인증 실패 함수 제거
+      if (window.navermap_authFailure) {
+        delete window.navermap_authFailure;
+      }
+      // cleanup 시 스크립트 제거 (선택사항)
+      // const existingScript = document.getElementById('naver-map-script');
+      // if (existingScript) {
+      //   document.head.removeChild(existingScript);
+      // }
+    };
+  }, []);
+
+  const initMap = () => {
+    if (window.naver && window.naver.maps && mapRef.current) {
+      const mapOptions = {
+        center: new window.naver.maps.LatLng(37.5665, 126.9780), // 서울 시청 좌표
+        zoom: 10
+      };
+      new window.naver.maps.Map(mapRef.current, mapOptions);
+    }
+  };
 
   return (
-    <Grid container spacing={3}>
-      <Grid size={12}>
-        <MainCard title="Theme Variants">
-          <MapContainerStyled>
-            <ChangeTheme {...mapConfiguration} themes={MAPBOX_THEMES} />
-          </MapContainerStyled>
-        </MainCard>
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <MainCard title="Markers & Popups">
-          <MapContainerStyled>
-            <MarkersPopups
-              {...mapConfiguration}
-              data={countries}
-              mapStyle={theme.palette.mode === ThemeMode.DARK ? MAPBOX_THEMES.dark : MAPBOX_THEMES.light}
-            />
-          </MapContainerStyled>
-        </MainCard>
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <MainCard title="Draggable Marker">
-          <MapContainerStyled>
-            <DraggableMarker
-              {...mapConfiguration}
-              mapStyle={theme.palette.mode === ThemeMode.DARK ? MAPBOX_THEMES.dark : MAPBOX_THEMES.light}
-            />
-          </MapContainerStyled>
-        </MainCard>
-      </Grid>
-      <Grid size={12}>
-        <MainCard title="Geo JSON Animation">
-          <MapContainerStyled>
-            <GeoJSONAnimation {...mapConfiguration} mapStyle={MAPBOX_THEMES.satelliteStreets} />
-          </MapContainerStyled>
-        </MainCard>
-      </Grid>
-      <Grid size={12}>
-        <MainCard title="Clusters">
-          <MapContainerStyled>
-            <ClustersMap
-              {...mapConfiguration}
-              mapStyle={theme.palette.mode === ThemeMode.DARK ? MAPBOX_THEMES.dark : MAPBOX_THEMES.light}
-            />
-          </MapContainerStyled>
-        </MainCard>
-      </Grid>
-      <Grid size={12}>
-        <MainCard title="Interaction">
-          <MapContainerStyled>
-            <InteractionMap
-              {...mapConfiguration}
-              mapStyle={theme.palette.mode === ThemeMode.DARK ? MAPBOX_THEMES.dark : MAPBOX_THEMES.light}
-            />
-          </MapContainerStyled>
-        </MainCard>
-      </Grid>
-      <Grid size={12}>
-        <MainCard title="Viewport Animation">
-          <MapContainerStyled>
-            <ViewportAnimation
-              {...mapConfiguration}
-              data={cities.filter((city) => city.state === 'Gujarat')}
-              mapStyle={MAPBOX_THEMES.outdoors}
-            />
-          </MapContainerStyled>
-        </MainCard>
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <MainCard title="Highlight By Filter">
-          <MapContainerStyled>
-            <HighlightByFilter
-              {...mapConfiguration}
-              mapStyle={theme.palette.mode === ThemeMode.DARK ? MAPBOX_THEMES.dark : MAPBOX_THEMES.light}
-            />
-          </MapContainerStyled>
-        </MainCard>
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <MainCard title="Heatmap">
-          <MapContainerStyled>
-            <Heatmap {...mapConfiguration} mapStyle={theme.palette.mode === ThemeMode.DARK ? MAPBOX_THEMES.dark : MAPBOX_THEMES.light} />
-          </MapContainerStyled>
-        </MainCard>
-      </Grid>
-      <Grid size={12}>
-        <MainCard title="Side By Side">
-          <MapContainerStyled>
-            <SideBySide {...mapConfiguration} />
-          </MapContainerStyled>
-        </MainCard>
-      </Grid>
-    </Grid>
+    <MainCard title="네이버 지도">
+      <Box
+        ref={mapRef}
+        sx={{
+          width: '100%',
+          height: '600px',
+          borderRadius: 1,
+          overflow: 'hidden'
+        }}
+      />
+    </MainCard>
   );
 }

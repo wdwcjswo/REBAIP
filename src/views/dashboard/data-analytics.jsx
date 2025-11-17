@@ -204,6 +204,8 @@ export default function DashboardDataAnalytics() {
       //STATBL_ID=T236933129926065&ST_YM=202001&ED_YM=2035&GRP_ID=30008142&CLS_ID=30009164&CLS_DATANO=50002&TITLE=발주자공종별%20건설수주액(경상)
       //STATBL_ID=T236933129926065&ST_YM=202001&ED_YM=2035&GRP_ID=30008142&CLS_ID=30009164&CLS_DATANO=50002&TITLE=발주자공종별
 
+      //STATBL_ID=T244633134461863&ST_YM=202001&ED_YM=202509&GRP_ID=null&CLS_ID=1000010&CLS_DATANO=50001&TITLE=지역별 신규 분양세대수
+
       let svcURL = '';
     
       //지수
@@ -229,8 +231,8 @@ export default function DashboardDataAnalytics() {
         svcURL = "/getKTECHRENTList?OPT=OPT4";
        
       //건수  
-      } else if(statblid === "KTECH_SURETY_01") { // 보증사고현황 - 사고건수
-        svcURL = "/getKTECHSURETYList?OPT=OPT1";
+      } else if(statblid === "T244633134461863") { // 지역별 신규 분양세대수
+        svcURL = `/api/rap/getChart_RONE_OPT?STATBL_ID=${statblid}&ST_YM=${START_YM}&ED_YM=${END_YM}&GRP_ID=${GRP_ID}&CLS_ID=1000010&CLS_DATANO=50001&TITLE=지역별 신규 분양세대수`;
       
       //금액  STATBL_ID=T236933129926065&ST_YM=202001&ED_YM=2035&GRP_ID=30008142&CLS_ID=30009164&CLS_DATANO=50002&TITLE=발주자공종별
       } else if(statblid === "T236933129926065") { // 발주자공종별%20건설수주액(경상)

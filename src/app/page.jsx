@@ -1,11 +1,5 @@
-// project imports
-import SimpleLayout from 'layout/SimpleLayout';
-import Landing from 'views/landing';
+import { redirect } from 'next/navigation';
 
 export default function HomePage() {
-  return (
-    <SimpleLayout>
-      <Landing />
-    </SimpleLayout>
-  );
+  redirect('/login');
 }
