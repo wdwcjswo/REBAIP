@@ -80,11 +80,11 @@ export default function InfoApartment() {
   const [selectedMind, setSelectedMind] = useState(false); // 심리분석 선택 여부
 
   // 컴포넌트 마운트 시 히스토리 이미지 리셋
-  useEffect(() => {
-    // 페이지 진입 시 히스토리 이미지 리셋
-    setChartImageHistory([]);
-   // console.log('Chart image history reset on info-apartment page load');
-  }, [setChartImageHistory]);
+  // useEffect(() => {
+  //   // 페이지 진입 시 히스토리 이미지 리셋
+  //   setChartImageHistory([]);
+  //  // console.log('Chart image history reset on info-apartment page load');
+  // }, [setChartImageHistory]);
 
   // InfoApartment 함수 내에 추가
   const [sidoAnchor, setSidoAnchor] = useState(null);

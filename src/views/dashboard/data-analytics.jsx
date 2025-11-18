@@ -378,11 +378,11 @@ export default function DashboardDataAnalytics() {
     return mergedData;
   };
 
-  useEffect(() => {   
-    // 페이지 진입 시 히스토리 이미지 리셋
-    setChartImageHistory([]);
-    console.log('Chart image history reset on page load');
-  }, [setChartImageHistory]);
+  // useEffect(() => {   
+  //   // 페이지 진입 시 히스토리 이미지 리셋
+  //   setChartImageHistory([]);
+  //   console.log('Chart image history reset on page load');
+  // }, [setChartImageHistory]);
 
   // 차트 레이어 제거 함수
   const removeChartLayer = (statblid, cardIndex) => {
