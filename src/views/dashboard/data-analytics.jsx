@@ -531,432 +531,375 @@ export default function DashboardDataAnalytics() {
   }, [yearRange, chartLayers]);
   
   return (
-    <Box sx={{ display: 'flex', height: '90vh', width: '100%' }}>
-      <Box sx={{ flex: 1, overflow: 'auto', height: '90vh' }}>
-        {/* 조회 년도 범위 (사용자 조정 가능) */}
-        <Box sx={{ p: 2, pb: 0 }}>
-          <Grid container alignItems="center" justifyContent="flex-start" sx={{ m: 0 }}>
-            <Grid sx={{ pl: 0, ml: 0 }}>
-              <Typography variant="h5" sx={{ pl: 0, ml: 0 }}>조회 년도 범위
-                <Typography variant="caption" color="text.secondary">{
-                  (() => {
-                    const y = SLIDER_START_YEAR + Math.floor(yearRange[0] / 12);
-                    const m = (yearRange[0] % 12) + 1;
-                    return ` [ ${y}년${String(m).padStart(2,'0')}월`;
-                  })()
-                }</Typography>
-                <Typography variant="caption" color="text.secondary">{
-                  (() => {
-                    const y = SLIDER_START_YEAR + Math.floor(yearRange[1] / 12);
-                    const m = (yearRange[1] % 12) + 1;
-                    return `~ ${y}년${String(m).padStart(2,'0')}월 ]`;
-                  })()
-                }</Typography>
-              </Typography>
-            </Grid>
-          </Grid>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '90%', justifyContent: 'center', margin: '0 auto' }}>
-            <Slider
-              value={yearRange}
-              min={0}
-              max={monthCount - 1}
-              step={1}
-              valueLabelDisplay="auto"
-              sx={{ flex: 1, height: 8,
-                '& .MuiSlider-thumb': { width: 24, height: 24 },
-                '& .MuiSlider-track': { height: 8 },
-                '& .MuiSlider-rail': { height: 8 },
-                mt: 2, mb: 2
-              }}
-              onChange={(e, newValue) => setYearRange(newValue)}
-              marks={(() => {
-                const marks = [];
-                for(let i=0; i<monthCount; i++) {
-                    const year = SLIDER_START_YEAR + Math.floor(i/12);
-                  const month = (i%12)+1;
-                  if(month === 1 || i === monthCount-1) {
-                    marks.push({ value: i, label: `${year}-${String(month).padStart(2,'0')}` });
-                  }
-                }
-                return marks;
-              })()}
-              getAriaValueText={v => {
-                const year = SLIDER_START_YEAR + Math.floor(v/12);
-                const month = (v%12)+1;
-                return `${year}-${String(month).padStart(2,'0')}`;
-              }}
-              valueLabelFormat={v => {
-                const year = SLIDER_START_YEAR + Math.floor(v/12);
-                const month = (v%12)+1;
-                return `${year}-${String(month).padStart(2,'0')}`;
-              }}
-            />
-            
-          </Box>
-        </Box>
-        <Grid container rowSpacing={1.3} columnSpacing={3} sx={{ p: 2, pt: 0 }}>
-          {/* row 1 - 3 미니 카드 */}
-          <Grid sx={{ width: '100%', height: 180, display: 'flex', justifyContent: 'center' }}>
-            <Grid container spacing={0} sx={{ width: '100%', minHeight: 300, justifyContent: 'center', alignItems: 'flex-start', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 0 }}>
-              {[0,1,2].map(idx => (
-                <Grid
-                  key={idx}
-                  sx={{
-                    minWidth: 220,
-                    maxWidth: 360,
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'stretch',
-                    justifyContent: 'center',
-                    height: 180,
-                    minHeight: 180,
-                    margin: '0 12px',
-                    p: 0
-                  }}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={e => handleDropOnCard(idx, e)}
-                >
-                  {cards[idx] && !cards[idx].selected ? (
-                    (() => {
-                      return (
-                        <Box
-                          sx={{
-                            flex: 1,
-                            minHeight: 180,
-                            height: '100%',
-                            minWidth: 220,
-                            maxWidth: 360,
-                            width: '100%',
-                            border: '2px dashed #e0e3e8',
-                            borderRadius: 1,
-                            background: '#f8fbff',
-                            boxShadow: '0 2px 8px 0 rgba(33, 150, 243, 0.08)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'stretch',
-                            justifyContent: 'flex-start',
-                            margin: 0,
-                            padding: 0,
-                            boxSizing: 'border-box',
-                            transition: 'box-shadow 0.2s',
-                            overflow: 'hidden'
-                          }}
-                        >
-                          <Box sx={{
-                            height: 36,
-                            background: '#b0b3b8',
-                            borderTopLeftRadius: 1,
-                            borderTopRightRadius: 1,
-                            borderBottom: '1px solid #b0b3b8',
-                            px: 1.5,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'flex-start'
-                          }} />
-                          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100% - 36px)' }}>
-                            <Typography sx={{ fontSize: 17, color: '#b0b3b8', fontWeight: 500, textAlign: 'center' }}>
-                              항목을 선택하세요
-                            </Typography>
-                          </Box>
-                        </Box>
-                      );
-                    })()
-                  ) : (
-                    (() => {
-                      const statblid = cards[idx]?.statblid;
-                      const { option1Options, option2Options } = getCardOptions(statblid);
-                      return (
-                        <AnalyticsDataCard
-                          key={statblid || idx}
-                          title={cards[idx]?.cname}
-                          statblid={statblid}
-                          isActiveInChart={!!statblid}
-                          onRemoveFromChart={() => removeChartLayer(statblid, idx)}
-                          onResetCard={handleResetCard}
-                          option1={cards[idx]?.region}
-                          onOption1Change={(newOption1) => handleCardOption1Change(idx, newOption1)}
-                          option1Options={option1Options}
-                          option2={cards[idx]?.area}
-                          onOption2Change={(newOption2) => handleCardOption2Change(idx, newOption2)}
-                          option2Options={option2Options}
-                          chartData={getCardChartData(statblid, idx)}
-                          cardIndex={idx}
-                          chartColor={cards[idx]?.color}
-                          chartType={cards[idx]?.chartType}
-                          ctype={cards[idx]?.ctype}
-                          sx={{
-                            flex: 1,
-                            minHeight: 200,
-                            height: '100%',
-                            minWidth: 220,
-                            maxWidth: 360,
-                            width: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            margin: 0
-                          }}
-                        />
-                      );
-                    })()
-                  )}
-                </Grid>
-              ))}
-            </Grid>
-          </Grid>
-          {/* row 2 */}
-          <Grid size={{ xs: 12, md: 10, lg: 12 }} sx={{ mt: 0 }}>
-            <Grid container alignItems="center" justifyContent="space-between">
-              <Typography variant="h5" sx={{ pl: 0, ml: 0 }}>그래프</Typography>
-            </Grid>
-            <Box sx={{ position: 'relative' }}>
-              {/* fetchChartData 결과 전달 */}
-              {chartData ? (
-                <ApexMixedChart 
-                  key={JSON.stringify(checkedPolicies)}
-                  chartData={chartData} 
-                  chartColor={(() => {
-                    // chartLayers 순서에 맞춰 색상 배열 생성
-                    return chartLayers.map(layer => {
-                      const card = cards.find(card => card.statblid === layer.statblid);
-                      return card ? card.color : '#1976d2';
-                    });
-                  })()}
-                  ctype={cards.reduce((map, card, index) => {
-                    if (card.selected && card.statblid) {
-                      map[card.statblid] = card.ctype;
-                    }
-                    return map;
-                  }, {})}
-                  colorMapping={cards.reduce((map, card, index) => {
-                    if (card.selected && card.statblid) {
-                      map[card.statblid] = card.color;
-                    }
-                    return map;
-                  }, {})}
-                  chartTypeMapping={cards.reduce((map, card, index) => {
-                    if (card.selected && card.statblid) {
-                      map[card.statblid] = card.chartType;
-                    }
-                    return map;
-                  }, {})}
-                  ref={chartRef}
-                  policyAnnotations={checkedPolicies}
-                />
-              ) : (
-                <Box
-                  sx={{
-                    position: 'relative',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: 400,
-                    borderRadius: 4,
-                    background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 50%)',
-                    boxShadow: '0 4px 24px 0 rgba(33, 150, 243, 0.10)',
-                    p: 1
-                  }}
-                >
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      color: '#fff',
-                      fontWeight: 700,
-                      letterSpacing: 1,
-                      position: 'absolute',
-                      top: 24,
-                      left: 32,
-                      m: 0,
-                      p: 0
-                    }}
-                  >
-                    한국부동산원 AI 분석 플랫폼
-                  </Typography>
-                </Box>
-              )}
-
-              {/* 차트 하단 버튼들 */}
-              <Box sx={{ 
-                mt: 2, 
-                display: 'flex', 
-                gap: 1.0, 
-                justifyContent: 'flex-end',
-                width: '100%'
-              }}>
-                <button 
-                  onClick={() => {
-                    // 모든 카드 리셋
-                    [0, 1, 2].forEach(cardIndex => {
-                      handleResetCard(cardIndex);
-                    });
-                    // 차트 초기화 기능
-                    setChartLayers([]);
-                    setChartData(null);
-                    //console.log('차트 초기화 및 모든 카드 리셋 완료');
-                  }}
-                  style={{
-                    padding: '6px 16px', // 패딩 줄임
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '13px', // 폰트 크기 줄임
-                    fontWeight: '500'
-                  }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
-                >
-                  차트 초기화
-                </button>
-                
-                <button 
-                  onClick={async () => {
-                    // 차트가 렌더링된 후에만 이미지 추출
-                    if (
-                      chartRef.current &&
-                      chartData &&
-                      chartData.data &&
-                      Array.isArray(chartData.data.datasets) &&
-                      chartData.data.datasets.length > 0 
-                    ) {
-                      // 리렌더링 없이 바로 이미지 추출 시도
-                      let chartId = chartLayers.length > 0 ? chartLayers[0].statblid : 'chart';
-                      let imgURI = await chartRef.current.exportToImage();
-                      
-                      // 첫 번째 시도가 실패하면 약간의 지연 후 재시도
-                      if (!imgURI) {
-                        console.log('첫 번째 이미지 추출 실패, 재시도 중...');
-                        await new Promise(res => setTimeout(res, 100));
-                        imgURI = await chartRef.current.exportToImage();
-                      }
-                      
-                      if (imgURI) {
-                        let uri = imgURI;
-                        let ext = 'svg';
-                        if (imgURI.startsWith('<svg')) {
-                          // SVG 문자열을 Blob으로 변환 후 Object URL 생성
-                          const svgBlob = new Blob([imgURI], { type: 'image/svg+xml' });
-                          uri = URL.createObjectURL(svgBlob);
-                          ext = 'svg';
-                        } else if (imgURI.startsWith('data:image/png')) {
-                          ext = 'png';
-                        }
-                        setChartImageHistory(prev => {
-                          const uuid = uuidv4();
-                          const next = [{ uri, ext, date: new Date().toISOString(), chartId, uuid }, ...prev];
-                          return next;
-                        });
-                        console.log('차트 이미지 생성 완료:', chartId);
-                      } else {
-                        alert('이미지 생성에 실패했습니다.');
-                      }
-                    } else {
-                      alert('항목을 드래그하여 그래프를 먼저 생성해 주세요.');
-                    }
-                  }}
-                  style={{
-                    padding: '6px 16px', // 패딩 줄임
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '13px', // 폰트 크기 줄임
-                    fontWeight: '500'
-                  }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
-                >
-                  AI 분석
-                </button>
-              </Box>
-            </Box>
-          </Grid>
-          {/* row 3 */}
-          <Grid size={{ xs: 12, md: 10, lg: 12 }} sx={{ mt: 0 }}>
-            {/* 정책자료/차트 이미지 탭 */}
-            <Box sx={{ width: '100%', p: 0, m: 0 }}>
-              <Tabs
-                value={tabValue}
-                onChange={(e, v) => setTabValue(v)}
-                aria-label="차트 히스토리 및 정책자료 탭"
-                sx={{ borderBottom: 1, borderColor: 'divider', minHeight: 36, p: 0, m: 0 }}
-              >
-                <Tab label="히스토리" sx={{ minHeight: 34, p: 0.5, m: 0 }} />
-                <Tab label="정책자료" sx={{ minHeight: 34, p: 0, m: 0 }} />
-              </Tabs>
-              <Box sx={{ p: 1.2, pt: 0, mt: 0 }}>
-                {tabValue === 0 && (
-                  <>
-                    {chartImageHistory.length > 0 ? (
-                      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, overflowX: 'auto' }}>
-                        {chartImageHistory.map((img, idx) => {
-                          const src = img.uri || img;
-                          const ext = img.ext || (src.startsWith('data:image/png') ? 'png' : 'svg');
-                          const fileName = `chart_${img.uuid || 'chart'}_${idx + 1}.${ext}`;
-                          return (
-                            <Box key={idx} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1, bgcolor: 'background.default', minWidth: 260, maxWidth: 340, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <a href={src} download={fileName} style={{ width: '100%', display: 'block' }} title="차트 이미지 다운로드">
-                                <img src={src} alt={`Chart history ${idx + 1}`} style={{ width: '100%', maxHeight: 260, objectFit: 'contain', cursor: 'pointer' }} />
-                              </a>
-                            </Box>
-                          );
-                        })}
-                      </Box>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">AI분석 차트 이미지가 없습니다.</Typography>
-                    )}
-                  </>
-                )}
-                {tabValue === 1 && (
-                  <>
-                    <Box sx={{ overflow: 'auto', background: '#fff', borderRadius: 1 }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                        <thead>
-                          <tr style={{ backgroundColor: '#f5f5f5' }}>
-                            <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>선택</th>
-                            <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>날짜</th>
-                            <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>제목</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {policyData.map((row, idx) => {
-                            // 날짜 포맷팅 함수 (YYYYMMDD → YYYY-MM-DD)
-                            const formatDate = (dateStr) => {
-                              if (!dateStr || dateStr.length !== 8) return dateStr;
-                              const year = dateStr.substring(0, 4);
-                              const month = dateStr.substring(4, 6);
-                              const day = dateStr.substring(6, 8);
-                              return `${year}-${month}-${day}`;
-                            };
-                            
-                            return (
-                              <tr key={row.date + row.title}>
-                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={!!checkedPolicies.find((p) => p.date === row.date && p.title === row.title)}
-                                    onChange={() => handlePolicyCheck(idx)}
-                                  />
-                                </td>
-                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(row.date)}</td>
-                                <td style={{ padding: '6px', border: '1px solid #ddd' }}>
-                                  {row.title}<br/>
-                                  <small style={{ color: '#666' }}>{row.desc}</small>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </Box>
-                  </>
-                )}
-              </Box>
-            </Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+      {/* 조회 년도 범위 (사용자 조정 가능) */}
+      <Box sx={{ p: 2, pb: 0 }}>
+        <Grid container alignItems="center" justifyContent="flex-start" sx={{ m: 0 }}>
+          <Grid sx={{ pl: 0, ml: 0 }}>
+            <Typography variant="h5" sx={{ pl: 0, ml: 0 }}>조회 년도 범위
+              <Typography variant="caption" color="text.secondary">{
+                (() => {
+                  const y = SLIDER_START_YEAR + Math.floor(yearRange[0] / 12);
+                  const m = (yearRange[0] % 12) + 1;
+                  return ` [ ${y}년${String(m).padStart(2,'0')}월`;
+                })()
+              }</Typography>
+              <Typography variant="caption" color="text.secondary">{
+                (() => {
+                  const y = SLIDER_START_YEAR + Math.floor(yearRange[1] / 12);
+                  const m = (yearRange[1] % 12) + 1;
+                  return `~ ${y}년${String(m).padStart(2,'0')}월 ]`;
+                })()
+              }</Typography>
+            </Typography>
           </Grid>
         </Grid>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '90%', justifyContent: 'center', margin: '0 auto' }}>
+          <Slider
+            value={yearRange}
+            min={0}
+            max={monthCount - 1}
+            step={1}
+            valueLabelDisplay="auto"
+            sx={{ flex: 1, height: 8,
+              '& .MuiSlider-thumb': { width: 24, height: 24 },
+              '& .MuiSlider-track': { height: 8 },
+              '& .MuiSlider-rail': { height: 8 },
+              mt: 2, mb: 2
+            }}
+            onChange={(e, newValue) => setYearRange(newValue)}
+            marks={(() => {
+              const marks = [];
+              for(let i=0; i<monthCount; i++) {
+                  const year = SLIDER_START_YEAR + Math.floor(i/12);
+                const month = (i%12)+1;
+                if(month === 1 || i === monthCount-1) {
+                  marks.push({ value: i, label: `${year}-${String(month).padStart(2,'0')}` });
+                }
+              }
+              return marks;
+            })()}
+            getAriaValueText={v => {
+              const year = SLIDER_START_YEAR + Math.floor(v/12);
+              const month = (v%12)+1;
+              return `${year}-${String(month).padStart(2,'0')}`;
+            }}
+            valueLabelFormat={v => {
+              const year = SLIDER_START_YEAR + Math.floor(v/12);
+              const month = (v%12)+1;
+              return `${year}-${String(month).padStart(2,'0')}`;
+            }}
+          />
+        </Box>
+      </Box>
+      {/* 미니차트 3개 세로 배치 */}
+      <Box sx={{ width: '100%', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: 'center', justifyContent: 'center', mt: 2 }}>
+        {[0,1,2].map(idx => (
+          <Box key={idx} sx={{ minWidth: 220, maxWidth: 360, width: '100%', mb: { xs: 2, sm: 0 } }}>
+            {cards[idx] && !cards[idx].selected ? (
+              <Box
+                sx={{
+                  flex: 1,
+                  minHeight: 180,
+                  height: '100%',
+                  minWidth: 220,
+                  maxWidth: 360,
+                  width: '100%',
+                  border: '2px dashed #e0e3e8',
+                  borderRadius: 1,
+                  background: '#f8fbff',
+                  boxShadow: '0 2px 8px 0 rgba(33, 150, 243, 0.08)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'stretch',
+                  justifyContent: 'flex-start',
+                  margin: 0,
+                  padding: 0,
+                  boxSizing: 'border-box',
+                  transition: 'box-shadow 0.2s',
+                  overflow: 'hidden'
+                }}
+                onDragOver={e => e.preventDefault()}
+                onDrop={e => handleDropOnCard(idx, e)}
+              >
+                <Box sx={{
+                  height: 36,
+                  background: '#b0b3b8',
+                  borderTopLeftRadius: 1,
+                  borderTopRightRadius: 1,
+                  borderBottom: '1px solid #b0b3b8',
+                  px: 1.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start'
+                }} />
+                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100% - 36px)' }}>
+                  <Typography sx={{ fontSize: 17, color: '#b0b3b8', fontWeight: 500, textAlign: 'center' }}>
+                    항목을 선택하세요
+                  </Typography>
+                </Box>
+              </Box>
+            ) : (
+              <AnalyticsDataCard
+                key={cards[idx]?.statblid || idx}
+                title={cards[idx]?.cname}
+                statblid={cards[idx]?.statblid}
+                isActiveInChart={!!cards[idx]?.statblid}
+                onRemoveFromChart={() => removeChartLayer(cards[idx]?.statblid, idx)}
+                onResetCard={handleResetCard}
+                option1={cards[idx]?.region}
+                onOption1Change={(newOption1) => handleCardOption1Change(idx, newOption1)}
+                option1Options={getCardOptions(cards[idx]?.statblid).option1Options}
+                option2={cards[idx]?.area}
+                onOption2Change={(newOption2) => handleCardOption2Change(idx, newOption2)}
+                option2Options={getCardOptions(cards[idx]?.statblid).option2Options}
+                chartData={getCardChartData(cards[idx]?.statblid, idx)}
+                cardIndex={idx}
+                chartColor={cards[idx]?.color}
+                chartType={cards[idx]?.chartType}
+                ctype={cards[idx]?.ctype}
+                sx={{
+                  flex: 1,
+                  minHeight: 200,
+                  height: '100%',
+                  minWidth: 220,
+                  maxWidth: 360,
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  margin: 0
+                }}
+              />
+            )}
+          </Box>
+        ))}
+      </Box>
+      {/* 그래프 영역 */}
+      <Box sx={{ width: '100%', mt: 2 }}>
+        <Typography variant="h5" sx={{ pl: 0, ml: 0 }}>그래프</Typography>
+        <Box sx={{ position: 'relative', width: '100%' }}>
+          {chartData ? (
+            <ApexMixedChart 
+              key={JSON.stringify(checkedPolicies)}
+              chartData={chartData} 
+              chartColor={(() => {
+                return chartLayers.map(layer => {
+                  const card = cards.find(card => card.statblid === layer.statblid);
+                  return card ? card.color : '#1976d2';
+                });
+              })()}
+              ctype={cards.reduce((map, card, index) => {
+                if (card.selected && card.statblid) {
+                  map[card.statblid] = card.ctype;
+                }
+                return map;
+              }, {})}
+              colorMapping={cards.reduce((map, card, index) => {
+                if (card.selected && card.statblid) {
+                  map[card.statblid] = card.color;
+                }
+                return map;
+              }, {})}
+              chartTypeMapping={cards.reduce((map, card, index) => {
+                if (card.selected && card.statblid) {
+                  map[card.statblid] = card.chartType;
+                }
+                return map;
+              }, {})}
+              ref={chartRef}
+              policyAnnotations={checkedPolicies}
+            />
+          ) : (
+            <Box
+              sx={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: 400,
+                borderRadius: 4,
+                background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 50%)',
+                boxShadow: '0 4px 24px 0 rgba(33, 150, 243, 0.10)',
+                p: 1
+              }}
+            >
+              <Typography
+                variant="h4"
+                sx={{
+                  color: '#fff',
+                  fontWeight: 700,
+                  letterSpacing: 1,
+                  position: 'absolute',
+                  top: 24,
+                  left: 32,
+                  m: 0,
+                  p: 0
+                }}
+              >
+                한국부동산원 AI 분석 플랫폼
+              </Typography>
+            </Box>
+          )}
+          {/* 차트 하단 버튼들 */}
+          <Box sx={{ mt: 2, display: 'flex', gap: 1.0, justifyContent: 'flex-end', width: '100%' }}>
+            <button 
+              onClick={() => {
+                [0, 1, 2].forEach(cardIndex => {
+                  handleResetCard(cardIndex);
+                });
+                setChartLayers([]);
+                setChartData(null);
+              }}
+              style={{
+                padding: '6px 16px',
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: '500'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+            >
+              차트 초기화
+            </button>
+            <button 
+              onClick={async () => {
+                if (
+                  chartRef.current &&
+                  chartData &&
+                  chartData.data &&
+                  Array.isArray(chartData.data.datasets) &&
+                  chartData.data.datasets.length > 0 
+                ) {
+                  let chartId = chartLayers.length > 0 ? chartLayers[0].statblid : 'chart';
+                  let imgURI = await chartRef.current.exportToImage();
+                  if (!imgURI) {
+                    console.log('첫 번째 이미지 추출 실패, 재시도 중...');
+                    await new Promise(res => setTimeout(res, 100));
+                    imgURI = await chartRef.current.exportToImage();
+                  }
+                  if (imgURI) {
+                    let uri = imgURI;
+                    let ext = 'svg';
+                    if (imgURI.startsWith('<svg')) {
+                      const svgBlob = new Blob([imgURI], { type: 'image/svg+xml' });
+                      uri = URL.createObjectURL(svgBlob);
+                      ext = 'svg';
+                    } else if (imgURI.startsWith('data:image/png')) {
+                      ext = 'png';
+                    }
+                    setChartImageHistory(prev => {
+                      const uuid = uuidv4();
+                      const next = [{ uri, ext, date: new Date().toISOString(), chartId, uuid }, ...prev];
+                      return next;
+                    });
+                    console.log('차트 이미지 생성 완료:', chartId);
+                  } else {
+                    alert('이미지 생성에 실패했습니다.');
+                  }
+                } else {
+                  alert('항목을 드래그하여 그래프를 먼저 생성해 주세요.');
+                }
+              }}
+              style={{
+                padding: '6px 16px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: '500'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
+            >
+              AI 분석
+            </button>
+          </Box>
+        </Box>
+      </Box>
+      {/* 정책자료/차트 이미지 탭 영역 */}
+      <Box sx={{ width: '100%', mt: 2 }}>
+        <Tabs
+          value={tabValue}
+          onChange={(e, v) => setTabValue(v)}
+          aria-label="차트 히스토리 및 정책자료 탭"
+          sx={{ borderBottom: 1, borderColor: 'divider', minHeight: 36, p: 0, m: 0 }}
+        >
+          <Tab label="히스토리" sx={{ minHeight: 34, p: 0.5, m: 0 }} />
+          <Tab label="정책자료" sx={{ minHeight: 34, p: 0, m: 0 }} />
+        </Tabs>
+        <Box sx={{ p: 1.2, pt: 0, mt: 0 }}>
+          {tabValue === 0 && (
+            <>
+              {chartImageHistory.length > 0 ? (
+                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, overflowX: 'auto' }}>
+                  {chartImageHistory.map((img, idx) => {
+                    const src = img.uri || img;
+                    const ext = img.ext || (src.startsWith('data:image/png') ? 'png' : 'svg');
+                    const fileName = `chart_${img.uuid || 'chart'}_${idx + 1}.${ext}`;
+                    return (
+                      <Box key={idx} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1, bgcolor: 'background.default', minWidth: 260, maxWidth: 340, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <a href={src} download={fileName} style={{ width: '100%', display: 'block' }} title="차트 이미지 다운로드">
+                          <img src={src} alt={`Chart history ${idx + 1}`} style={{ width: '100%', maxHeight: 260, objectFit: 'contain', cursor: 'pointer' }} />
+                        </a>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary">AI분석 차트 이미지가 없습니다.</Typography>
+              )}
+            </>
+          )}
+          {tabValue === 1 && (
+            <>
+              <Box sx={{ overflow: 'auto', background: '#fff', borderRadius: 1 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f5f5f5' }}>
+                      <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>선택</th>
+                      <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>날짜</th>
+                      <th style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'left' }}>제목</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {policyData.map((row, idx) => {
+                      const formatDate = (dateStr) => {
+                        if (!dateStr || dateStr.length !== 8) return dateStr;
+                        const year = dateStr.substring(0, 4);
+                        const month = dateStr.substring(4, 6);
+                        const day = dateStr.substring(6, 8);
+                        return `${year}-${month}-${day}`;
+                      };
+                      return (
+                        <tr key={row.date + row.title}>
+                          <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                            <input
+                              type="checkbox"
+                              checked={!!checkedPolicies.find((p) => p.date === row.date && p.title === row.title)}
+                              onChange={() => handlePolicyCheck(idx)}
+                            />
+                          </td>
+                          <td style={{ padding: '6px', border: '1px solid #ddd' }}>{formatDate(row.date)}</td>
+                          <td style={{ padding: '6px', border: '1px solid #ddd' }}>
+                            {row.title}<br/>
+                            <small style={{ color: '#666' }}>{row.desc}</small>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </Box>
+            </>
+          )}
+        </Box>
       </Box>
     </Box>
   );

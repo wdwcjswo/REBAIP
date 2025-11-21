@@ -23,7 +23,6 @@ import { Formik } from 'formik';
 
 // project imports
 import { openSnackbar } from 'api/snackbar';
-import countries from 'data/countries';
 import MainCard from 'components/MainCard';
 
 // assets
@@ -391,58 +390,7 @@ export default function TabPersonal() {
                     />
                   </Stack>
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Stack sx={{ gap: 1 }}>
-                    <InputLabel htmlFor="personal-country">Country</InputLabel>
-                    <Autocomplete
-                      id="personal-country"
-                      fullWidth
-                      value={countries.filter((item) => item.code === values?.country)[0]}
-                      onBlur={handleBlur}
-                      onChange={(event, newValue) => {
-                        setFieldValue('country', newValue === null ? '' : newValue.code);
-                      }}
-                      options={countries}
-                      autoHighlight
-                      isOptionEqualToValue={(option, value) => option.code === value?.code}
-                      getOptionLabel={(option) => option.label}
-                      renderOption={({ key, ...props }, option) => (
-                        <Box key={key} component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
-                          {option.code && (
-                            <CardMedia
-                              component="img"
-                              loading="lazy"
-                              sx={{ width: 20 }}
-                              src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
-                              srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
-                              alt=""
-                            />
-                          )}
-                          {option.label}
-                          {option.code && `(${option.code}) ${option.phone}`}
-                        </Box>
-                      )}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          placeholder="Choose a country"
-                          name="country"
-                          slotProps={{
-                            htmlInput: {
-                              ...params.inputProps,
-                              autoComplete: 'new-password' // disable autocomplete and autofill
-                            }
-                          }}
-                        />
-                      )}
-                    />
-                  </Stack>
-                  {touched.country && errors.country && (
-                    <FormHelperText error id="personal-country-helper">
-                      {errors.country}
-                    </FormHelperText>
-                  )}
-                </Grid>
+                
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <Stack sx={{ gap: 1 }}>
                     <InputLabel htmlFor="personal-state">State</InputLabel>
