@@ -475,6 +475,38 @@ export default function DashboardDataAnalytics() {
     }
   ];
 
+  // // 정책자료 데이터 상태 및 API 연동
+  // const [policyData, setPolicyData] = useState([]); // [{date, title, desc}]
+  // const [policyLoading, setPolicyLoading] = useState(false);
+  // const [policyError, setPolicyError] = useState(null);
+
+  // useEffect(() => {
+  //   // 정책자료 API 호출
+  //   const fetchPolicyData = async () => {
+  //     setPolicyLoading(true);
+  //     setPolicyError(null);
+  //     try {
+  //       // 실제 API 
+  //       const response = await fetch('/api/policy/list', {
+  //         method: 'GET',
+  //         headers: { 'Accept': 'application/json' }
+  //       });
+  //       if (!response.ok) {
+  //         throw new Error(`정책자료 API 호출 실패 (${response.status}): ${response.statusText}`);
+  //       }
+  //       const data = await response.json();
+  //       // [{date, title, desc}] 형태로 변환 필요시 가공
+  //       setPolicyData(Array.isArray(data) ? data : []);
+  //     } catch (err) {
+  //       setPolicyError(err.message);
+  //       setPolicyData([]);
+  //     } finally {
+  //       setPolicyLoading(false);
+  //     }
+  //   };
+  //   fetchPolicyData();
+  // }, []);
+
   // 체크된 정책자료 상태 관리
   const [checkedPolicies, setCheckedPolicies] = useState([]); // [{date, title, desc}]
 

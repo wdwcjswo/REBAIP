@@ -243,6 +243,11 @@ export const onDragStart = (event, item) => {
 
 // JSON 데이터를 Tree View 형식으로 변환 (계층적 구조 지원)
 export const convertToTreeItems = (items, parentId = '', level = 0) => {
+  if (!items || !Array.isArray(items)) {
+    console.warn('convertToTreeItems: items가 배열이 아닙니다:', items);
+    return [];
+  }
+
   return items.map((item, index) => {
     const itemId = parentId ? `${parentId}-${index}` : `item-${index}`;
     const isParentNode = item.children && Array.isArray(item.children) && item.children.length > 0;
@@ -269,7 +274,6 @@ export const convertToTreeItems = (items, parentId = '', level = 0) => {
         onDragStart={isDraggable ? (e) => {
           // 드래그할 때 사용할 완전한 데이터 객체 구성
           const dragItem = {
-            ...rest,
             id: item.id || itemId,
             cname: item.cname  || 'Untitled',
             cContents: item.cContents || 'Untitled',
@@ -372,12 +376,19 @@ export const convertApiDataToMenuItem = (apiData) => {
 
   const children = processChildren(apiData);
   
-
-  return {
+  const result = {
     id: 'data-analytics',
     title: '통계 데이터',
     type: 'collapse',
     icon: 'components',
     children
   };
+
+  console.log('convertApiDataToMenuItem 결과:', {
+    childrenCount: children?.length || 0,
+    firstChild: children?.[0],
+    result
+  });
+
+  return result;
 };

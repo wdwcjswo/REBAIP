@@ -9,7 +9,6 @@ import Typography from '@mui/material/Typography';
 
 // project imports
 import MainCard from 'components/MainCard';
-import ComponentWrapper from 'sections/components-overview/ComponentWrapper';
 
 // ===============================|| COMPONENT - SKELETON ||=============================== //
 
@@ -58,14 +57,14 @@ export default function ComponentSkeleton() {
           </Grid>
         </Grid>
       </Box>
-      <ComponentWrapper>
+      <Box sx={{ p: 2.5 }}>
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, md: 6 }}>{skeletonCard}</Grid>
           <Grid size={{ xs: 12, md: 6 }}>{skeletonCard}</Grid>
           <Grid size={{ xs: 12, md: 6 }}>{skeletonCard}</Grid>
           <Grid size={{ xs: 12, md: 6 }}>{skeletonCard}</Grid>
         </Grid>
-      </ComponentWrapper>
+      </Box>
     </>
   );
 }
