@@ -1,0 +1,3446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한국부동산원 AI 분석 플랫폼</title>
+    
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    
+    <!-- UUID 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/uuid@9.0.0/dist/umd/uuidv4.min.js"></script>
+
+    <!-- Naver Maps API (Geocoder 포함) -->
+    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=rg1k73ut7c&submodules=geocoder"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 사이드바 (메뉴) */
+        .sidebar {
+            width: 320px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .sidebar-header:hover {
+            background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+        }
+        
+        .sidebar-header h1 {
+            font-size: 18px;
+            margin: 0;
+        }
+        
+        .sidebar-section {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .sidebar-section:hover {
+            background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+        }
+        
+        .sidebar-section h2 {
+            font-size: 16px;
+            margin: 0;
+            color: white !important;
+        }
+        
+        .menu-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        
+        /* 메뉴 트리 스타일 */
+        .menu-tree {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .menu-item {
+            margin-bottom: 4px;
+        }
+        
+        .menu-title {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            user-select: none;
+        }
+        
+        .menu-title:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .menu-title.parent {
+            font-weight: 600;
+            color: #1976d2;
+        }
+        
+        .menu-title.leaf {
+            font-weight: 400;
+            color: #333;
+        }
+        
+        .menu-title.leaf.draggable {
+            cursor: grab;
+        }
+        
+        .menu-title.leaf.draggable:active {
+            cursor: grabbing;
+        }
+        
+        .menu-title.leaf.draggable:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .expand-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        
+        .expand-icon.expanded {
+            transform: rotate(90deg);
+        }
+        
+        .expand-icon.hidden {
+            visibility: hidden;
+        }
+        
+        .menu-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            fill: currentColor;
+        }
+        
+        .menu-label {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .menu-label-main {
+            font-size: 13px;
+        }
+        
+        .menu-label-id {
+            font-size: 10px;
+            color: #666;
+            font-family: monospace;
+            margin-top: 2px;
+            opacity: 0.7;
+        }
+        
+        .menu-children {
+            list-style: none;
+            padding-left: 24px;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .menu-children.expanded {
+            display: block;
+        }
+        
+        .drag-preview {
+            opacity: 0.5;
+        }
+        
+        /* 메인 컨텐츠 */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .view-container {
+            display: none;
+        }
+        
+        .view-container.active {
+            display: block;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h2 {
+            color: #1976d2;
+            margin-bottom: 16px;
+        }
+        
+        .year-range-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .year-range-label {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .year-range-value {
+            font-size: 14px;
+            color: #666;
+            margin-left: 8px;
+        }
+        
+        /* 슬라이더 스타일 개선 */
+        .slider-container {
+            width: 90%;
+            margin: 16px auto;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        /* 듀얼 레인지 슬라이더 */
+        .dual-range-slider {
+            position: relative;
+            width: 100%;
+            height: 8px;
+            margin-bottom: 40px;
+            --track-left: 0%;
+            --track-width: 100%;
+        }
+        
+        .dual-range-slider input[type="range"] {
+            position: absolute;
+            width: 100%;
+            height: 8px;
+            background: transparent;
+            pointer-events: none;
+        }
+        
+        .dual-range-slider input[type="range"]::-webkit-slider-thumb {
+            pointer-events: all;
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1976d2;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .dual-range-slider input[type="range"]::-moz-range-thumb {
+            pointer-events: all;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1976d2;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: none;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* 슬라이더 트랙 배경 (회색) */
+        .dual-range-slider::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            z-index: 0;
+        }
+        
+        /* 활성 범위 표시 (파란색) */
+        .dual-range-slider::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: var(--track-left);
+            width: var(--track-width);
+            height: 8px;
+            background: #1976d2;
+            border-radius: 4px;
+            z-index: 1;
+            pointer-events: none;
+            transition: left 0.1s, width 0.1s;
+        }
+        
+        /* 시작 슬라이더 (더 어두운 파란색) */
+        .dual-range-slider input[type="range"]:first-child::-webkit-slider-thumb {
+            background: #0d47a1;
+        }
+        
+        .dual-range-slider input[type="range"]:first-child::-moz-range-thumb {
+            background: #0d47a1;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #e0e0e0;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1976d2;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1976d2;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: none;
+        }
+        
+        .slider-marks {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+        
+        .slider-mark {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .slider-mark-line {
+            width: 2px;
+            height: 8px;
+            background: #999;
+        }
+        
+        .slider-mark-label {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+        }
+        
+        .cards-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .cards-container {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .card {
+            flex: 1;
+            min-width: 220px;
+            max-width: 360px;
+            min-height: 200px;
+            border: 2px dashed #e0e3e8;
+            border-radius: 8px;
+            background: #f8fbff;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.08);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card.active {
+            border: 2px solid #1976d2;
+            background: white;
+        }
+        
+        .card.drag-over {
+            border-color: #42a5f5;
+            background: #e3f2fd;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .card-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .card-remove:hover {
+            background: #c82333;
+        }
+        
+        .card-placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b0b3b8;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .mini-chart {
+            flex: 1;
+            min-height: 120px;
+        }
+        
+        .chart-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            min-height: 400px;
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 50%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .chart-placeholder {
+            min-height: 400px;
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        .chart-buttons {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .tabs-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .tabs {
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 16px;
+        }
+        
+        .tab {
+            display: inline-block;
+            padding: 8px 16px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            color: #1976d2;
+            border-bottom-color: #1976d2;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .history-container {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        
+        .history-item {
+            min-width: 260px;
+            max-width: 340px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+        }
+        
+        .history-item img {
+            width: 100%;
+            max-height: 260px;
+            object-fit: contain;
+            cursor: pointer;
+        }
+        
+        .policy-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        
+        .policy-table th,
+        .policy-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        .policy-table th {
+            background-color: #f5f5f5;
+        }
+        
+        .policy-table small {
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            padding: 16px;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        /* 아파트 정보 스타일 */
+        .apt-selector {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: 16px auto 8px;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .selector-box {
+            padding: 8px 16px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .selector-sido {
+            background: #e0e0e0;
+            color: #444;
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+            border-right: 2px solid #fff;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .selector-gungu {
+            background: #f5f5f5;
+            color: #444;
+            border-right: 2px solid #fff;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .selector-apt {
+            background: #1976d2;
+            color: #fff !important;
+            font-weight: 600;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+            flex: 1;
+            text-align: left;
+            box-shadow: 0 2px 8px 0 rgba(33, 150, 243, 0.08);
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            min-width: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;  
+            background: #fff;  
+        }
+        
+        .dropdown-item:hover {
+            background: #f5f5f5;
+            color: #1976d2; 
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            width: 100%;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0;
+        }
+
+        .btn-outlined {
+            background: transparent;
+            color: #1976d2;
+            border: 1px solid #1976d2;
+            padding: 6px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-outlined:hover {
+            background: rgba(25, 118, 210, 0.04);
+        }
+
+        .btn-outlined.active {
+            background: #e3f0ff;
+            font-weight: 700;
+        }
+
+        .btn-toggle {
+            background: transparent;
+            color: #1976d2;
+            border: 1px solid #1976d2;
+            padding: 6px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-toggle.active {
+            background: #1976d2;
+            color: #fff;
+        }
+
+        .btn-toggle:hover {
+            background: rgba(25, 118, 210, 0.04);
+        }
+
+        .btn-toggle.active:hover {
+            background: #1565c0;
+        }
+
+        .btn-mind {
+            background: #fff;
+            color: #df8c10;
+            border: 1px solid #df8c10;
+            font-weight: 700;
+            padding: 6px 20px;
+            margin-left: 12px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-mind.active {
+            background: #df8c10;
+            color: #fff;
+        }
+
+        .btn-mind:hover {
+            background: rgba(223, 140, 16, 0.04);
+        }
+
+        .btn-mind.active:hover {
+            background: #fcaa30;
+        }
+
+        .btn-secondary {
+            background: #aaa;
+            color: #fff;
+            border: 1px solid #aaa;
+            padding: 6px 16px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background: #888;
+        }
+
+        /* 지도 뷰 스타일 */
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 40px);
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .map-search-panel {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            gap: 8px;
+            min-width: 590px;
+            max-width: 790px;
+        }
+        
+        .map-search-input {
+            flex: 1;
+            padding: 10px 12px 10px 36px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .map-search-input:focus {
+            border-color: #1976d2;
+        }
+        
+        .map-search-icon {
+            position: absolute;
+            left: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #666;
+        }
+        
+        .map-search-button {
+            min-width: 80px;
+            padding: 10px 20px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .map-search-button:hover {
+            background: #1565c0;
+        }
+        
+        .map-search-button:active {
+            background: #0d47a1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 사이드바 (메뉴) -->
+    <aside class="sidebar">
+        <div class="sidebar-header" onclick="showView('data-analysis')">
+            <h1>📊 AI 데이터 분석</h1>
+        </div>
+        <div class="menu-container" id="menu-container">
+            <div class="loading">메뉴 로딩 중...</div>
+        </div>
+        <div class="sidebar-section" onclick="showView('apt-info')">
+            <h2>🏢 아파트 정보</h2>
+        </div>
+        <div class="sidebar-section" onclick="showView('map-info')">
+            <h2>🗺️ 지도</h2>
+        </div>
+    </aside>
+    
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <!-- AI 데이터 분석 뷰 -->
+        <div id="view-data-analysis" class="view-container active">
+            <div class="container">
+                <!-- 조회 년도 범위 -->
+                <div class="year-range-section">
+                    <div class="year-range-label">
+                        조회 년도 범위
+                        <span class="year-range-value" id="yearRangeDisplay"></span>
+                    </div>
+                    <div class="slider-container">
+                        <div class="dual-range-slider">
+                            <input type="range" id="yearRangeSliderStart" min="0" max="119" value="0" />
+                            <input type="range" id="yearRangeSliderEnd" min="0" max="119" value="119" />
+                        </div>
+                        <div class="slider-marks" id="sliderMarks"></div>
+                    </div>
+                </div>
+                
+                <!-- 미니차트 3개 -->
+                <div class="cards-section">
+                    <div class="cards-container">
+                        <div class="card" id="card-0" data-card-index="0">
+                            <div class="card-placeholder">왼쪽 메뉴에서<br/>항목을 드래그하세요</div>
+                        </div>
+                        <div class="card" id="card-1" data-card-index="1">
+                            <div class="card-placeholder">왼쪽 메뉴에서<br/>항목을 드래그하세요</div>
+                        </div>
+                        <div class="card" id="card-2" data-card-index="2">
+                            <div class="card-placeholder">왼쪽 메뉴에서<br/>항목을 드래그하세요</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 그래프 영역 -->
+                <div class="chart-section" >
+                    <h2>그래프</h2>
+                    <div class="chart-container" id="mainChart">
+                        <div class="chart-placeholder">한국부동산원 AI 분석 플랫폼</div>
+                    </div>
+                    <div class="chart-buttons">
+                        <button class="btn btn-danger" onclick="resetChart()">차트 초기화</button>
+                        <button class="btn btn-primary" onclick="analyzeChart()">AI 분석</button>
+                    </div>
+                </div>
+                
+                <!-- 탭 영역 -->
+                <div class="tabs-section">
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab(0)">히스토리</button>
+                        <button class="tab" onclick="switchTab(1)">정책자료</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="tab-history">
+                        <div class="history-container" id="historyContainer">
+                            <p style="color: #666;">AI분석 차트 이미지가 없습니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="tab-policy">
+                        <table class="policy-table">
+                            <thead>
+                                <tr>
+                                    <th>선택</th>
+                                    <th>날짜</th>
+                                    <th>제목</th>
+                                </tr>
+                            </thead>
+                            <tbody id="policyTableBody">
+                                <!-- 정책자료 데이터가 여기에 렌더링됩니다 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 아파트 정보 뷰 -->
+        <div id="view-apt-info" class="view-container">
+            <div class="container">
+                <!-- 조회 년도 범위 -->
+                <div class="year-range-section">
+                    <div class="year-range-label">
+                        조회 년도 범위
+                        <span class="year-range-value" id="yearRangeDisplayApt" ></span>
+                    </div>
+                    <div class="slider-container">
+                        <div class="dual-range-slider">
+                            <input type="range" id="yearRangeSliderAptStart" min="0" max="119" value="0" />
+                            <input type="range" id="yearRangeSliderAptEnd" min="0" max="119" value="119" />
+                        </div>
+                        <div class="slider-marks" id="sliderMarksApt"></div>
+                    </div>
+                </div>
+
+                <!-- 아파트 선택 -->
+                <div class="apt-selector">
+                    <div class="selector-box selector-sido" id="sidoSelector">
+                        <span id="selectedSido">서울특별시</span>
+                        <div class="dropdown-menu" id="sidoDropdown"></div>
+                    </div>
+                    <div class="selector-box selector-gungu" id="gunguSelector">
+                        <span id="selectedGungu">송파구</span>
+                        <div class="dropdown-menu" id="gunguDropdown"></div>
+                    </div>
+                    <div class="selector-box selector-apt" id="aptSelector">
+                        <span id="selectedApt">선택하세요</span>
+                        <div class="dropdown-menu" id="aptDropdown"></div>
+                    </div>
+                </div>
+
+                <!-- 버튼들 -->
+                <div class="button-row">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <!-- 매매/전세 -->
+                        <div class="button-group">
+                            <button class="btn btn-primary" id="btnSale">매매</button>
+                            <button class="btn btn-secondary" id="btnRent">전세</button>
+                        </div>
+                        <!-- 평형 -->
+                        <div class="button-group">
+                            <button class="btn btn-outlined" id="btnArea59">59㎡</button>
+                            <button class="btn btn-outlined active" id="btnArea84">84㎡</button>
+                            <button class="btn btn-outlined" id="btnArea110">110㎡</button>
+                            <button class="btn btn-outlined" id="btnArea124">124㎡</button>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <!-- 매물호가/매물량/실거래가 -->
+                        <div class="button-group">
+                            <button class="btn btn-toggle active" id="btnPrice">매물호가</button>
+                            <button class="btn btn-toggle active" id="btnCount">매물량</button>
+                            <button class="btn btn-toggle active" id="btnTrade">실거래가</button>
+                        </div>
+                        <!-- 심리분석 -->
+                        <button class="btn btn-mind" id="btnMind">심리분석</button>
+                    </div>
+                </div>
+
+                <!-- 그래프 영역 -->
+                <div class="chart-section">
+                    <h2>그래프</h2>
+                    <div class="chart-container" id="aptChart">
+                        <div class="chart-placeholder">한국부동산원 AI 분석 플랫폼</div>
+                    </div>
+                    <div class="chart-buttons">
+                        <button class="btn btn-danger" onclick="resetAptChart()">차트 초기화</button>
+                        <button class="btn btn-primary" onclick="analyzeAptChart()">AI 분석</button>
+                    </div>
+                </div>
+                
+                <!-- 탭 영역 -->
+                <div class="tabs-section">
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchAptTab(0)">히스토리</button>
+                        <button class="tab" onclick="switchAptTab(1)">정책자료</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="tab-apt-history">
+                        <div class="history-container" id="historyContainerApt">
+                            <p style="color: #666;">AI분석 차트 이미지가 없습니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="tab-apt-policy">
+                        <table class="policy-table">
+                            <thead>
+                                <tr>
+                                    <th>선택</th>
+                                    <th>날짜</th>
+                                    <th>제목</th>
+                                </tr>
+                            </thead>
+                            <tbody id="policyTableBodyApt">
+                                <!-- 정책자료 데이터가 여기에 렌더링됩니다 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+ 
+
+        <!-- 지도 뷰 -->
+        <div id="view-map-info" class="view-container">
+            <div class="map-container">
+                <!-- 검색 패널 -->
+                <div class="map-search-panel">
+                    <svg class="map-search-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    <input 
+                        type="text" 
+                        class="map-search-input" 
+                        id="mapAddressInput"
+                        placeholder="주소를 입력하세요(예: 중구 세종대로 110)"
+                    />
+                    <button class="map-search-button" id="mapSearchButton">검색</button>
+                </div>
+                
+                <!-- 지도 영역 -->
+                <div id="map"></div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // ========== 환경 설정 ==========
+        const API_BASE_URL = 'http://127.0.0.1:8087/RAP';
+        const SLIDER_START_YEAR = new Date().getFullYear() - 9;
+        const SLIDER_END_YEAR = new Date().getFullYear();
+        
+        // ========== 전역 상태 ==========
+        const state = {
+            currentView: 'data-analysis',
+            menuData: [],
+            cards: [
+                { selected: false, color: '#1976d2', data: null, chartInstance: null },
+                { selected: false, color: '#2e7d32', data: null, chartInstance: null },
+                { selected: false, color: '#d32f2f', data: null, chartInstance: null }
+            ],
+            chartData: null,
+            chartLayers: [],
+            chartImageHistory: [],
+            checkedPolicies: [],
+            yearRange: [0, 119],
+            mainChartInstance: null,
+            // 아파트 정보 상태
+            apt: {
+                selectedSido: '서울특별시',
+                selectedGungu: '송파구',
+                selectedApt: '선택하세요',
+                selectedSaleType: '매매',
+                selectedArea: 84,
+                selectedMind: false,
+                yearRange: [0, 119],
+                chartInstance: null,
+                chartData: null,
+                checkedPolicies: [],
+                visibleSeries: {
+                    매물호가: true,
+                    매물량: true,
+                    실거래가: true, 
+                    심리분석: false
+                }
+            },
+            // 지도 상태
+            map: {
+                instance: null,
+                currentMarker: null
+            }
+        };
+
+        // 드롭다운 데이터
+        const sidoOptions = ['서울특별시', '경기도', '인천광역시'];
+        const gunguOptions = {
+            '서울특별시': ['송파구', '강남구', '서초구'],
+            '경기도': ['성남시', '수원시', '고양시'],
+            '인천광역시': ['남동구', '연수구', '부평구']
+        };
+        const aptOptions = {
+            '송파구': ['잠실 엘스 (서울특별시 송파구 주신로 19 롯데월드 99) 2008-09-30 / 5678세대', '잠실 리센츠', '잠실 파크리오'],
+            '강남구': ['도곡렉슬', '개포래미안', '대치아이파크'],
+            '서초구': ['반포자이', '서초푸르지오', '방배아트자이']
+        };
+        
+        // ========== SVG 아이콘 ==========
+        const ICONS = {
+            arrow: '<svg class="expand-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>',
+            folder: '<svg class="menu-icon" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="currentColor"/></svg>',
+            file: '<svg class="menu-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor"/></svg>'
+        };
+        
+        // ========== 정책자료 데이터 ==========
+        const policyData = [
+            { date: '20240127', title: '(24.01.27) 가계부채 관리 강화 방안', desc: 'LTV 등 규제 강화 / 가계대출 총량관리 강화' },
+            { date: '20230529', title: '(23.05.29) 금융 · 통화', desc: '한국은행 기준금리 인하' },
+            { date: '20220521', title: '(22.05.21) 가계부채 관리화', desc: "3단계 스트레스 DSR 시행('25.7.1~)" },
+            { date: '20200520', title: '(20.05.20) 가계대출규제 · DSR', desc: '3단계 스트레스 DSR 시행' },
+            { date: '20241021', title: '(24.10.21) 전세시기 비례 지원', desc: '전세시기대체 지원 및 주기업집에 관한 특별법 일부개정' },
+            { date: '20250319', title: '(25.03.19) 주택시장 안정화 방안', desc: '금융 · 가계대출 관리 강화 / 주거안정지역 · 부가처별지구 지정' }
+        ];
+
+        // ========== 뷰 전환 ==========
+        function showView(viewName) {
+            console.log('🔄 뷰 전환:', viewName);
+            
+            // 모든 뷰 숨기기
+            document.querySelectorAll('.view-container').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            // 선택된 뷰 보이기
+            let targetView = 'view-data-analysis';
+            if (viewName === 'apt-info') {
+                targetView = 'view-apt-info';
+            } else if (viewName === 'map-info') {
+                targetView = 'view-map-info';
+            }
+            
+            document.getElementById(targetView).classList.add('active');
+            
+            state.currentView = viewName;
+
+            // 아파트 정보로 전환 시 초기화
+            if (viewName === 'apt-info') {
+                initAptInfo();
+            }
+            
+            // 지도로 전환 시 초기화
+            if (viewName === 'map-info') {
+                initMap();
+            }
+        }
+
+        // ========== 메뉴 관련 함수 ==========
+        async function loadMenuData() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/getMenuJSON`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API 호출 실패 (${response.status}): ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ 메뉴 로드:', data?.length || 0, '개');
+                
+                state.menuData = Array.isArray(data) ? data : [];
+                renderMenu();
+                
+            } catch (err) {
+                console.error('❌ 메뉴 로딩 실패:', err);
+                document.getElementById('menu-container').innerHTML = `
+                    <div class="error">
+                        메뉴 로딩 실패: ${err.message}<br/>
+                        백엔드 서버(${API_BASE_URL})가 실행 중인지 확인해주세요.
+                    </div>
+                `;
+            }
+        }
+        
+        function renderMenu() {
+            const container = document.getElementById('menu-container');
+            
+            if (!state.menuData || state.menuData.length === 0) {
+                container.innerHTML = '<div style="color: #666; padding: 20px; text-align: center;">메뉴가 없습니다.</div>';
+                return;
+            }
+            
+            const menuTree = buildMenuTree(state.menuData);
+            container.innerHTML = `<ul class="menu-tree">${menuTree}</ul>`;
+            
+            // 즉시 이벤트 리스너 등록
+            attachMenuEventListeners();
+        }
+        
+        function buildMenuTree(items, level = 0) {
+            return items.map(item => {
+                const isParent = item.children && item.children.length > 0;
+                const isLeaf = !isParent;
+                const isDraggable = isLeaf && (item.statblid || item.cCode);
+                const title = item.cContents || item.cname || 'Untitled';
+                const itemId = item.id || item.statblid || item.cCode || Math.random().toString(36);
+                
+                let html = '<li class="menu-item">';
+                html += `<div class="menu-title ${isParent ? 'parent' : 'leaf'} ${isDraggable ? 'draggable' : ''}" 
+                    data-item='${JSON.stringify(item).replace(/'/g, "&#39;")}' 
+                    data-draggable="${isDraggable}"
+                    data-item-id="${itemId}"
+                    ${isDraggable ? 'draggable="true"' : ''}>`;
+                
+                html += isParent ? ICONS.arrow : '<span class="expand-icon hidden"></span>';
+                html += isParent ? ICONS.folder : ICONS.file;
+                
+                html += '<div class="menu-label">';
+                html += `<div class="menu-label-main">${title}</div>`;
+                if (isLeaf && item.statblid) {
+                    html += `<div class="menu-label-id">ID: ${item.statblid}</div>`;
+                }
+                html += '</div></div>';
+                
+                if (isParent) {
+                    html += `<ul class="menu-children">${buildMenuTree(item.children, level + 1)}</ul>`;
+                }
+                
+                html += '</li>';
+                return html;
+            }).join('');
+        }
+        
+        function attachMenuEventListeners() {
+            const menuTitles = document.querySelectorAll('.menu-title');
+            console.log('🔧 이벤트 등록:', menuTitles.length);
+            
+            menuTitles.forEach((title, idx) => {
+                const isParent = title.classList.contains('parent');
+                const isDraggable = title.getAttribute('draggable') === 'true';
+                
+                // 부모 노드 - 클릭으로 확장/축소
+                if (isParent) {
+                    title.onclick = function(e) {
+                        e.stopPropagation();
+                        const parent = this.parentElement;
+                        const children = parent.querySelector('.menu-children');
+                        const expandIcon = this.querySelector('.expand-icon');
+                        
+                        if (children && expandIcon) {
+                            children.classList.toggle('expanded');
+                            expandIcon.classList.toggle('expanded');
+                        }
+                    };
+                }
+                
+                // 리프 노드 - 드래그 가능
+                if (isDraggable) {
+                    
+                    title.ondragstart = function(e) {
+                        console.log('🎯 드래그 시작!', idx);
+                        const itemData = this.getAttribute('data-item');
+                        e.dataTransfer.setData('text/plain', itemData);
+                        e.dataTransfer.effectAllowed = 'copy';
+                        this.style.opacity = '0.4';
+                    };
+                    
+                    title.ondragend = function(e) {
+                        console.log('🏁 드래그 끝', idx);
+                        this.style.opacity = '1';
+                    };
+                    
+                    title.style.cursor = 'grab';
+                }
+            });
+        }
+        
+        async function renderMiniChart(cardIndex, title) {
+            const chartEl = document.querySelector(`#mini-chart-${cardIndex}`);
+            if (!chartEl) {
+                console.error('❌ 차트 엘리먼트 없음:', cardIndex);
+                return;
+            }
+            
+            console.log('📈 차트 렌더링 시작:', cardIndex);
+            
+            // ApexCharts 로드 확인
+            if (typeof ApexCharts === 'undefined') {
+                console.error('❌ ApexCharts 라이브러리가 로드되지 않았습니다');
+                chartEl.innerHTML = '<div style="color: red; padding: 20px; text-align: center;">차트 라이브러리 로딩 실패</div>';
+                return;
+            }
+            
+            // 미니 차트 옵션
+            const options = {
+                series: [{
+                    name: title,
+                    data: [30, 40, 35, 50, 190, 60, 70, 91, 250]
+                }],
+                chart: {
+                    type: 'line',
+                    height: 120,
+                    sparkline: { enabled: true },
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800
+                    }
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 3
+                },
+                colors: [state.cards[cardIndex].color],
+                tooltip: {
+                    enabled: true,
+                    fixed: { enabled: false },
+                    x: { show: false },
+                    y: {
+                        title: {
+                            formatter: function (seriesName) {
+                                return ''
+                            }
+                        }
+                    },
+                    marker: {
+                        show: false
+                    }
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shade: 'light',
+                        type: 'vertical',
+                        shadeIntensity: 0.5,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.3,
+                    }
+                }
+            };
+            
+            try {
+                const chart = new ApexCharts(chartEl, options);
+                
+                // render()가 Promise를 반환하므로 await 사용
+                await chart.render();
+                
+                // 렌더링 완료 후 인스턴스 저장
+                state.cards[cardIndex].chartInstance = chart;
+                
+                console.log('✅ 차트 렌더링 성공:', cardIndex, '인스턴스 저장됨');
+                
+            } catch (err) {
+                console.error('❌ 차트 생성/렌더링 실패:', err);
+                chartEl.innerHTML = `<div style="color: red; padding: 10px; text-align: center; font-size: 12px;">차트 생성 실패<br/>${err.message}</div>`;
+            }
+        }
+
+        async function loadCardData(cardIndex, item) {
+            const card = document.getElementById(`card-${cardIndex}`);
+            const statblid = item.statblid || item.cCode;
+            
+            if (!statblid) {
+                alert('유효하지 않은 데이터 항목입니다.');
+                return;
+            }
+            
+            console.log('📊 카드 로딩 시작:', cardIndex, '항목:', item.cContents);
+            
+            const title = item.cContents || item.cname || 'Untitled';
+            
+            // 기존 차트 인스턴스 제거
+            if (state.cards[cardIndex].chartInstance) {
+                console.log('기존 차트 제거');
+                state.cards[cardIndex].chartInstance.destroy();
+                state.cards[cardIndex].chartInstance = null;
+            }
+            
+            // 카드 색상 가져오기
+            const cardColor = state.cards[cardIndex].color;
+
+            // 카드 UI 업데이트
+            card.classList.add('active');
+            card.style.borderColor = cardColor;  // 동적 border 색상 설정
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title">${title}</div>
+                    <button class="card-remove" onclick="removeCard(${cardIndex})">×</button>
+                </div>
+                <div class="mini-chart" id="mini-chart-${cardIndex}"></div>
+            `;
+            
+            console.log('카드 HTML 업데이트 완료');
+            
+            // DOM 업데이트 대기
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // 차트 엘리먼트 확인
+            const chartEl = document.querySelector(`#mini-chart-${cardIndex}`);
+            console.log('차트 엘리먼트 확인:', chartEl ? '✅ 존재함' : '❌ 없음');
+            
+            if (!chartEl) {
+                console.error('❌ 차트 엘리먼트가 생성되지 않았습니다!');
+                return;
+            }
+            
+            // 미니 차트 렌더링 (await로 완료 대기)
+            await renderMiniChart(cardIndex, title);
+            
+            // 상태 업데이트 (차트 렌더링 완료 후)
+            state.cards[cardIndex].selected = true;
+            state.cards[cardIndex].data = item;
+            
+            console.log('✅ 카드 로딩 완료, 차트 인스턴스:', state.cards[cardIndex].chartInstance ? '생성됨 ✅' : '없음 ❌');
+            
+            // 메인 차트 업데이트
+            await updateMainChart();
+        }
+
+        // ========== 차트 카드 드롭 처리 ==========
+        function setupCardDropZones() {
+            console.log('🔧 드롭존 설정 시작');
+            
+            for (let i = 0; i < 3; i++) {
+                const card = document.getElementById(`card-${i}`);
+                if (!card) continue;
+                
+                console.log('카드 설정:', i);
+                
+                card.ondragover = function(e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                    return false;
+                };
+                
+                card.ondragleave = function(e) {
+                    this.classList.remove('drag-over');
+                };
+                
+                card.ondrop = async function(e) {
+                    e.preventDefault();
+                    console.log('🎯 DROP!', i);
+                    this.classList.remove('drag-over');
+                    
+                    const itemData = e.dataTransfer.getData('text/plain');
+                    if (!itemData) {
+                        console.error('❌ 데이터 없음');
+                        return false;
+                    }
+                    
+                    try {
+                        const item = JSON.parse(itemData);
+                        console.log('✅ 파싱 성공:', item);
+                        await loadCardData(i, item);
+                    } catch (err) {
+                        console.error('❌ 에러:', err);
+                        alert('데이터 처리 실패');
+                    }
+                    
+                    return false;
+                };
+            }
+            
+            console.log('✅ 드롭존 설정 완료');
+        }
+
+        // ========== 슬라이더 마크 렌더링 ==========
+        function renderSliderMarks(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            const totalMonths = 120;
+            const marks = [];
+            
+            // 매년 1월만 표시 (0, 12, 24, 36, ...)
+            for (let i = 1; i <= totalMonths; i += 12) {
+                const year = SLIDER_START_YEAR + Math.floor(i / 12);
+                const position = (i / totalMonths) * 100;
+                
+                marks.push(`
+                    <div class="slider-mark" style="position: absolute; left: ${position}%; transform: translateX(-50%);">
+                        <div class="slider-mark-label" style="font-weight: 600; color: #333; font-size: 12px;">
+                            ${year}-01
+                        </div>
+                    </div>
+                `);
+            }
+            
+            container.innerHTML = marks.join('');
+        }
+
+        function updateSliderTrack(startSlider, endSlider) {
+            const container = startSlider.parentElement;
+            const startValue = parseInt(startSlider.value);
+            const endValue = parseInt(endSlider.value);
+            
+            const percent1 = (startValue / 119) * 100;
+            const percent2 = (endValue / 119) * 100;
+            
+            container.style.setProperty('--track-left', `${percent1}%`);
+            container.style.setProperty('--track-width', `${percent2 - percent1}%`);
+        }
+
+        // ========== 년도 범위 (AI 데이터 분석) ==========
+        function updateYearRangeDisplay() {
+            const [start, end] = state.yearRange;
+            const startYear = SLIDER_START_YEAR + Math.floor(start / 12);
+            const startMonth = (start % 12) + 1;
+            const endYear = SLIDER_START_YEAR + Math.floor(end / 12);
+            const endMonth = (end % 12) + 1;
+            
+            document.getElementById('yearRangeDisplay').textContent = 
+                `[ ${startYear}년${String(startMonth).padStart(2,'0')}월 ~ ${endYear}년${String(endMonth).padStart(2,'0')}월 ]`;
+            
+            // 차트 업데이트
+            if (state.mainChartInstance) {
+                updateMainChart();
+            }
+        }
+
+        // ========== 년도 범위 (아파트 정보) ==========
+        function updateAptYearRangeDisplay() {
+            const [start, end] = state.apt.yearRange;
+            const startYear = SLIDER_START_YEAR + Math.floor(start / 12);
+            const startMonth = (start % 12) + 1;
+            const endYear = SLIDER_START_YEAR + Math.floor(end / 12);
+            const endMonth = (end % 12) + 1;
+            
+            document.getElementById('yearRangeDisplayApt').textContent = 
+                `[ ${startYear}년${String(startMonth).padStart(2,'0')}월 ~ ${endYear}년${String(endMonth).padStart(2,'0')}월 ]`;
+            
+            // 차트 업데이트
+            if (state.apt.chartInstance) {
+                renderAptChart();
+            }
+        }
+
+        function setupAptButtons() {
+            console.log('🔧 아파트 버튼 설정');
+            
+            // 매매/전세
+            document.getElementById('btnSale').onclick = () => {
+                state.apt.selectedSaleType = '매매';
+                document.getElementById('btnSale').className = 'btn btn-primary';
+                document.getElementById('btnRent').className = 'btn btn-secondary';
+                renderAptChart();
+            };
+            
+            document.getElementById('btnRent').onclick = () => {
+                state.apt.selectedSaleType = '전세';
+                document.getElementById('btnSale').className = 'btn btn-secondary';
+                document.getElementById('btnRent').className = 'btn btn-primary';
+                renderAptChart();
+            };
+
+            // 평형
+            [59, 84, 110, 124].forEach(area => {
+                document.getElementById(`btnArea${area}`).onclick = () => {
+                    state.apt.selectedArea = area;
+                    [59, 84, 110, 124].forEach(a => {
+                        const btn = document.getElementById(`btnArea${a}`);
+                        btn.className = a === area ? 'btn btn-outlined active' : 'btn btn-outlined';
+                    });
+                    renderAptChart();
+                };
+            });
+
+            // 매물호가/매물량/실거래가
+            ['Price', 'Count', 'Trade'].forEach((type, idx) => {
+                const seriesName = ['매물호가', '매물량', '실거래가'][idx]; 
+                document.getElementById(`btn${type}`).onclick = () => {
+                    state.apt.visibleSeries[seriesName] = !state.apt.visibleSeries[seriesName];
+                    document.getElementById(`btn${type}`).classList.toggle('active');
+                    
+                    // 심리분석 비활성화
+                    if (state.apt.selectedMind) {
+                        state.apt.selectedMind = false;
+                        state.apt.visibleSeries.심리분석 = false;
+                        document.getElementById('btnMind').classList.remove('active');
+                    }
+                    
+                    renderAptChart();
+                };
+            });
+
+            // 심리분석
+            document.getElementById('btnMind').onclick = () => {
+                state.apt.selectedMind = !state.apt.selectedMind;
+                
+                if (state.apt.selectedMind) {
+                    state.apt.visibleSeries = { 매물호가: false, 매물량: false, 실거래가: false, 심리분석: true };
+                    document.getElementById('btnPrice').classList.remove('active');
+                    document.getElementById('btnCount').classList.remove('active');
+                    document.getElementById('btnTrade').classList.remove('active');
+                    document.getElementById('btnMind').classList.add('active');
+                } else {
+                    state.apt.visibleSeries = { 매물호가: true, 매물량: true, 실거래가: true, 심리분석: false };
+                    document.getElementById('btnPrice').classList.add('active');
+                    document.getElementById('btnCount').classList.add('active');
+                    document.getElementById('btnTrade').classList.add('active');
+                    document.getElementById('btnMind').classList.remove('active');
+                }
+                
+                renderAptChart();
+            };
+
+            // APT 정보 년도 슬라이더 (시작/종료)
+            const startSlider = document.getElementById('yearRangeSliderAptStart');
+            const endSlider = document.getElementById('yearRangeSliderAptEnd');
+
+            startSlider.addEventListener('input', function(e) {
+                let startValue = parseInt(e.target.value);
+                let endValue = parseInt(endSlider.value);
+                
+                if (startValue >= endValue) {
+                    endValue = Math.min(119, startValue + 1);
+                    endSlider.value = endValue;
+                }
+                
+                state.apt.yearRange = [startValue, endValue];
+                updateAptYearRangeDisplay();
+                updateSliderTrack(startSlider, endSlider);
+            });
+            
+            endSlider.addEventListener('input', function(e) {
+                let startValue = parseInt(startSlider.value);
+                let endValue = parseInt(e.target.value);
+                
+                if (endValue <= startValue) {
+                    startValue = Math.max(0, endValue - 1);
+                    startSlider.value = startValue;
+                }
+                
+                state.apt.yearRange = [startValue, endValue];
+                updateAptYearRangeDisplay();
+                updateSliderTrack(startSlider, endSlider);
+            });
+            
+        }
+
+        function removeCard(cardIndex) {
+            console.log('🗑️ 카드 제거:', cardIndex);
+            
+            const card = document.getElementById(`card-${cardIndex}`);
+            
+            // 차트 인스턴스 제거
+            if (state.cards[cardIndex].chartInstance) {
+                state.cards[cardIndex].chartInstance.destroy();
+                state.cards[cardIndex].chartInstance = null;
+            }
+            
+            // 상태 초기화
+            state.cards[cardIndex].selected = false;
+            state.cards[cardIndex].data = null;
+            
+            // UI 초기화
+            card.classList.remove('active');
+            card.style.borderColor = '';  // border 색상 초기화
+            card.innerHTML = '<div class="card-placeholder">왼쪽 메뉴에서<br/>항목을 드래그하세요</div>';
+            
+            // 메인 차트 업데이트
+            updateMainChart();
+        }
+        
+        async function updateMainChart() {
+            console.log('📊 메인 차트 업데이트');
+            
+            const chartContainer = document.getElementById('mainChart');
+            
+            // 기존 차트 인스턴스 제거
+            if (state.mainChartInstance) {
+                state.mainChartInstance.destroy();
+                state.mainChartInstance = null;
+            }
+            
+            // 선택된 카드가 없으면 플레이스홀더 표시
+            const selectedCards = state.cards.filter(c => c.selected);
+            if (selectedCards.length === 0) {
+                chartContainer.innerHTML = '<div class="chart-placeholder">한국부동산원 AI 분석 플랫폼</div>';
+                chartContainer.style.background = 'linear-gradient(135deg, #1976d2 0%, #42a5f5 50%)';
+                return;
+            }
+            
+            console.log('선택된 카드:', selectedCards.map(c => c.data));
+            
+            // 차트 컨테이너 초기화
+            chartContainer.innerHTML = '';
+            chartContainer.style.background = 'white';
+            
+            // 년월 범위 생성
+            const [startIdx, endIdx] = state.yearRange;
+            const startYear = SLIDER_START_YEAR + Math.floor(startIdx / 12);
+            const startMonth = (startIdx % 12) + 1;
+            const endYear = SLIDER_START_YEAR + Math.floor(endIdx / 12);
+            const endMonth = (endIdx % 12) + 1;
+            
+            const categories = [];
+            let currentYear = startYear;
+            let currentMonth = startMonth;
+            
+            while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+                const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+                categories.push(dateStr);
+                currentMonth++;
+                if (currentMonth > 12) {
+                    currentMonth = 1;
+                    currentYear++;
+                }
+            }
+            
+            // 시리즈 데이터 생성
+            const series = selectedCards.map((card, idx) => {
+                const title = card.data?.cContents || card.data?.cname || `Series ${idx + 1}`;
+                const ctype = card.data?.ctype || 'dt-index'; // 기본값: dt-index
+                const statblid = card.data?.statblid || card.data?.cCode || `series-${idx}`;
+                
+                return {
+                    name: title,
+                    data: categories.map((_, i) => Math.random() * 100 + 50),
+                    ctype: ctype,
+                    statblid: statblid
+                };
+            });
+        
+            console.log('시리즈 ctype:', series.map(s => ({ name: s.name, ctype: s.ctype })));
+            
+            // 첫 번째 ctype 찾기 (왼쪽 Y축)
+            const firstCtype = series.length > 0 ? series[0].ctype : null;
+            console.log('첫 번째 ctype (왼쪽 축):', firstCtype);
+
+            // ctype별 시리즈 그룹화
+            const ctypeCount = {};
+            series.forEach(s => {
+                if (s.ctype) {
+                    ctypeCount[s.ctype] = (ctypeCount[s.ctype] || 0) + 1;
+                }
+            });
+            console.log('ctype 카운트:', ctypeCount);
+            
+            // statblid별 시리즈 그룹화 (같은 색상 그룹)
+            const statblidGroups = {};
+            series.forEach((seriesItem, idx) => {
+                const sid = seriesItem.statblid || 'unknown';
+                if (!statblidGroups[sid]) statblidGroups[sid] = [];
+                statblidGroups[sid].push(idx);
+            });
+            
+            // RGB to HSL 변환 함수
+            const hexToHSL = (hex) => {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                if (!result) return { h: 0, s: 0, l: 50 };
+                
+                let r = parseInt(result[1], 16) / 255;
+                let g = parseInt(result[2], 16) / 255;
+                let b = parseInt(result[3], 16) / 255;
+                
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h, s, l = (max + min) / 2;
+                
+                if (max === min) {
+                    h = s = 0;
+                } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    switch (max) {
+                        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                        case g: h = ((b - r) / d + 2) / 6; break;
+                        case b: h = ((r - g) / d + 4) / 6; break;
+                    }
+                }
+                
+                return { h: h * 360, s: s * 100, l: l * 100 };
+            };
+            
+            // HSL to RGB 변환 함수
+            const hslToHex = (h, s, l) => {
+                s /= 100;
+                l /= 100;
+                
+                const k = n => (n + h / 30) % 12;
+                const a = s * Math.min(l, 1 - l);
+                const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+                
+                const r = Math.round(255 * f(0));
+                const g = Math.round(255 * f(8));
+                const b = Math.round(255 * f(4));
+                
+                return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`;
+            };
+            
+            // 색상 생성 (같은 statblid는 명도 조절)
+            const dynamicColors = series.map((seriesItem, idx) => {
+                let baseColor = selectedCards[idx].color;
+                
+                const sid = seriesItem.statblid || 'unknown';
+                const groupIndices = statblidGroups[sid];
+                const positionInGroup = groupIndices.indexOf(idx);
+                const groupSize = groupIndices.length;
+                
+                if (groupSize > 1) {
+                    const hsl = hexToHSL(baseColor);
+                    const lightnessStep = 60 / (groupSize - 1);
+                    const newLightness = 20 + (positionInGroup * lightnessStep);
+                    return hslToHex(hsl.h, hsl.s, newLightness);
+                }
+                
+                return baseColor;
+            });
+            
+            // Y축 설정 - 첫 번째 ctype을 기준으로 축 배치
+            let yaxis = null;
+            if (series.length > 0) {
+                // 첫 번째 ctype의 데이터 범위 계산
+                let firstCtypeMin = Infinity;
+                let firstCtypeMax = -Infinity;
+                series.forEach(s => {
+                    if (s.ctype === firstCtype && Array.isArray(s.data)) {
+                        s.data.forEach(val => {
+                            const numVal = (typeof val === 'object' && val !== null && 'y' in val) ? val.y : val;
+                            if (numVal !== null && numVal !== undefined && !isNaN(numVal)) {
+                                firstCtypeMin = Math.min(firstCtypeMin, numVal);
+                                firstCtypeMax = Math.max(firstCtypeMax, numVal);
+                            }
+                        });
+                    }
+                });
+                
+                // 유효한 범위가 없으면 undefined로 설정
+                if (firstCtypeMin === Infinity || firstCtypeMax === -Infinity) {
+                    firstCtypeMin = undefined;
+                    firstCtypeMax = undefined;
+                } else {
+                    // 약간의 여백 추가 (5%)
+                    const range = firstCtypeMax - firstCtypeMin;
+                    firstCtypeMin = firstCtypeMin - range * 0.05;
+                    firstCtypeMax = firstCtypeMax + range * 0.05;
+                    
+                    // 10단위로 반올림
+                    firstCtypeMin = Math.floor(firstCtypeMin / 10) * 10;
+                    firstCtypeMax = Math.ceil(firstCtypeMax / 10) * 10;
+                }
+                
+                console.log('dt-index 범위:', firstCtypeMin, '~', firstCtypeMax);
+
+                // ctype별 라벨 매핑
+                const ctypeLabels = {
+                    'dt-index': '지수',
+                    'dt-percent': '변동률(%)',
+                    'dt-count': '건수',
+                    'dt-price': '가격(만원)',
+                    'dt-amount': '금액'
+                };
+
+                // 시리즈별로 yaxis 생성
+                yaxis = series.map((s, idx) => {
+                    const isFirstCtype = (s.ctype === firstCtype);
+                    const isPercent = (s.ctype === 'dt-percent');
+                    const isCount = (s.ctype === 'dt-count');
+                    
+                    if (isFirstCtype) {
+                        // 첫 번째 ctype 시리즈는 왼쪽 Y축 공유
+                        const firstCtypeIdx = series.findIndex(ser => ser.ctype === firstCtype);
+                        
+                        return {
+                            seriesName: s.name,
+                            axisTicks: { show: idx === firstCtypeIdx },
+                            axisBorder: { 
+                                show: idx === firstCtypeIdx, 
+                                color: dynamicColors[firstCtypeIdx] 
+                            },
+                            labels: {
+                                show: idx === firstCtypeIdx,
+                                style: { colors: dynamicColors[firstCtypeIdx] },
+                                formatter: val => {
+                                    if (val === 0) return '0';
+                                    if (isPercent) return val.toFixed(1) + '%';
+                                    return Math.floor(val).toLocaleString();
+                                }
+                            },
+                            title: {
+                                text: idx === firstCtypeIdx ? (ctypeLabels[firstCtype] || firstCtype) : undefined,
+                                style: { color: dynamicColors[firstCtypeIdx] }
+                            },
+                            opposite: false, // 왼쪽
+                            min: firstCtypeMin,
+                            max: firstCtypeMax
+                        };
+                    } else {
+                        // 다른 ctype은 오른쪽 개별 Y축
+                        // 같은 ctype끼리는 축 공유
+                        const sameCtype = series.filter(ser => ser.ctype === s.ctype);
+                        const isFirstOfType = sameCtype.length > 0 && sameCtype[0].name === s.name;
+                        
+                        return {
+                            seriesName: s.name,
+                            axisTicks: { show: isFirstOfType },
+                            axisBorder: { 
+                                show: isFirstOfType, 
+                                color: dynamicColors[idx] 
+                            },
+                            labels: {
+                                show: isFirstOfType,
+                                style: { colors: dynamicColors[idx] },
+                                formatter: val => {
+                                    if (val === 0) return '0';
+                                    if (isPercent) return val.toFixed(1) + '%';
+                                    if (isCount) return Math.floor(val).toLocaleString();
+                                    return Math.floor(val).toLocaleString();
+                                }
+                            },
+                            title: {
+                                text: isFirstOfType ? (ctypeLabels[s.ctype] || s.ctype) : undefined,
+                                style: { color: dynamicColors[idx] }
+                            },
+                            opposite: true // 오른쪽
+                        };
+                    }
+                });
+            } else {
+                yaxis = { 
+                    labels: { 
+                        formatter: val => val ? val.toString() : '' 
+                    } 
+                };
+            }
+
+            // 정책 annotations
+            const annotations = {
+                xaxis: state.checkedPolicies.map(policy => {
+                    const dateStr = policy.date;
+                    const policyDate = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-01`;
+                    const originalDate = formatDate(dateStr);
+                    
+                    return {
+                        x: policyDate,
+                        strokeDashArray: 0,
+                        borderColor: '#757575',
+                        borderWidth: 2,
+                        label: {
+                            borderColor: '#757575',
+                            style: {
+                                color: '#fff',
+                                background: '#757575',
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                padding: { left: 6, right: 6, top: 3, bottom: 3 }
+                            },
+                            orientation: 'horizontal',
+                            textAnchor: 'middle',
+                            text: `${originalDate} ${policy.title.substring(0, 20)}`,
+                            offsetY: -10
+                        }
+                    };
+                })
+            };
+            
+            // AI 데이터 분석 차트 옵션
+            const options = {
+                series: series,
+                chart: {
+                    type: 'line',
+                    height: 400,
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            zoom: true,
+                            zoomin: true,
+                            zoomout: true,
+                            pan: true,
+                            reset: true
+                        }
+                    },
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800
+                    }
+                },
+                colors: dynamicColors,
+                stroke: {
+                    curve: 'smooth',
+                    width: 2
+                },
+                markers: {
+                    size: 0,
+                    hover: {
+                        size: 2
+                    }
+                },
+                xaxis: {
+                    type: 'category',
+                    categories: categories,
+                    labels: {
+                        rotate: -45,
+                        rotateAlways: true,
+                        style: {
+                            fontSize: '11px'
+                        }
+                    },
+                    tickAmount: Math.min(15, Math.floor(categories.length / 3))
+                },
+                yaxis: yaxis,
+                legend: {
+                   
+                    position: 'top',
+                    horizontalAlign: 'left',
+                    fontSize: '14px',
+                    markers: {
+                        width: 12,
+                        height: 12,
+                        radius: 6
+                    }
+                },
+                tooltip: {
+                    shared: true,
+                    intersect: false,
+                    x: {
+                        formatter: function(value, { dataPointIndex }) {
+                            return categories[dataPointIndex];
+                        }
+                    },
+                    y: {
+                        formatter: function(value) {
+                            return value ? value.toFixed(2) : '';
+                        }
+                    }
+                },
+                grid: {
+
+                    borderColor: '#e0e0e0',
+                    strokeDashArray: 4,
+                    xaxis: {
+                        lines: {
+                            show: true
+                        }
+                    },
+                    yaxis: {
+                        lines: {
+                            show: true
+                        }
+                    }
+                },
+                annotations: annotations
+            };
+            
+            try {
+                const chart = new ApexCharts(chartContainer, options);
+                await chart.render();
+                
+                state.mainChartInstance = chart;
+                
+                console.log('✅ 메인 차트 렌더링 완료');
+                
+            } catch (err) {
+                console.error('❌ 메인 차트 렌더링 실패:', err);
+                chartContainer.innerHTML = `<div style="color: red; padding: 40px; text-align: center;">차트 생성 실패<br/>${err.message}</div>`;
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr || dateStr.length !== 8) return dateStr;
+            const year = dateStr.substring(0, 4);
+            const month = dateStr.substring(4, 6);
+            const day = dateStr.substring(6, 8);
+            return `${year}.${month}.${day}`;
+        }
+
+        function resetChart() {
+            console.log('🔄 차트 초기화');
+            
+            const chartContainer = document.getElementById('mainChart');
+            
+            if (state.mainChartInstance) {
+                state.mainChartInstance.destroy();
+                state.mainChartInstance = null;
+            }
+            
+            chartContainer.innerHTML = '<div class="chart-placeholder">한국부동산원 AI 분석 플랫폼</div>';
+            chartContainer.style.background = 'linear-gradient(135deg, #1976d2 0%, #42a5f5 50%)';
+            
+            // 카드 초기화
+            for (let i = 0; i < 3; i++) {
+                removeCard(i);
+            }
+            
+            state.yearRange = [0, 119];
+            state.checkedPolicies = [];
+            state.chartImageHistory = [];
+
+            // 슬라이더 DOM 요소 초기화
+            const startSlider = document.getElementById('yearRangeSliderStart');
+            const endSlider = document.getElementById('yearRangeSliderEnd');
+            if (startSlider) startSlider.value = 0;
+            if (endSlider) endSlider.value = 119;
+            
+            // 슬라이더 트랙 업데이트
+            if (startSlider && endSlider) {
+                updateSliderTrack(startSlider, endSlider);
+            }
+
+            updateYearRangeDisplay();
+            renderPolicyTable();
+            
+            console.log('✅ 차트 초기화 완료');
+        }
+
+        async function analyzeChart() {
+            if (!state.mainChartInstance) {
+                alert('차트를 먼저 생성해주세요.');
+                return;
+            }
+            
+            try {
+                // ApexCharts의 dataURI() 메서드로 이미지 추출
+                const imgDataURI = await state.mainChartInstance.dataURI();
+                
+                if (!imgDataURI || !imgDataURI.imgURI) {
+                    console.error('❌ 이미지 추출 실패');
+                    alert('이미지 생성에 실패했습니다.');
+                    return;
+                }
+                
+                const uri = imgDataURI.imgURI;
+                const ext = 'png'; // ApexCharts는 기본적으로 PNG 반환
+                const uuid = typeof uuidv4 === 'function' ? uuidv4() : Date.now().toString();
+                const date = new Date().toISOString();
+                
+                // 선택된 카드들의 정보
+                const selectedCards = state.cards.filter(c => c.selected);
+                const chartId = selectedCards.length > 0 
+                    ? selectedCards.map(c => c.data?.statblid || 'unknown').join('-')
+                    : 'chart';
+                
+                // 히스토리에 추가
+                const newImage = {
+                    uri: uri,
+                    ext: ext,
+                    date: date,
+                    chartId: chartId,
+                    uuid: uuid
+                };
+                
+                state.chartImageHistory.unshift(newImage);
+                
+                console.log('✅ 차트 이미지 생성 완료:', chartId);
+                console.log('   UUID:', uuid);
+                console.log('   히스토리 개수:', state.chartImageHistory.length);
+                
+                // 히스토리 렌더링 (양쪽 모두 업데이트)
+                renderHistory();
+                
+                // 히스토리 탭으로 자동 전환
+                switchTab(0);
+                
+            } catch (err) {
+                console.error('❌ 이미지 추출 실패:', err);
+                alert('이미지 생성 중 오류가 발생했습니다.');
+            }
+        }
+
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('#view-data-analysis .tab');
+            const contents = document.querySelectorAll('#view-data-analysis .tab-content');
+            
+            tabs.forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+            
+            contents.forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+        }
+
+        function switchAptTab(index) {
+            const tabs = document.querySelectorAll('#view-apt-info .tab');
+            const contents = document.querySelectorAll('#view-apt-info .tab-content');
+            
+            tabs.forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+            
+            contents.forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+        }
+
+        function renderPolicyTable() {
+            const tbody = document.getElementById('policyTableBody');
+            tbody.innerHTML = policyData.map((row, idx) => `
+                <tr>
+                    <td><input type="checkbox" onchange="togglePolicy(${idx})" /></td>
+                    <td>${formatDate(row.date)}</td>
+                    <td>${row.title}<br/><small>${row.desc}</small></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAptPolicyTable() {
+            const tbody = document.getElementById('policyTableBodyApt');
+            if (!tbody) {
+                console.error('❌ policyTableBodyApt를 찾을 수 없습니다.');
+                return;
+            }
+            
+            tbody.innerHTML = policyData.map((row, idx) => `
+                <tr>
+                    <td><input type="checkbox" onchange="toggleAptPolicy(${idx})" /></td>
+                    <td>${formatDate(row.date)}</td>
+                    <td>${row.title}<br/><small>${row.desc}</small></td>
+                </tr>
+            `).join('');
+        }
+
+        function togglePolicy(index) {
+            const policy = policyData[index];
+            const checkbox = event.target;
+            
+            if (checkbox.checked) {
+                state.checkedPolicies.push(policy);
+                console.log('✅ 정책 추가:', policy.title);
+            } else {
+                const idx = state.checkedPolicies.findIndex(p => 
+                    p.date === policy.date && p.title === policy.title
+                );
+                if (idx >= 0) {
+                    state.checkedPolicies.splice(idx, 1);
+                    console.log('❌ 정책 제거:', policy.title);
+                }
+            }
+            
+            updateMainChart();
+        }
+
+        function toggleAptPolicy(index) {
+            const policy = policyData[index];
+            const checkbox = event.target;
+            
+            if (checkbox.checked) {
+                state.apt.checkedPolicies.push(policy);
+                console.log('✅ 아파트 정책 추가:', policy.title);
+            } else {
+                const idx = state.apt.checkedPolicies.findIndex(p => 
+                    p.date === policy.date && p.title === policy.title
+                );
+                if (idx >= 0) {
+                    state.apt.checkedPolicies.splice(idx, 1);
+                    console.log('❌ 아파트 정책 제거:', policy.title);
+                }
+            }
+            
+            renderAptChart();
+        }
+
+        function renderHistory() {
+            // AI 데이터 분석 히스토리 렌더링
+            const container = document.getElementById('historyContainer');
+            
+            if (state.chartImageHistory.length === 0) {
+                container.innerHTML = '<p style="color: #666;">AI분석 차트 이미지가 없습니다.</p>';
+            } else {
+                container.innerHTML = state.chartImageHistory.map((img, idx) => `
+                    <div class="history-item">
+                        <a href="${img.uri}" download="chart_${img.uuid}_${idx + 1}.${img.ext}">
+                            <img src="${img.uri}" alt="Chart ${idx + 1}" />
+                        </a>
+                    </div>
+                `).join('');
+            }
+            
+            // 아파트 정보 히스토리도 동일하게 렌더링 
+            const containerApt = document.getElementById('historyContainerApt');
+            
+            if (state.chartImageHistory.length === 0) {
+                containerApt.innerHTML = '<p style="color: #666;">AI분석 차트 이미지가 없습니다.</p>';
+            } else {
+                containerApt.innerHTML = state.chartImageHistory.map((img, idx) => `
+                    <div class="history-item">
+                        <a href="${img.uri}" download="chart_${img.uuid}_${idx + 1}.${img.ext}">
+                            <img src="${img.uri}" alt="Chart ${idx + 1}" />
+                        </a>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // ========== 아파트 정보 초기화 ==========
+        function initAptInfo() {
+            console.log('🏢 아파트 정보 초기화');
+            
+            updateAptSelectors();
+            updateAptYearRangeDisplay();
+            setupAptButtons();
+            renderAptPolicyTable();
+            renderHistory();          
+            
+            console.log('✅ 아파트 정보 초기화 완료');
+        }
+
+        function updateAptSelectors() {
+            // 현재 선택값 표시
+            const sidoElement = document.getElementById('selectedSido');
+            const gunguElement = document.getElementById('selectedGungu');
+            const aptElement = document.getElementById('selectedApt');
+            
+            if (sidoElement) sidoElement.textContent = state.apt.selectedSido;
+            if (gunguElement) gunguElement.textContent = state.apt.selectedGungu;
+            if (aptElement) aptElement.textContent = state.apt.selectedApt;
+            
+            // 시도 셀렉터 이벤트 (기존 이벤트 제거 후 재등록)
+            const sidoSelector = document.getElementById('sidoSelector');
+            if (sidoSelector) {
+                // 기존 이벤트 제거
+                const newSidoSelector = sidoSelector.cloneNode(true);
+                sidoSelector.parentNode.replaceChild(newSidoSelector, sidoSelector);
+                
+                newSidoSelector.onclick = function(e) {
+                    e.stopPropagation();
+                    console.log('🔽 시도 드롭다운 클릭');
+                    
+                    const dropdown = document.getElementById('sidoDropdown');
+                    
+                    // 다른 드롭다운 닫기
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        if (menu !== dropdown) menu.classList.remove('show');
+                    });
+                    
+                    dropdown.innerHTML = sidoOptions.map(sido => 
+                        `<div class="dropdown-item" onclick="selectSido('${sido}'); event.stopPropagation();">${sido}</div>`
+                    ).join('');
+                    dropdown.classList.toggle('show');
+                    
+                    console.log('드롭다운 표시:', dropdown.classList.contains('show'));
+                };
+            }
+            
+            // 군구 셀렉터 이벤트
+            const gunguSelector = document.getElementById('gunguSelector');
+            if (gunguSelector) {
+                const newGunguSelector = gunguSelector.cloneNode(true);
+                gunguSelector.parentNode.replaceChild(newGunguSelector, gunguSelector);
+                
+                newGunguSelector.onclick = function(e) {
+                    e.stopPropagation();
+                    console.log('🔽 군구 드롭다운 클릭');
+                    
+                    const dropdown = document.getElementById('gunguDropdown');
+                    
+                    // 다른 드롭다운 닫기
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        if (menu !== dropdown) menu.classList.remove('show');
+                    });
+                    
+                    dropdown.innerHTML = (gunguOptions[state.apt.selectedSido] || []).map(gungu => 
+                        `<div class="dropdown-item" onclick="selectGungu('${gungu}'); event.stopPropagation();">${gungu}</div>`
+                    ).join('');
+                    dropdown.classList.toggle('show');
+                };
+            }
+            
+            // 아파트 셀렉터 이벤트
+            const aptSelector = document.getElementById('aptSelector');
+            if (aptSelector) {
+                const newAptSelector = aptSelector.cloneNode(true);
+                aptSelector.parentNode.replaceChild(newAptSelector, aptSelector);
+                
+                newAptSelector.onclick = function(e) {
+                    e.stopPropagation();
+                    console.log('🔽 아파트 드롭다운 클릭');
+                    
+                    const dropdown = document.getElementById('aptDropdown');
+                    
+                    // 다른 드롭다운 닫기
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        if (menu !== dropdown) menu.classList.remove('show');
+                    });
+                    
+                    const options = aptOptions[state.apt.selectedGungu] || [];
+                    
+                    if (options.length === 0) {
+                        dropdown.innerHTML = '<div class="dropdown-item" style="color: #999;">아파트가 없습니다</div>';
+                    } else {
+                        dropdown.innerHTML = options.map(apt => 
+                            `<div class="dropdown-item" onclick="selectApt(\`${apt}\`); event.stopPropagation();">${apt}</div>`
+                        ).join('');
+                    }
+                    
+                    dropdown.classList.toggle('show');
+                };
+            }
+            
+            console.log('✅ 셀렉터 이벤트 등록 완료');
+        }
+
+        // 외부 클릭 시 모든 드롭다운 닫기 (초기화 시 한 번만 등록)
+        let dropdownCloseListenerAdded = false;
+        
+        function addDropdownCloseListener() {
+            if (!dropdownCloseListenerAdded) {
+                document.addEventListener('click', function(e) {
+                    // 드롭다운이나 셀렉터를 클릭한 경우가 아니면 닫기
+                    if (!e.target.closest('.selector-box') && !e.target.closest('.dropdown-menu')) {
+                        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                            menu.classList.remove('show');
+                        });
+                    }
+                });
+                dropdownCloseListenerAdded = true;
+                console.log('✅ 드롭다운 외부 클릭 리스너 등록');
+            }
+        }
+
+        function selectSido(sido) {
+            console.log('✅ 시도 선택:', sido);
+            state.apt.selectedSido = sido;
+            state.apt.selectedGungu = gunguOptions[sido]?.[0] || '선택하세요';
+            state.apt.selectedApt = '선택하세요';
+            
+            // UI 업데이트
+            document.getElementById('selectedSido').textContent = state.apt.selectedSido;
+            document.getElementById('selectedGungu').textContent = state.apt.selectedGungu;
+            document.getElementById('selectedApt').textContent = state.apt.selectedApt;
+            
+            // 시도 드롭다운 닫기
+            document.getElementById('sidoDropdown').classList.remove('show');
+            
+            // 군구 드롭다운 자동으로 열기
+            setTimeout(() => {
+                const gunguDropdown = document.getElementById('gunguDropdown');
+                const gungus = gunguOptions[sido] || [];
+                
+                gunguDropdown.innerHTML = gungus.map(gungu => 
+                    `<div class="dropdown-item" onclick="selectGungu('${gungu}'); event.stopPropagation();">${gungu}</div>`
+                ).join('');
+                gunguDropdown.classList.add('show');
+            }, 100);
+        }
+
+        function selectGungu(gungu) {
+            console.log('✅ 군구 선택:', gungu);
+            state.apt.selectedGungu = gungu;
+            state.apt.selectedApt = '선택하세요';
+            
+            // UI 업데이트
+            document.getElementById('selectedGungu').textContent = state.apt.selectedGungu;
+            document.getElementById('selectedApt').textContent = state.apt.selectedApt;
+            
+            // 군구 드롭다운 닫기
+            document.getElementById('gunguDropdown').classList.remove('show');
+            
+            // 아파트 드롭다운 자동으로 열기
+            setTimeout(() => {
+                const aptDropdown = document.getElementById('aptDropdown');
+                const options = aptOptions[gungu] || [];
+                
+                if (options.length === 0) {
+                    aptDropdown.innerHTML = '<div class="dropdown-item" style="color: #999;">아파트가 없습니다</div>';
+                } else {
+                    aptDropdown.innerHTML = options.map(apt => 
+                        `<div class="dropdown-item" onclick="selectApt(\`${apt}\`); event.stopPropagation();">${apt}</div>`
+                    ).join('');
+                }
+                
+                aptDropdown.classList.add('show');
+            }, 100);
+        }
+
+        function selectApt(apt) {
+            console.log('✅ 아파트 선택:', apt);
+            state.apt.selectedApt = apt;
+            
+            // UI 업데이트
+            document.getElementById('selectedApt').textContent = state.apt.selectedApt;
+            
+            // 아파트 드롭다운 닫기
+            document.getElementById('aptDropdown').classList.remove('show');
+            
+            // 차트 렌더링
+            renderAptChart();
+        }
+
+        // ========== 아파트 차트 렌더링 ==========
+        async function renderAptChart() {
+            const chartContainer = document.getElementById('aptChart');
+            
+            // 기존 차트 인스턴스 제거
+            if (state.apt.chartInstance) {
+                state.apt.chartInstance.destroy();
+                state.apt.chartInstance = null;
+            }
+            
+            // 선택된 아파트가 없으면 플레이스홀더 표시
+            if (state.apt.selectedApt === '선택하세요') {
+                chartContainer.innerHTML = '<div class="chart-placeholder">아파트를 선택하세요</div>';
+                chartContainer.style.background = 'linear-gradient(135deg, #1976d2 0%, #42a5f5 50%)';
+                return;
+            }
+            
+            console.log('📊 차트 렌더링 시작');
+            
+            // 차트 컨테이너 초기화
+            chartContainer.innerHTML = '';
+            chartContainer.style.background = 'white';
+            
+            // 년월 범위 생성
+            const [startIdx, endIdx] = state.apt.yearRange;
+            const startYear = SLIDER_START_YEAR + Math.floor(startIdx / 12);
+            const startMonth = (startIdx % 12) + 1;
+            const endYear = SLIDER_START_YEAR + Math.floor(endIdx / 12);
+            const endMonth = (endIdx % 12) + 1;
+            
+            const categories = [];
+            let currentYear = startYear;
+            let currentMonth = startMonth;
+                       
+
+            while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+                const dateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+                categories.push(dateStr);
+                currentMonth++;
+                if (currentMonth > 12) {
+                    currentMonth = 1;
+                    currentYear++;
+                }
+            }
+
+            // 시리즈 데이터 생성
+            const series = [];
+            
+            // 매물호가 - RangeArea (최저/최고)
+            const rangeData = [];
+            if (state.apt.visibleSeries.매물호가) {
+                const basePrice = 20000000; // 2억
+                categories.forEach((date, i) => {
+                    // 80% 확률로 호가 존재
+                    if (Math.random() < 0.8) {
+                        const minPrice = Math.floor(basePrice + Math.sin(i / 6) * 5000000 + Math.random() * 2000000);
+                        const maxPrice = Math.floor(minPrice + 10000000 + Math.random() * 5000000);
+                        rangeData.push({
+                            x: date,
+                            y: [minPrice, maxPrice]
+                        });
+                    } else {
+                        rangeData.push({
+                            x: date,
+                            y: null  // 호가 없음
+                        });
+                    }
+                });
+                
+                series.push({
+                    name: '매물호가',
+                    type: 'rangeArea',
+                    data: rangeData
+                });
+            }
+            
+            // 매물량 - Column 차트
+            if (state.apt.visibleSeries.매물량) {
+                const columnData = categories.map((date, i) => {
+                    const baseCount = 200;
+                    const trend = Math.sin(i / 8) * 80;
+                    const random = Math.random() * 40 - 20;
+                    const spike = (i % 15 === 0) ? Math.random() * 150 : 0;
+                    return {
+                        x: date,
+                        y: Math.floor(Math.max(50, baseCount + trend + random + spike))
+                    };
+                });
+                
+                series.push({
+                    name: '매물량',
+                    type: 'column',
+                    data: columnData
+                });
+            }
+            
+            // 실거래가 - Scatter (날짜별로 여러 거래)
+            if (state.apt.visibleSeries.실거래가) {
+                const tradeData = [];
+                const basePrice = 25000000; // 2.5억
+                
+                categories.forEach((date, i) => {
+                    // 70% 확률로 거래 발생
+                    if (Math.random() < 0.7) {
+                        // 1~3건의 거래 생성 (같은 날짜에 여러 건)
+                        const tradeCount = Math.floor(Math.random() * 3) + 1;
+                        
+                        for (let j = 0; j < tradeCount; j++) {
+                            const price = Math.floor(basePrice + Math.sin(i / 6) * 8000000 + Math.random() * 10000000);
+                            tradeData.push({
+                                x: date,  // ✅ 같은 날짜 (동일한 x값)
+                                y: price  // ✅ 다른 가격
+                            });
+                        }
+                    }
+                });
+                
+                console.log('실거래가 데이터 샘플:', tradeData.slice(0, 10));
+                console.log('총 거래 건수:', tradeData.length);
+                
+                series.push({
+                    name: '실거래가',
+                    type: 'scatter',
+                    data: tradeData
+                });
+            }
+            
+            // 심리분석 - Candlestick (시가, 고가, 저가, 종가)
+            if (state.apt.visibleSeries.심리분석) {
+                const basePrice = 30000000; // 3억 기준
+                const candleData = categories.map((date, i) => {
+                    // 시가 (open)
+                    const open = basePrice + Math.sin(i / 5) * 8000000 + Math.random() * 3000000;
+                    
+                    // 종가 (close) - 시가 기준 ±10% 변동
+                    const closeChange = (Math.random() - 0.5) * 2 * 0.1; // -10% ~ +10%
+                    const close = open * (1 + closeChange);
+                    
+                    // 고가 (high) - 시가와 종가 중 높은 값 기준
+                    const maxPrice = Math.max(open, close);
+                    const high = maxPrice + Math.random() * 5000000;
+                    
+                    // 저가 (low) - 시가와 종가 중 낮은 값 기준
+                    const minPrice = Math.min(open, close);
+                    const low = minPrice - Math.random() * 5000000;
+                    
+                    return {
+                        x: date,
+                        y: [
+                            Math.floor(open),   // 시가
+                            Math.floor(high),   // 고가
+                            Math.floor(low),    // 저가
+                            Math.floor(close)   // 종가
+                        ]
+                    };
+                });
+                
+                series.push({
+                    name: '심리분석',
+                    type: 'candlestick',
+                    data: candleData
+                });
+            }
+            
+            if (series.length === 0) {
+                chartContainer.innerHTML = '<div class="chart-placeholder">한국부동산원 AI 분석 플랫폼</div>';
+                chartContainer.style.background = 'linear-gradient(135deg, #1976d2 0%, #42a5f5 50%)';
+                return;
+            }
+            
+            // 색상 설정
+            const colors = {
+                '매물호가': '#ef5350',
+                '매물량': '#42a5f5',
+                '실거래가': '#66bb6a',
+                '심리분석': '#ff9800'
+            };
+
+            // Y축 설정
+            const yaxis = series.map((s, idx) => {
+                const seriesName = s.name;
+                const isPriceOrTrade = (seriesName === '매물호가' || seriesName === '실거래가' || seriesName === '심리분석');
+                const isCount = (seriesName === '매물량');
+                
+                if (isPriceOrTrade) {
+                    const isFirstPriceOrTrade = series.findIndex(ser =>
+                        ser.name === '매물호가' || ser.name === '실거래가' || ser.name === '심리분석'
+                    ) === idx;
+                    
+                    return {
+                        seriesName: seriesName,
+                        axisTicks: { show: isFirstPriceOrTrade },
+                        axisBorder: { 
+                            show: isFirstPriceOrTrade, 
+                            color: '#f44336'
+                        },
+                        labels: {
+                            show: isFirstPriceOrTrade,
+                            style: { colors: '#f44336' },
+                            formatter: val => val ? (val / 10000).toFixed(0) + '만' : ''
+                        },
+                        title: {
+                            text: isFirstPriceOrTrade ? '금액 (만원)' : undefined,
+                            style: { 
+                                color: '#f44336',
+                                fontWeight: 600
+                            }
+                        },
+                        opposite: false,
+                        min: 15000000,
+                        max: 45000000
+                    };
+                } else if (isCount) {
+                    return {
+                        seriesName: seriesName,
+                        axisTicks: { show: true },
+                        axisBorder: { 
+                            show: true, 
+                            color: '#2196f3'
+                        },
+                        labels: {
+                            style: { colors: '#2196f3' },
+                            formatter: val => val ? Math.floor(val) + '건' : ''
+                        },
+                        title: {
+                            text: '매물량 (건수)',
+                            style: { 
+                                color: '#2196f3',
+                                fontWeight: 600
+                            }
+                        },
+                        opposite: true,
+                        min: 0,
+                        max: 500
+                    };
+                } else {
+                    return {
+                        seriesName: seriesName,
+                        show: false
+                    };
+                }
+            });
+
+            // 정책 annotations
+            const annotations = {
+                xaxis: state.apt.checkedPolicies.map(policy => {
+                    const dateStr = policy.date;
+                    const policyDate = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-01`;
+                    const originalDate = formatDate(dateStr);
+                    
+                    return {
+                        x: policyDate,
+                        strokeDashArray: 0,
+                        borderColor: '#757575',
+                        borderWidth: 2,
+                        label: {
+                            borderColor: '#757575',
+                            style: {
+                                color: '#fff',
+                                background: '#757575',
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                padding: { left: 6, right: 6, top: 3, bottom: 3 }
+                            },
+                            orientation: 'horizontal',
+                            textAnchor: 'middle',
+                            text: `${originalDate} ${policy.title.substring(0, 20)}`,
+                            offsetY: -10
+                        }
+                    };
+                })
+            };
+            
+            const seriesColors = series.map(s => colors[s.name]);
+
+            // 기본 ApexCharts 스타일 tooltip
+            const tooltipConfig = {
+                enabled: true,
+                shared: true,
+                intersect: false,
+                followCursor: false,
+                offsetY: -50, // 툴팁을 위로 50px 이동
+                x: {
+                    format: 'yyyy-MM-dd'
+                },
+                custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                    let dateValue = null;
+                    
+                    // 현재 시리즈가 scatter인지 확인하고, scatter면 실제 데이터의 x값 사용 
+                    //scatter 시리즈는 중복 x값을 허용하기 때문에 categories 배열의 인덱스와 실제 데이터의 위치가 다를 수 있음
+                    if (w && w.config && w.config.series) {
+                    const currentSeries = w.config.series[seriesIndex];
+                    if (currentSeries && currentSeries.type === 'scatter') {
+                        const seriesDataRaw = currentSeries.data || [];
+                        if (seriesDataRaw[dataPointIndex] && typeof seriesDataRaw[dataPointIndex].x !== 'undefined') {
+                        dateValue = seriesDataRaw[dataPointIndex].x;
+                        }
+                    } else {
+                        dateValue = categories[dataPointIndex];
+                    }
+                    }
+                    
+                    // 타입별 html 생성 함수
+                    function renderCandlestick(s, idx, seriesColor, seriesName, seriesDataRaw) {
+                    const dataPoint = seriesDataRaw[dataPointIndex];
+                    if (dataPoint && Array.isArray(dataPoint.y) && dataPoint.y.length === 4) {
+                        const [open, high, low, close] = dataPoint.y;
+                        return `
+                        <div class="apexcharts-tooltip-series-group apexcharts-active" style="order: ${idx + 1}; display: flex;">
+                            <span class="apexcharts-tooltip-marker" style="background-color: ${seriesColor};"></span>
+                            <div class="apexcharts-tooltip-text" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
+                            <div class="apexcharts-tooltip-y-group">
+                                <span class="apexcharts-tooltip-text-y-label">${seriesName}</span><br>
+                                <span class="apexcharts-tooltip-text-y-label">시가: </span><span class="apexcharts-tooltip-text-y-value">${open !== null && open !== undefined ? Number(open).toLocaleString() : '-'}</span><br>
+                                <span class="apexcharts-tooltip-text-y-label">고가: </span><span class="apexcharts-tooltip-text-y-value">${high !== null && high !== undefined ? Number(high).toLocaleString() : '-'}</span><br>
+                                <span class="apexcharts-tooltip-text-y-label">저가: </span><span class="apexcharts-tooltip-text-y-value">${low !== null && low !== undefined ? Number(low).toLocaleString() : '-'}</span><br>
+                                <span class="apexcharts-tooltip-text-y-label">종가: </span><span class="apexcharts-tooltip-text-y-value">${close !== null && close !== undefined ? Number(close).toLocaleString() : '-'}</span>
+                            </div>
+                            </div>
+                        </div>
+                        `;
+                    }
+                    return '';
+                    }
+
+                    function renderScatter(s, idx, seriesColor, seriesName, seriesDataRaw) {
+                    // dateValue를 기준으로 동일 날짜 데이터 찾기
+                    let sameDateItems = [];
+                    if (dateValue !== null && typeof dateValue !== 'undefined') {
+                        sameDateItems = seriesDataRaw.filter(item => {
+                        if (!item || typeof item.x === 'undefined') return false;
+                        // 날짜 타입이 다를 수 있으니 문자열로 변환해서 비교
+                        return String(item.x) === String(dateValue);
+                        });
+                    }
+
+                    let innerHtml = '';
+                    if (sameDateItems.length === 0) {
+                        innerHtml = `<span class="apexcharts-tooltip-text-y-label">${seriesName}: </span><span class="apexcharts-tooltip-text-y-value">없음</span>`;
+                    } else if (sameDateItems.length === 1) {
+                        innerHtml = `<span class="apexcharts-tooltip-text-y-label">${seriesName}: </span><span class="apexcharts-tooltip-text-y-value">${Number(sameDateItems[0].y).toLocaleString()}</span>`;
+                    } else if (sameDateItems.length === 2) {
+                        innerHtml = `<span class="apexcharts-tooltip-text-y-label">${seriesName}: </span>` +
+                        sameDateItems.map(item => `<span class=\"apexcharts-tooltip-text-y-value\" style=\"margin-right: 8px;\">${Number(item.y).toLocaleString()}</span>`).join('');
+                    } else {
+                        innerHtml = `<span class="apexcharts-tooltip-text-y-label" style="margin-bottom: 4px; display: block;">${seriesName}: </span>`;
+                        const itemsPerRow = 3;
+                        for (let i = 0; i < sameDateItems.length; i += itemsPerRow) {
+                        const rowItems = sameDateItems.slice(i, i + itemsPerRow);
+                        innerHtml += '<div style="margin-bottom: 2px;">' +
+                            rowItems.map(item => `<span class=\"apexcharts-tooltip-text-y-value\" style=\"margin-right: 8px;\">${Number(item.y).toLocaleString()}</span>`).join('') +
+                            '</div>';
+                        }
+                    }
+                    return `
+                        <div class="apexcharts-tooltip-series-group apexcharts-active" style="order: ${idx + 1}; display: flex;">
+                        <span class="apexcharts-tooltip-marker" style="background-color: ${seriesColor};"></span>
+                        <div class="apexcharts-tooltip-text" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; max-width: 350px;">
+                            <div class="apexcharts-tooltip-y-group">${innerHtml}</div>
+                        </div>
+                        </div>
+                    `;
+                    }
+
+                    function renderRangeArea(s, idx, seriesColor, seriesName, seriesDataRaw) {
+                    const dataPoint = seriesDataRaw[dataPointIndex];
+                    let displayValue = '없음';
+                    if (dataPoint && Array.isArray(dataPoint.y) && dataPoint.y.length === 2) {
+                        const [min, max] = dataPoint.y;
+                        if (min !== null && min !== undefined && max !== null && max !== undefined) {
+                        displayValue = `${Number(min).toLocaleString()} ~ ${Number(max).toLocaleString()}`;
+                        }
+                    }
+                    return `
+                        <div class="apexcharts-tooltip-series-group apexcharts-active" style="order: ${idx + 1}; display: flex;">
+                        <span class="apexcharts-tooltip-marker" style="background-color: ${seriesColor};"></span>
+                        <div class="apexcharts-tooltip-text" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
+                            <div class="apexcharts-tooltip-y-group">
+                            <span class="apexcharts-tooltip-text-y-label">${seriesName}: </span>
+                            <span class="apexcharts-tooltip-text-y-value">${displayValue}</span>
+                            </div>
+                        </div>
+                        </div>
+                    `;
+                    }
+
+                    function renderDefault(s, idx, seriesColor, seriesName, seriesDataRaw) {
+                    const dataPoint = seriesDataRaw[dataPointIndex];
+                    let displayValue = '없음';
+                    if (dataPoint && typeof dataPoint.y !== 'undefined' && dataPoint.y !== null) {
+                        if (dataPoint.y === 0) {
+                        displayValue = '0';
+                        } else {
+                        displayValue = Number(dataPoint.y).toLocaleString();
+                        }
+                    }
+                    return `
+                        <div class="apexcharts-tooltip-series-group apexcharts-active" style="order: ${idx + 1}; display: flex;">
+                        <span class="apexcharts-tooltip-marker" style="background-color: ${seriesColor};"></span>
+                        <div class="apexcharts-tooltip-text" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
+                            <div class="apexcharts-tooltip-y-group">
+                            <span class="apexcharts-tooltip-text-y-label">${seriesName}: </span>
+                            <span class="apexcharts-tooltip-text-y-value">${displayValue}</span>
+                            </div>
+                        </div>
+                        </div>
+                    `;
+                    }
+
+                    // 시리즈별로 타입에 따라 html 생성
+                    const seriesHtmlArr = w.config.series.map((s, idx) => {
+                    const seriesType = s.type || 'line';
+                    const seriesName = s.name || '';
+                    const seriesColor = w.config.colors[idx] || '#000';
+                    const seriesDataRaw = s.data || [];
+                    if (seriesType === 'candlestick') {
+                        return renderCandlestick(s, idx, seriesColor, seriesName, seriesDataRaw);
+                    } else if (seriesType === 'scatter') {
+                        return renderScatter(s, idx, seriesColor, seriesName, seriesDataRaw);
+                    } else if (seriesType === 'rangeArea') {
+                        return renderRangeArea(s, idx, seriesColor, seriesName, seriesDataRaw);
+                    } else {
+                        return renderDefault(s, idx, seriesColor, seriesName, seriesDataRaw);
+                    }
+                    });
+
+                    return `<div class="apexcharts-tooltip-title" style="font-family: Helvetica, Arial, sans-serif; font-size: 12px;">${dateValue}</div>` + seriesHtmlArr.join('');
+                }
+            };
+
+            // 아파트 정보 차트 옵션
+            const options = {
+                series: series,
+                chart: {
+                    type: 'line',
+                    height: 400,
+                    stacked: false,
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            zoom: true,
+                            zoomin: true,
+                            zoomout: true,
+                            pan: true,
+                            reset: true
+                        }
+                    },
+                    animations: {
+                        enabled: true,
+                        easing: 'easeinout',
+                        speed: 800
+                    }
+                },
+                colors: seriesColors,
+                stroke: {
+                    curve: 'smooth',
+                    //curve: series.map(s => s.type === 'rangeArea' ? 'smooth' : 'straight'),
+                    width: series.map(s => {
+                        if (s.type === 'rangeArea') return 1;
+                        if (s.type === 'column') return 1;
+                        if (s.type === 'scatter') return 0;
+                        return 3;
+                    })
+                },
+                fill: {
+                    type: series.map(s => {
+                        if (s.type === 'rangeArea') return 'gradient';
+                        if (s.type === 'column') return 'solid';
+                        return 'solid';
+                    }),
+                    opacity: series.map(s => {
+                        if (s.type === 'rangeArea') return 0.6;
+                        if (s.type === 'column') return 0.85;
+                        return 1;
+                    }),
+                    gradient: {
+                        shade: 'light',
+                        type: 'vertical',
+                        shadeIntensity: 0.4,
+                        gradientToColors: undefined,
+                        inverseColors: true,
+                        opacityFrom: 0.85,
+                        opacityTo: 0.3,
+                        stops: [0, 100]
+                    }
+                },
+                markers: {
+                    size: series.map(s => {
+                        if (s.type === 'scatter') return 5;
+                        return 0;
+                    }),
+                    colors: series.map(s => {
+                        if (s.type === 'scatter') return '#4caf50';
+                        return undefined;
+                    }),
+                    strokeColors: '#fff',
+                    strokeWidth: 2,
+                    hover: {
+                        size: series.map(s => {
+                            if (s.type === 'scatter') return 7;
+                            return 0;
+                        })
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                        columnWidth: '50%',
+                        borderRadius: 2
+                    },
+                    candlestick: {
+                        colors: {
+                            upward: '#ef5350',    // 상승 (빨강)
+                            downward: '#26a69a'   // 하락 (초록)
+                        },
+                        wick: {
+                            useFillColor: true
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                xaxis: {
+                    type: 'category',
+                    categories: categories,
+                    labels: {
+                        rotate: -45,
+                        rotateAlways: true,
+                        style: {
+                            fontSize: '11px'
+                        }
+                    },
+                    tickAmount: Math.min(12, Math.floor(categories.length / 6))
+                },
+                yaxis: yaxis,
+                legend: {
+                    position: 'bottom',
+                    horizontalAlign: 'center',
+                    fontSize: '12px',
+                    markers: {
+                        width: 10,
+                        height: 10,
+                        radius: 2
+                    },
+                    itemMargin: {
+                        horizontal: 10,
+                        vertical: 5
+                    }
+                },
+                tooltip: tooltipConfig,
+                grid: {
+                    borderColor: '#e0e0e0',
+                    strokeDashArray: 4,
+                    xaxis: {
+                        lines: {
+                            show: true
+                        }
+                    },
+                    yaxis: {
+                        lines: {
+                            show: true
+                        }
+                    }
+                },
+                annotations: annotations,
+                title: {
+                    text: `${state.apt.selectedApt} - ${state.apt.selectedSaleType} ${state.apt.selectedArea}㎡`,
+                    align: 'left',
+                    style: {
+                        fontSize: '16px',
+                        fontWeight: 600,
+                        color: '#1976d2'
+                    }
+                }
+            };
+
+            try {
+                const chart = new ApexCharts(chartContainer, options);
+                await chart.render();
+                
+                state.apt.chartInstance = chart;
+                
+                console.log('✅ 아파트 차트 렌더링 완료');
+                
+            } catch (err) {
+                console.error('❌ 아파트 차트 렌더링 실패:', err);
+                chartContainer.innerHTML = `<div style="color: red; padding: 40px; text-align: center;">차트 생성 실패<br/>${err.message}</div>`;
+            }
+        }
+
+        // ========== 아파트 차트 초기화/분석 ==========
+        function resetAptChart() {
+            
+            const chartContainer = document.getElementById('aptChart');
+            
+            if (state.apt.chartInstance) {
+                state.apt.chartInstance.destroy();
+                state.apt.chartInstance = null;
+            }
+            
+            chartContainer.innerHTML = '<div class="chart-placeholder">한국부동산원 AI 분석 플랫폼</div>';
+            chartContainer.style.background = 'linear-gradient(135deg, #1976d2 0%, #42a5f5 50%)';
+            
+            state.apt.selectedSido = '서울특별시';
+            state.apt.selectedGungu = '송파구';
+            state.apt.selectedApt = '선택하세요';
+            state.apt.selectedSaleType = '매매';
+            state.apt.selectedArea = 84;
+            state.apt.selectedMind = false;
+            state.apt.yearRange = [0, 119];
+            state.apt.chartData = null;
+            state.apt.checkedPolicies = [];
+            state.apt.visibleSeries = {
+                매물호가: true,
+                매물량: true,
+                실거래가: true, 
+                심리분석: false
+            };
+            
+            // 슬라이더 DOM 요소 초기화
+            const startSlider = document.getElementById('yearRangeSliderAptStart');
+            const endSlider = document.getElementById('yearRangeSliderAptEnd');
+            if (startSlider) startSlider.value = 0;
+            if (endSlider) endSlider.value = 119;
+            
+            // 슬라이더 트랙 업데이트
+            if (startSlider && endSlider) {
+                updateSliderTrack(startSlider, endSlider);
+            }
+
+            updateAptSelectors();
+            updateAptYearRangeDisplay();
+            
+            document.getElementById('btnSale').className = 'btn btn-primary';
+            document.getElementById('btnRent').className = 'btn btn-secondary';
+            document.getElementById('btnArea59').className = 'btn btn-outlined';
+            document.getElementById('btnArea84').className = 'btn btn-outlined active';
+            document.getElementById('btnArea110').className = 'btn btn-outlined';
+            document.getElementById('btnArea124').className = 'btn btn-outlined';
+            document.getElementById('btnPrice').className = 'btn btn-toggle active';
+            document.getElementById('btnCount').className = 'btn btn-toggle active';
+            document.getElementById('btnTrade').className = 'btn btn-toggle active';
+            document.getElementById('btnMind').className = 'btn btn-mind';
+        }
+
+        async function analyzeAptChart() {
+            if (state.apt.selectedApt === '선택하세요') {
+                alert('아파트를 선택하세요.');
+                return;
+            }
+            
+            if (!state.apt.chartInstance) {
+                alert('차트를 먼저 생성해주세요.');
+                return;
+            }
+            
+            try { 
+                // ApexCharts의 dataURI() 메서드로 이미지 추출
+                const imgDataURI = await state.apt.chartInstance.dataURI();
+                
+                if (!imgDataURI || !imgDataURI.imgURI) {
+                    console.error('❌ 이미지 추출 실패');
+                    alert('이미지 생성에 실패했습니다.');
+                    return;
+                }
+                
+                const uri = imgDataURI.imgURI;
+                const ext = 'png';
+                const uuid = typeof uuidv4 === 'function' ? uuidv4() : Date.now().toString();
+                const date = new Date().toISOString();
+                const chartId = `${state.apt.selectedApt}_${state.apt.selectedSaleType}_${state.apt.selectedArea}`;
+                
+                // 히스토리에 추가
+                const newImage = {
+                    uri: uri,
+                    ext: ext,
+                    date: date,
+                    chartId: chartId,
+                    uuid: uuid
+                };
+                
+                state.chartImageHistory.unshift(newImage);             
+                
+                // 히스토리 렌더링 (양쪽 모두 업데이트)
+                renderHistory();
+                
+                // 히스토리 탭으로 자동 전환
+                switchAptTab(0);
+                
+            } catch (err) {
+                console.error('❌ 이미지 추출 실패:', err);
+                alert('이미지 생성 중 오류가 발생했습니다.');
+            }
+        }
+
+
+        // ========== 지도 관련 함수 ==========
+        
+        // 인증 실패 처리
+        window.navermap_authFailure = function() {
+            console.error('Naver Map API 인증 실패: Client ID를 확인하세요.');
+            const mapDiv = document.getElementById('map');
+            if (mapDiv) {
+                mapDiv.innerHTML = '<div class="error">지도 API 인증에 실패했습니다. Client ID를 확인하세요.</div>';
+            }
+        };
+        
+        // 지도 초기화
+        function initMap() {
+            console.log('🗺️ 지도 초기화');
+            
+            // 이미 초기화된 경우 스킵
+            if (state.map.instance) {
+                console.log('✅ 지도 이미 초기화됨');
+                return;
+            }
+            
+            if (!window.naver || !window.naver.maps) {
+                console.error('❌ Naver Maps API가 로드되지 않았습니다.');
+                const mapDiv = document.getElementById('map');
+                if (mapDiv) {
+                    mapDiv.innerHTML = '<div class="error">지도 API 로드에 실패했습니다. CLIENT_ID를 확인하세요.</div>';
+                }
+                return;
+            }
+            
+            try {
+                // 지도 옵션
+                const mapOptions = {
+                    center: new naver.maps.LatLng(37.5665, 126.9780), // 서울 시청 좌표
+                    zoom: 10
+                };
+                
+                // 지도 생성
+                state.map.instance = new naver.maps.Map('map', mapOptions);
+                
+                console.log('✅ 지도 초기화 완료 - 중심:', mapOptions.center.toString());
+                
+                // 서울시청 위치에 기본 마커 표시
+                state.map.currentMarker = new naver.maps.Marker({
+                    position: mapOptions.center,
+                    map: state.map.instance,
+                    title: '서울시청'
+                });
+                
+                // 검색 버튼 이벤트
+                const searchButton = document.getElementById('mapSearchButton');
+                if (searchButton) {
+                    searchButton.onclick = handleMapSearch;
+                }
+                
+                // Enter 키 이벤트
+                const searchInput = document.getElementById('mapAddressInput');
+                if (searchInput) {
+                    searchInput.onkeypress = function(e) {
+                        if (e.key === 'Enter') {
+                            handleMapSearch();
+                        }
+                    };
+                }
+                
+            } catch (error) {
+                console.error('❌ 지도 초기화 실패:', error);
+                const mapDiv = document.getElementById('map');
+                if (mapDiv) {
+                    mapDiv.innerHTML = '<div class="error">지도 초기화에 실패했습니다.</div>';
+                }
+            }
+        }
+        
+        // 주소 검색
+        function handleMapSearch() {
+            const addressInput = document.getElementById('mapAddressInput');
+            if (!addressInput) {
+                console.error('❌ 주소 입력창을 찾을 수 없습니다.');
+                return;
+            }
+            
+            const address = addressInput.value;
+            searchAddressToCoordinate(address);
+        }
+        
+        function searchAddressToCoordinate(searchAddress) {
+            if (!state.map.instance) {
+                console.error('❌ 지도가 초기화되지 않았습니다.');
+                alert('지도를 초기화하는 중입니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
+            
+            if (!searchAddress || !searchAddress.trim()) {
+                alert('주소를 입력해주세요.');
+                return;
+            }
+            
+            console.log('🔍 주소 검색:', searchAddress);
+            
+            // Geocoding API 사용
+            naver.maps.Service.geocode({
+                query: searchAddress
+            }, function(status, response) {
+                if (status !== naver.maps.Service.Status.OK) {
+                    console.error('❌ 주소 검색 실패:', searchAddress, status);
+                    alert('주소를 찾을 수 없습니다. 정확한 주소를 입력해주세요.');
+                    return;
+                }
+                
+                if (response.v2.meta.totalCount === 0) {
+                    alert('검색 결과가 없습니다.');
+                    return;
+                }
+                
+                const item = response.v2.addresses[0];
+                const point = new naver.maps.LatLng(item.y, item.x);
+                
+                console.log('✅ 주소 검색 성공:', searchAddress);
+                console.log('   좌표:', item.y, item.x);
+                console.log('   도로명:', item.roadAddress);
+                console.log('   지번:', item.jibunAddress);
+                
+                // 지도 중심 이동
+                state.map.instance.setCenter(point);
+                state.map.instance.setZoom(16);
+                
+                // 기존 마커 제거
+                if (state.map.currentMarker) {
+                    state.map.currentMarker.setMap(null);
+                }
+                
+                // 새 마커 추가
+                try {
+                    state.map.currentMarker = new naver.maps.Marker({
+                        position: point,
+                        map: state.map.instance,
+                        title: item.roadAddress || item.jibunAddress
+                    });
+                    
+                    console.log('✅ 마커 생성 완료');
+                    
+                } catch (error) {
+                    console.error('❌ 마커 생성 실패:', error);
+                }
+            });
+        }
+
+        // ========== 초기화 ==========
+        function init() {
+            console.log('🚀 앱 초기화');
+            
+            // ApexCharts 로드 확인
+            if (typeof ApexCharts === 'undefined') {
+                console.error('❌ ApexCharts 라이브러리가 로드되지 않았습니다');
+                alert('차트 라이브러리 로딩에 실패했습니다. 페이지를 새로고침 해주세요.');
+            } else {
+                console.log('✅ ApexCharts 로드 완료');
+            }
+            
+            // 슬라이더 마크 렌더링
+            renderSliderMarks('sliderMarks');
+            renderSliderMarks('sliderMarksApt');
+            
+            // AI 데이터 분석 뷰 초기화
+            loadMenuData();
+            setupCardDropZones();
+            updateYearRangeDisplay();
+            renderPolicyTable();
+            
+            // AI 데이터 분석 년도 슬라이더 (시작/종료)
+            const startSlider = document.getElementById('yearRangeSliderStart');
+            const endSlider = document.getElementById('yearRangeSliderEnd');
+            
+            startSlider.addEventListener('input', function(e) {
+                let startValue = parseInt(e.target.value);
+                let endValue = parseInt(endSlider.value);
+                
+                if (startValue >= endValue) {
+                    endValue = Math.min(119, startValue + 1);
+                    endSlider.value = endValue;
+                }
+                
+                state.yearRange = [startValue, endValue];
+                updateYearRangeDisplay();
+                updateSliderTrack(startSlider, endSlider);
+            });
+            
+            endSlider.addEventListener('input', function(e) {
+                let startValue = parseInt(startSlider.value);
+                let endValue = parseInt(e.target.value);
+                
+                if (endValue <= startValue) {
+                    startValue = Math.max(0, endValue - 1);
+                    startSlider.value = startValue;
+                }
+                
+                state.yearRange = [startValue, endValue];
+                updateYearRangeDisplay();
+                updateSliderTrack(startSlider, endSlider);
+            });
+            
+            console.log('✅ 초기화 완료');
+        }
+        
+        // DOMContentLoaded와 load 둘 다 확인
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
