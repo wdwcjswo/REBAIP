@@ -257,7 +257,6 @@
         
         .dual-range-slider input[type="range"]::-webkit-slider-thumb {
             pointer-events: all;
-            -webkit-appearance: none;
             appearance: none;
             width: 20px;
             height: 20px;
@@ -325,10 +324,10 @@
             border-radius: 4px;
             background: #e0e0e0;
             outline: none;
+            -webkit-appearance: none;
         }
         
         input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
             appearance: none;
             width: 20px;
             height: 20px;
@@ -455,11 +454,42 @@
             text-align: center;
         }
         
-        .mini-chart {
-            flex: 1;
-            min-height: 120px;
+        .card-options {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
+        .card-option-select {
+            flex: 1;
+            min-width: 120px;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        
+        .card-option-select:hover {
+            border-color: #1976d2;
+        }
+        
+        .card-option-select:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+        }
+
+        .mini-chart {
+            flex: 1;
+            min-height: 100px;
+        }
+
         .chart-section {
             background: white;
             padding: 20px;
@@ -1107,9 +1137,9 @@
             currentView: 'data-analysis',
             menuData: [],
             cards: [
-                { selected: false, color: '#1976d2', data: null, chartInstance: null },
-                { selected: false, color: '#2e7d32', data: null, chartInstance: null },
-                { selected: false, color: '#d32f2f', data: null, chartInstance: null }
+                { selected: false, color: '#1976d2', data: null, chartInstance: null , option1: null,option2: null},
+                { selected: false, color: '#2e7d32', data: null, chartInstance: null , option1: null,option2: null},
+                { selected: false, color: '#d32f2f', data: null, chartInstance: null , option1: null,option2: null}
             ],
             chartData: null,
             chartLayers: [],
@@ -1142,6 +1172,51 @@
                 currentMarker: null
             }
         };
+
+        // 카드별 옵션1/옵션2 하드코딩 함수
+        function getCardOptions(statblid) {
+            if (statblid === 'A_2024_00045') {
+            // 매매가격지수 아파트: 지역 + 평형
+            return {
+                option1Options: [
+                '전국', '수도권', '지방권', '6대광역시', '5대광역시', '9개도', '8개도',
+                '서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종',
+                '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
+                ],
+                option2Options: [
+                '전체', '60㎡ 이하', '60㎡ 초과 85㎡ 이하', '85㎡ 초과'
+                ]
+            };
+            } else if (statblid === 'A_2024_00903') {
+            // 지역별 지가변동률: 평형만
+            return {
+                option1Options: [],
+                option2Options: [
+                '전체', '60㎡ 이하', '60㎡ 초과 85㎡ 이하', '85㎡ 초과'
+                ]
+            };
+            } else if (statblid === 'T236933129926065') {
+            // 발주자공종별%20건설수주액(경상)
+            return {
+                option1Options: [
+                '수주총액', '공공부문', '민간부문', '국내외국기관'
+                ],
+                option2Options: [
+                '계', '건축', '토목', '건축>주택'
+                ]
+            };
+            } else {
+            // 기타: 지역만
+            return {
+                option1Options: [
+                '전국', '수도권', '지방권', '6대광역시', '5대광역시', '9개도', '8개도',
+                '서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종',
+                '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
+                ],
+                option2Options: []
+            };
+            }
+        }
 
         // 드롭다운 데이터
         const sidoOptions = ['서울특별시', '경기도', '인천광역시'];
@@ -1431,9 +1506,44 @@
             // 카드 색상 가져오기
             const cardColor = state.cards[cardIndex].color;
 
+            // 옵션 가져오기
+            const options = getCardOptions(statblid);
+
             // 카드 UI 업데이트
             card.classList.add('active');
             card.style.borderColor = cardColor;  // 동적 border 색상 설정
+
+            // 옵션 드롭다운 HTML 생성
+            let optionsHtml = '';
+            if (options.option1Options.length > 0 || options.option2Options.length > 0) {
+                optionsHtml = '<div class="card-options">';
+                
+                // 옵션1 드롭다운
+                if (options.option1Options.length > 0) {
+                    optionsHtml += `
+                        <select class="card-option-select" id="cardOption1-${cardIndex}" 
+                                onchange="updateCardOption(${cardIndex}, 1, this.value)">
+                            ${options.option1Options.map((opt, idx) => 
+                                `<option value="${opt}" ${idx === 0 ? 'selected' : ''}>${opt}</option>`
+                            ).join('')}
+                        </select>
+                    `;
+                }
+                
+                // 옵션2 드롭다운
+                if (options.option2Options.length > 0) {
+                    optionsHtml += `
+                        <select class="card-option-select" id="cardOption2-${cardIndex}"
+                                onchange="updateCardOption(${cardIndex}, 2, this.value)">
+                            ${options.option2Options.map((opt, idx) => 
+                                `<option value="${opt}" ${idx === 0 ? 'selected' : ''}>${opt}</option>`
+                            ).join('')}
+                        </select>
+                    `;
+                }
+                
+                optionsHtml += '</div>';
+            }
 
             card.innerHTML = `
                 <div class="card-header">
@@ -1441,6 +1551,7 @@
                     <button class="card-remove" onclick="removeCard(${cardIndex})">×</button>
                 </div>
                 <div class="mini-chart" id="mini-chart-${cardIndex}"></div>
+                ${optionsHtml}
             `;
             
             console.log('카드 HTML 업데이트 완료');
@@ -1464,10 +1575,24 @@
             state.cards[cardIndex].selected = true;
             state.cards[cardIndex].data = item;
             
-            console.log('✅ 카드 로딩 완료, 차트 인스턴스:', state.cards[cardIndex].chartInstance ? '생성됨 ✅' : '없음 ❌');
+            console.log('카드 로딩 완료, 차트 인스턴스:', state.cards[cardIndex].chartInstance ? '생성됨 ✅' : '없음 ❌');
             
             // 메인 차트 업데이트
             await updateMainChart();
+        }
+
+        // 카드 옵션 변경 핸들러
+        function updateCardOption(cardIndex, optionNumber, value) {
+            console.log(`🔧 카드 ${cardIndex} 옵션${optionNumber} 변경:`, value);
+            
+            if (optionNumber === 1) {
+                state.cards[cardIndex].option1 = value;
+            } else {
+                state.cards[cardIndex].option2 = value;
+            }
+            
+            // 메인 차트 업데이트
+            updateMainChart();
         }
 
         // ========== 차트 카드 드롭 처리 ==========
@@ -1705,6 +1830,8 @@
             // 상태 초기화
             state.cards[cardIndex].selected = false;
             state.cards[cardIndex].data = null;
+            state.cards[cardIndex].option1 = null;
+            state.cards[cardIndex].option2 = null;
             
             // UI 초기화
             card.classList.remove('active');
